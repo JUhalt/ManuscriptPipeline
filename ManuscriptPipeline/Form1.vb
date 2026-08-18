@@ -15,7 +15,13 @@ Public Class Form1
     Private ReadOnly repository As New ManuscriptRepository()
 
     Private ReadOnly pipelinePanel As New FlowLayoutPanel()
+    Private ReadOnly publishedPanel As New FlowLayoutPanel()
     Private ReadOnly fileDrawerPanel As New FlowLayoutPanel()
+
+    Private ReadOnly lblPipelineHeader As New Label()
+    Private ReadOnly lblPublishedHeader As New Label()
+    Private ReadOnly lblFileDrawerHeader As New Label()
+
     Private ReadOnly lblStatus As New Label()
 
     Private uiInitialized As Boolean = False
@@ -53,8 +59,8 @@ Public Class Form1
 
         Me.Text = "ManuscriptPipeline"
         Me.StartPosition = FormStartPosition.CenterScreen
-        Me.Size = New Size(1100, 760)
-        Me.MinimumSize = New Size(850, 600)
+        Me.Size = New Size(1180, 820)
+        Me.MinimumSize = New Size(900, 680)
         Me.Font = New Font("Segoe UI", 10.0F)
         Me.AutoScaleMode = AutoScaleMode.Dpi
         Me.BackColor = SystemColors.Control
@@ -67,7 +73,7 @@ Public Class Form1
             .BackColor = SystemColors.Control
         }
 
-        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 78))
+        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 82))
         root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
         root.RowStyles.Add(New RowStyle(SizeType.Absolute, 32))
 
@@ -75,64 +81,112 @@ Public Class Form1
         ' Header
         ' =================================================
 
-        Dim header As New Panel With {
+        Dim header As New TableLayoutPanel With {
             .Dock = DockStyle.Fill,
-            .Padding = New Padding(18, 12, 18, 10),
+            .ColumnCount = 2,
+            .RowCount = 1,
+            .Padding = New Padding(18, 10, 18, 8),
             .BackColor = SystemColors.Window
         }
+
+        header.ColumnStyles.Add(
+            New ColumnStyle(SizeType.Percent, 100)
+        )
+
+        header.ColumnStyles.Add(
+            New ColumnStyle(SizeType.AutoSize)
+        )
+
+        Dim branding As New TableLayoutPanel With {
+            .Dock = DockStyle.Fill,
+            .ColumnCount = 1,
+            .RowCount = 2,
+            .Margin = New Padding(0)
+        }
+
+        branding.RowStyles.Add(
+            New RowStyle(SizeType.Absolute, 34)
+        )
+
+        branding.RowStyles.Add(
+            New RowStyle(SizeType.Absolute, 26)
+        )
 
         Dim lblTitle As New Label With {
             .Text = "ManuscriptPipeline",
             .AutoSize = True,
-            .Left = 18,
-            .Top = 12,
-            .Font = New Font(Me.Font.FontFamily, 16, FontStyle.Bold)
+            .Anchor = AnchorStyles.Left,
+            .Font = New Font(
+                Me.Font.FontFamily,
+                16,
+                FontStyle.Bold
+            )
         }
 
         Dim lblSubtitle As New Label With {
             .Text = "Local-first academic manuscript tracking",
             .AutoSize = True,
-            .Left = 20,
-            .Top = 44,
+            .Anchor = AnchorStyles.Left,
             .ForeColor = SystemColors.GrayText
         }
 
+        branding.Controls.Add(
+            lblTitle,
+            0,
+            0
+        )
+
+        branding.Controls.Add(
+            lblSubtitle,
+            0,
+            1
+        )
+
         Dim headerActions As New FlowLayoutPanel With {
-    .Dock = DockStyle.Right,
-    .AutoSize = True,
-    .FlowDirection = FlowDirection.RightToLeft,
-    .WrapContents = False,
-    .Padding = New Padding(0, 2, 0, 2)
-}
+            .AutoSize = True,
+            .Dock = DockStyle.Fill,
+            .FlowDirection = FlowDirection.RightToLeft,
+            .WrapContents = False,
+            .Margin = New Padding(12, 2, 0, 0)
+        }
 
         Dim btnAdd As New Button With {
-    .Text = "+ Add Manuscript",
-    .Width = 175,
-    .Height = 44
-}
+            .Text = "+ Add Manuscript",
+            .Width = 175,
+            .Height = 44
+        }
 
         Dim btnImport As New Button With {
-    .Text = "Import Excel...",
-    .Width = 145,
-    .Height = 44
-}
-
-        AddHandler btnAdd.Click, AddressOf AddManuscript
-        AddHandler btnImport.Click, AddressOf ImportExcelHistory
-
-        headerActions.Controls.Add(btnAdd)
-        headerActions.Controls.Add(btnImport)
-
-        header.Controls.Add(lblTitle)
-        header.Controls.Add(lblSubtitle)
-        header.Controls.Add(headerActions)
+            .Text = "Import Excel...",
+            .Width = 145,
+            .Height = 44
+        }
 
         AddHandler btnAdd.Click,
             AddressOf AddManuscript
 
-        header.Controls.Add(lblTitle)
-        header.Controls.Add(lblSubtitle)
-        header.Controls.Add(btnAdd)
+        AddHandler btnImport.Click,
+            AddressOf ImportExcelHistory
+
+        headerActions.Controls.Add(
+            btnAdd
+        )
+
+        headerActions.Controls.Add(
+            btnImport
+        )
+
+        header.Controls.Add(
+            branding,
+            0,
+            0
+        )
+
+        header.Controls.Add(
+            headerActions,
+            1,
+            0
+        )
 
         ' =================================================
         ' Main body
@@ -141,37 +195,81 @@ Public Class Form1
         Dim body As New TableLayoutPanel With {
             .Dock = DockStyle.Fill,
             .ColumnCount = 1,
-            .RowCount = 4,
+            .RowCount = 6,
             .Padding = New Padding(18, 12, 18, 12)
         }
 
-        body.RowStyles.Add(New RowStyle(SizeType.Absolute, 38))
-        body.RowStyles.Add(New RowStyle(SizeType.Percent, 55))
-        body.RowStyles.Add(New RowStyle(SizeType.Absolute, 38))
-        body.RowStyles.Add(New RowStyle(SizeType.Percent, 45))
+        body.RowStyles.Add(New RowStyle(SizeType.Absolute, 34))
+        body.RowStyles.Add(New RowStyle(SizeType.Percent, 48))
 
-        Dim lblPipeline As New Label With {
-            .Text = "PIPELINE",
-            .AutoSize = True,
-            .Anchor = AnchorStyles.Left,
-            .Font = New Font(Me.Font, FontStyle.Bold)
-        }
+        body.RowStyles.Add(New RowStyle(SizeType.Absolute, 34))
+        body.RowStyles.Add(New RowStyle(SizeType.Percent, 25))
 
-        Dim lblDrawer As New Label With {
-            .Text = "FILE DRAWER",
-            .AutoSize = True,
-            .Anchor = AnchorStyles.Left,
-            .Font = New Font(Me.Font, FontStyle.Bold)
-        }
+        body.RowStyles.Add(New RowStyle(SizeType.Absolute, 34))
+        body.RowStyles.Add(New RowStyle(SizeType.Percent, 27))
 
-        ConfigureFlowPanel(pipelinePanel)
-        ConfigureFlowPanel(fileDrawerPanel)
+        ConfigureSectionHeader(
+            lblPipelineHeader,
+            "PIPELINE"
+        )
 
-        body.Controls.Add(lblPipeline, 0, 0)
-        body.Controls.Add(pipelinePanel, 0, 1)
+        ConfigureSectionHeader(
+            lblPublishedHeader,
+            "PUBLISHED"
+        )
 
-        body.Controls.Add(lblDrawer, 0, 2)
-        body.Controls.Add(fileDrawerPanel, 0, 3)
+        ConfigureSectionHeader(
+            lblFileDrawerHeader,
+            "FILE DRAWER"
+        )
+
+        ConfigureFlowPanel(
+            pipelinePanel
+        )
+
+        ConfigureFlowPanel(
+            publishedPanel
+        )
+
+        ConfigureFlowPanel(
+            fileDrawerPanel
+        )
+
+        body.Controls.Add(
+            lblPipelineHeader,
+            0,
+            0
+        )
+
+        body.Controls.Add(
+            pipelinePanel,
+            0,
+            1
+        )
+
+        body.Controls.Add(
+            lblPublishedHeader,
+            0,
+            2
+        )
+
+        body.Controls.Add(
+            publishedPanel,
+            0,
+            3
+        )
+
+        body.Controls.Add(
+            lblFileDrawerHeader,
+            0,
+            4
+        )
+
+        body.Controls.Add(
+            fileDrawerPanel,
+            0,
+            5
+        )
 
         ' =================================================
         ' Footer
@@ -183,21 +281,58 @@ Public Class Form1
         lblStatus.ForeColor = SystemColors.GrayText
         lblStatus.Text = "Local storage enabled."
 
-        root.Controls.Add(header, 0, 0)
-        root.Controls.Add(body, 0, 1)
-        root.Controls.Add(lblStatus, 0, 2)
+        root.Controls.Add(
+            header,
+            0,
+            0
+        )
 
-        Me.Controls.Add(root)
+        root.Controls.Add(
+            body,
+            0,
+            1
+        )
+
+        root.Controls.Add(
+            lblStatus,
+            0,
+            2
+        )
+
+        Me.Controls.Add(
+            root
+        )
 
         AddHandler pipelinePanel.Resize,
             Sub(sender, e)
                 ResizeCards(pipelinePanel)
             End Sub
 
+        AddHandler publishedPanel.Resize,
+            Sub(sender, e)
+                ResizeCards(publishedPanel)
+            End Sub
+
         AddHandler fileDrawerPanel.Resize,
             Sub(sender, e)
                 ResizeCards(fileDrawerPanel)
             End Sub
+
+    End Sub
+
+
+    Private Sub ConfigureSectionHeader(
+        label As Label,
+        text As String
+    )
+
+        label.Text = text
+        label.AutoSize = True
+        label.Anchor = AnchorStyles.Left
+        label.Font = New Font(
+            Me.Font,
+            FontStyle.Bold
+        )
 
     End Sub
 
@@ -210,7 +345,8 @@ Public Class Form1
 
         Try
 
-            manuscripts = repository.Load()
+            manuscripts =
+                repository.Load()
 
             lblStatus.Text =
                 "Loaded " &
@@ -219,7 +355,8 @@ Public Class Form1
 
         Catch ex As Exception
 
-            manuscripts = New List(Of Manuscript)()
+            manuscripts =
+                New List(Of Manuscript)()
 
             MessageBox.Show(
                 Me,
@@ -244,7 +381,9 @@ Public Class Form1
 
         Try
 
-            repository.Save(manuscripts)
+            repository.Save(
+                manuscripts
+            )
 
             lblStatus.Text =
                 "Saved locally - " &
@@ -301,47 +440,88 @@ Public Class Form1
     Private Sub RenderManuscripts()
 
         pipelinePanel.SuspendLayout()
+        publishedPanel.SuspendLayout()
         fileDrawerPanel.SuspendLayout()
 
         pipelinePanel.Controls.Clear()
+        publishedPanel.Controls.Clear()
         fileDrawerPanel.Controls.Clear()
 
         Dim pipelineCount As Integer = 0
+        Dim publishedCount As Integer = 0
         Dim drawerCount As Integer = 0
 
         For Each manuscript As Manuscript In manuscripts
 
-            If manuscript.Location = ManuscriptLocation.Pipeline Then
+            Select Case manuscript.Location
 
-                pipelinePanel.Controls.Add(
-                    CreateManuscriptCard(
-                        manuscript,
-                        pipelinePanel
+                Case ManuscriptLocation.Pipeline
+
+                    pipelinePanel.Controls.Add(
+                        CreateManuscriptCard(
+                            manuscript,
+                            pipelinePanel
+                        )
                     )
-                )
 
-                pipelineCount += 1
+                    pipelineCount += 1
 
-            Else
+                Case ManuscriptLocation.Published
 
-                fileDrawerPanel.Controls.Add(
-                    CreateManuscriptCard(
-                        manuscript,
-                        fileDrawerPanel
+                    publishedPanel.Controls.Add(
+                        CreateManuscriptCard(
+                            manuscript,
+                            publishedPanel
+                        )
                     )
-                )
 
-                drawerCount += 1
+                    publishedCount += 1
 
-            End If
+                Case ManuscriptLocation.FileDrawer
+
+                    fileDrawerPanel.Controls.Add(
+                        CreateManuscriptCard(
+                            manuscript,
+                            fileDrawerPanel
+                        )
+                    )
+
+                    drawerCount += 1
+
+            End Select
 
         Next
+
+        lblPipelineHeader.Text =
+            "PIPELINE (" &
+            pipelineCount.ToString() &
+            ")"
+
+        lblPublishedHeader.Text =
+            "PUBLISHED (" &
+            publishedCount.ToString() &
+            ")"
+
+        lblFileDrawerHeader.Text =
+            "FILE DRAWER (" &
+            drawerCount.ToString() &
+            ")"
 
         If pipelineCount = 0 Then
 
             pipelinePanel.Controls.Add(
                 CreateEmptyLabel(
-                    "No active manuscripts yet. Click + Add Manuscript."
+                    "No active manuscripts. Click + Add Manuscript."
+                )
+            )
+
+        End If
+
+        If publishedCount = 0 Then
+
+            publishedPanel.Controls.Add(
+                CreateEmptyLabel(
+                    "No published manuscripts yet."
                 )
             )
 
@@ -358,10 +538,20 @@ Public Class Form1
         End If
 
         pipelinePanel.ResumeLayout()
+        publishedPanel.ResumeLayout()
         fileDrawerPanel.ResumeLayout()
 
-        ResizeCards(pipelinePanel)
-        ResizeCards(fileDrawerPanel)
+        ResizeCards(
+            pipelinePanel
+        )
+
+        ResizeCards(
+            publishedPanel
+        )
+
+        ResizeCards(
+            fileDrawerPanel
+        )
 
     End Sub
 
@@ -413,7 +603,9 @@ Public Class Form1
 
         Dim lblStage As New Label With {
             .Text =
-                FormatStage(manuscript.CurrentStage) &
+                FormatStage(
+                    manuscript.CurrentStage
+                ) &
                 " - " &
                 journalText,
             .AutoEllipsis = True,
@@ -438,26 +630,34 @@ Public Class Form1
 
         AddHandler card.DoubleClick,
             Sub(sender, e)
-                OpenManuscript(manuscript)
+                OpenManuscript(
+                    manuscript
+                )
             End Sub
 
         AddHandler lblTitle.DoubleClick,
             Sub(sender, e)
-                OpenManuscript(manuscript)
+                OpenManuscript(
+                    manuscript
+                )
             End Sub
 
         AddHandler lblStage.DoubleClick,
             Sub(sender, e)
-                OpenManuscript(manuscript)
+                OpenManuscript(
+                    manuscript
+                )
             End Sub
 
         AddHandler lblStats.DoubleClick,
             Sub(sender, e)
-                OpenManuscript(manuscript)
+                OpenManuscript(
+                    manuscript
+                )
             End Sub
 
         ' =================================================
-        ' Delete
+        ' Delete button
         ' =================================================
 
         Dim btnDelete As New Button With {
@@ -478,64 +678,102 @@ Public Class Form1
 
         AddHandler btnDelete.Click,
             Sub(sender, e)
-                DeleteManuscript(manuscript)
+                DeleteManuscript(
+                    manuscript
+                )
             End Sub
 
-        ' =================================================
-        ' Location
-        ' =================================================
+        Dim nextRight As Integer =
+            btnDelete.Left - 8
 
-        Dim btnLocation As New Button With {
-            .Height = 34,
-            .Top = 41,
-            .Anchor =
-                AnchorStyles.Top Or
-                AnchorStyles.Right,
-            .Cursor = Cursors.Default
-        }
+        ' =================================================
+        ' Location button
+        ' =================================================
 
         If manuscript.Location =
             ManuscriptLocation.Pipeline Then
 
-            btnLocation.Text =
-                "Move to File Drawer"
+            Dim btnLocation As New Button With {
+                .Text = "Move to File Drawer",
+                .Height = 34,
+                .Top = 41,
+                .Anchor =
+                    AnchorStyles.Top Or
+                    AnchorStyles.Right,
+                .Cursor = Cursors.Default
+            }
+
+            btnLocation.Width =
+                Math.Max(
+                    175,
+                    TextRenderer.MeasureText(
+                        btnLocation.Text,
+                        btnLocation.Font
+                    ).Width + 34
+                )
+
+            btnLocation.Left =
+                nextRight -
+                btnLocation.Width
+
+            nextRight =
+                btnLocation.Left - 8
 
             AddHandler btnLocation.Click,
                 Sub(sender, e)
-                    MoveToFileDrawer(manuscript)
+                    MoveToFileDrawer(
+                        manuscript
+                    )
                 End Sub
 
-        Else
+            card.Controls.Add(
+                btnLocation
+            )
 
-            btnLocation.Text =
-                "Restore to Pipeline"
+        ElseIf manuscript.Location =
+            ManuscriptLocation.FileDrawer Then
+
+            Dim btnLocation As New Button With {
+                .Text = "Restore to Pipeline",
+                .Height = 34,
+                .Top = 41,
+                .Anchor =
+                    AnchorStyles.Top Or
+                    AnchorStyles.Right,
+                .Cursor = Cursors.Default
+            }
+
+            btnLocation.Width =
+                Math.Max(
+                    175,
+                    TextRenderer.MeasureText(
+                        btnLocation.Text,
+                        btnLocation.Font
+                    ).Width + 34
+                )
+
+            btnLocation.Left =
+                nextRight -
+                btnLocation.Width
+
+            nextRight =
+                btnLocation.Left - 8
 
             AddHandler btnLocation.Click,
                 Sub(sender, e)
-                    RestoreToPipeline(manuscript)
+                    RestoreToPipeline(
+                        manuscript
+                    )
                 End Sub
+
+            card.Controls.Add(
+                btnLocation
+            )
 
         End If
 
-        Dim locationWidth As Integer =
-            TextRenderer.MeasureText(
-                btnLocation.Text,
-                btnLocation.Font
-            ).Width + 34
-
-        btnLocation.Width =
-            Math.Max(
-                175,
-                locationWidth
-            )
-
-        btnLocation.Left =
-            btnDelete.Left -
-            btnLocation.Width -
-            8
-
         ' =================================================
-        ' Open
+        ' Open button
         ' =================================================
 
         Dim btnOpen As New Button With {
@@ -543,17 +781,21 @@ Public Class Form1
             .Width = 88,
             .Height = 34,
             .Top = 41,
-            .Left =
-                btnLocation.Left - 96,
             .Anchor =
                 AnchorStyles.Top Or
                 AnchorStyles.Right,
             .Cursor = Cursors.Default
         }
 
+        btnOpen.Left =
+            nextRight -
+            btnOpen.Width
+
         AddHandler btnOpen.Click,
             Sub(sender, e)
-                OpenManuscript(manuscript)
+                OpenManuscript(
+                    manuscript
+                )
             End Sub
 
         Dim textWidth As Integer =
@@ -578,12 +820,25 @@ Public Class Form1
             AnchorStyles.Left Or
             AnchorStyles.Right
 
-        card.Controls.Add(lblTitle)
-        card.Controls.Add(lblStage)
-        card.Controls.Add(lblStats)
-        card.Controls.Add(btnOpen)
-        card.Controls.Add(btnLocation)
-        card.Controls.Add(btnDelete)
+        card.Controls.Add(
+            lblTitle
+        )
+
+        card.Controls.Add(
+            lblStage
+        )
+
+        card.Controls.Add(
+            lblStats
+        )
+
+        card.Controls.Add(
+            btnOpen
+        )
+
+        card.Controls.Add(
+            btnDelete
+        )
 
         ' =================================================
         ' File Drawer suggestion
@@ -594,7 +849,8 @@ Public Class Form1
            manuscript.RejectionCount >=
                 FileDrawerSuggestionThreshold Then
 
-            card.Height = 142
+            card.Height =
+                142
 
             Dim lblSuggestion As New Label With {
                 .Text =
@@ -657,10 +913,11 @@ Public Class Form1
     )
 
         Dim newWidth As Integer =
-            GetCardWidth(panel)
+            GetCardWidth(
+                panel
+            )
 
-        For Each control As Control In
-            panel.Controls
+        For Each control As Control In panel.Controls
 
             If TypeOf control Is Panel Then
 
@@ -746,7 +1003,7 @@ Public Class Form1
 
 
     ' =====================================================
-    ' Delete
+    ' Delete manuscript
     ' =====================================================
 
     Private Sub DeleteManuscript(
@@ -792,7 +1049,7 @@ Public Class Form1
                 "' to the File Drawer?" &
                 Environment.NewLine &
                 Environment.NewLine &
-                "Its history and submission records will be preserved.",
+                "Its history, submissions, decisions, and correspondence will be preserved.",
                 "Move to File Drawer",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question
@@ -878,30 +1135,33 @@ Public Class Form1
 
 
     ' =====================================================
-    ' Formatting
+    ' Excel import
     ' =====================================================
 
     Private Sub ImportExcelHistory(
-    sender As Object,
-    e As EventArgs
-)
+        sender As Object,
+        e As EventArgs
+    )
 
         Using dialog As New OpenFileDialog()
 
             dialog.Title =
-            "Import Manuscript History"
+                "Import Manuscript History"
 
             dialog.Filter =
-            "Excel workbooks (*.xlsx;*.xlsm)|*.xlsx;*.xlsm|All files (*.*)|*.*"
+                "Excel workbooks (*.xlsx;*.xlsm)|*.xlsx;*.xlsm|All files (*.*)|*.*"
 
             dialog.CheckFileExists =
-            True
+                True
 
             dialog.Multiselect =
-            False
+                False
 
-            If dialog.ShowDialog(Me) <> DialogResult.OK Then
+            If dialog.ShowDialog(Me) <>
+                DialogResult.OK Then
+
                 Return
+
             End If
 
             Dim importer As New LegacyExcelImporter()
@@ -910,45 +1170,40 @@ Public Class Form1
             Try
 
                 importResult =
-                importer.Import(
-                    dialog.FileName
-                )
+                    importer.Import(
+                        dialog.FileName
+                    )
 
             Catch ex As Exception
 
                 MessageBox.Show(
-                Me,
-                "ManuscriptPipeline could not read this workbook." &
-                Environment.NewLine &
-                Environment.NewLine &
-                ex.Message,
-                "Excel Import Error",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error
-            )
+                    Me,
+                    "ManuscriptPipeline could not read this workbook." &
+                    Environment.NewLine &
+                    Environment.NewLine &
+                    ex.Message,
+                    "Excel Import Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                )
 
                 Return
 
             End Try
 
-
-            ' =================================================
-            ' Prevent accidental duplicates
-            ' =================================================
-
             Dim existingTitles As New HashSet(Of String)(
-            StringComparer.OrdinalIgnoreCase
-        )
+                StringComparer.OrdinalIgnoreCase
+            )
 
             For Each existingManuscript As Manuscript In manuscripts
 
                 If Not String.IsNullOrWhiteSpace(
-                existingManuscript.Title
-            ) Then
+                    existingManuscript.Title
+                ) Then
 
                     existingTitles.Add(
-                    existingManuscript.Title.Trim()
-                )
+                        existingManuscript.Title.Trim()
+                    )
 
                 End If
 
@@ -960,129 +1215,138 @@ Public Class Form1
             For Each importedManuscript As Manuscript In importResult.Manuscripts
 
                 If existingTitles.Contains(
-                importedManuscript.Title.Trim()
-            ) Then
+                    importedManuscript.Title.Trim()
+                ) Then
 
                     duplicateCount += 1
 
                 Else
 
                     manuscriptsToAdd.Add(
-                    importedManuscript
-                )
+                        importedManuscript
+                    )
 
                 End If
 
             Next
 
-
             If manuscriptsToAdd.Count = 0 Then
 
                 MessageBox.Show(
-                Me,
-                "No new manuscripts are available to import." &
-                Environment.NewLine &
-                Environment.NewLine &
-                duplicateCount.ToString() &
-                " manuscript(s) matched titles already in ManuscriptPipeline.",
-                "Nothing to Import",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information
-            )
+                    Me,
+                    "No new manuscripts are available to import." &
+                    Environment.NewLine &
+                    Environment.NewLine &
+                    duplicateCount.ToString() &
+                    " manuscript(s) matched titles already in ManuscriptPipeline.",
+                    "Nothing to Import",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                )
 
                 Return
 
             End If
 
+            Dim submissionCount As Integer = 0
+            Dim decisionCount As Integer = 0
 
-            ' =================================================
-            ' Build preview
-            ' =================================================
+            For Each importedManuscript As Manuscript In manuscriptsToAdd
+
+                submissionCount +=
+                    importedManuscript.Submissions.Count
+
+                For Each submission As JournalSubmission In importedManuscript.Submissions
+
+                    decisionCount +=
+                        submission.Decisions.Count
+
+                Next
+
+            Next
 
             Dim preview As String =
-            "Manuscripts to add: " &
-            manuscriptsToAdd.Count.ToString() &
-            Environment.NewLine &
-            "Journal submissions: " &
-            importResult.SubmissionCount.ToString() &
-            Environment.NewLine &
-            "Editorial decisions: " &
-            importResult.DecisionCount.ToString()
+                "Manuscripts to add: " &
+                manuscriptsToAdd.Count.ToString() &
+                Environment.NewLine &
+                "Journal submissions: " &
+                submissionCount.ToString() &
+                Environment.NewLine &
+                "Editorial decisions: " &
+                decisionCount.ToString()
 
             If duplicateCount > 0 Then
 
                 preview &=
-                Environment.NewLine &
-                "Existing manuscript titles skipped: " &
-                duplicateCount.ToString()
+                    Environment.NewLine &
+                    "Existing manuscript titles skipped: " &
+                    duplicateCount.ToString()
 
             End If
 
             If importResult.Warnings.Count > 0 Then
 
                 preview &=
-                Environment.NewLine &
-                "Import warnings: " &
-                importResult.Warnings.Count.ToString()
+                    Environment.NewLine &
+                    "Import warnings: " &
+                    importResult.Warnings.Count.ToString()
 
                 Dim warningLimit As Integer =
-                Math.Min(
-                    5,
-                    importResult.Warnings.Count
-                )
+                    Math.Min(
+                        5,
+                        importResult.Warnings.Count
+                    )
 
                 preview &=
-                Environment.NewLine &
-                Environment.NewLine &
-                "First warnings:"
+                    Environment.NewLine &
+                    Environment.NewLine &
+                    "First warnings:"
 
                 For i As Integer = 0 To warningLimit - 1
 
                     preview &=
-                    Environment.NewLine &
-                    "• " &
-                    importResult.Warnings(i)
+                        Environment.NewLine &
+                        "- " &
+                        importResult.Warnings(i)
 
                 Next
 
-                If importResult.Warnings.Count > warningLimit Then
+                If importResult.Warnings.Count >
+                    warningLimit Then
 
                     preview &=
-                    Environment.NewLine &
-                    "• ...and " &
-                    (
-                        importResult.Warnings.Count -
-                        warningLimit
-                    ).ToString() &
-                    " more."
+                        Environment.NewLine &
+                        "- ...and " &
+                        (
+                            importResult.Warnings.Count -
+                            warningLimit
+                        ).ToString() &
+                        " more."
 
                 End If
 
             End If
 
             preview &=
-            Environment.NewLine &
-            Environment.NewLine &
-            "Import these records?"
-
+                Environment.NewLine &
+                Environment.NewLine &
+                "Import these records?"
 
             Dim confirmation As DialogResult =
-            MessageBox.Show(
-                Me,
-                preview,
-                "Excel Import Preview",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question
-            )
+                MessageBox.Show(
+                    Me,
+                    preview,
+                    "Excel Import Preview",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question
+                )
 
-            If confirmation <> DialogResult.Yes Then
+            If confirmation <>
+                DialogResult.Yes Then
+
                 Return
+
             End If
-
-
-            ' =================================================
-            ' Backup existing JSON before modifying anything
-            ' =================================================
 
             Try
 
@@ -1091,44 +1355,38 @@ Public Class Form1
             Catch ex As Exception
 
                 MessageBox.Show(
-                Me,
-                "ManuscriptPipeline could not create the pre-import backup." &
-                Environment.NewLine &
-                Environment.NewLine &
-                ex.Message &
-                Environment.NewLine &
-                Environment.NewLine &
-                "The import has been cancelled.",
-                "Backup Error",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error
-            )
+                    Me,
+                    "ManuscriptPipeline could not create the pre-import backup." &
+                    Environment.NewLine &
+                    Environment.NewLine &
+                    ex.Message &
+                    Environment.NewLine &
+                    Environment.NewLine &
+                    "The import has been cancelled.",
+                    "Backup Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                )
 
                 Return
 
             End Try
 
-
-            ' =================================================
-            ' Add imported manuscripts
-            ' =================================================
-
             For Each importedManuscript As Manuscript In manuscriptsToAdd
 
                 manuscripts.Add(
-                importedManuscript
-            )
+                    importedManuscript
+                )
 
             Next
-
 
             If Not SaveManuscripts() Then
 
                 For Each importedManuscript As Manuscript In manuscriptsToAdd
 
                     manuscripts.Remove(
-                    importedManuscript
-                )
+                        importedManuscript
+                    )
 
                 Next
 
@@ -1136,21 +1394,25 @@ Public Class Form1
 
             End If
 
-
             RenderManuscripts()
 
             MessageBox.Show(
-            Me,
-            manuscriptsToAdd.Count.ToString() &
-            " manuscript(s) were imported successfully.",
-            "Import Complete",
-            MessageBoxButtons.OK,
-            MessageBoxIcon.Information
-        )
+                Me,
+                manuscriptsToAdd.Count.ToString() &
+                " manuscript(s) were imported successfully.",
+                "Import Complete",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            )
 
         End Using
 
     End Sub
+
+
+    ' =====================================================
+    ' Formatting
+    ' =====================================================
 
     Private Function FormatStage(
         stage As PaperStage

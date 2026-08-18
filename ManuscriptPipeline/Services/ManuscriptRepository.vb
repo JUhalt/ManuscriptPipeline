@@ -203,6 +203,13 @@ Namespace Services
 
             For Each manuscript As Manuscript In manuscripts
 
+                If manuscript.CurrentStage = PaperStage.Published AndAlso
+   manuscript.Location = ManuscriptLocation.Pipeline Then
+
+                    manuscript.Location = ManuscriptLocation.Published
+
+                End If
+
                 If manuscript.History Is Nothing Then
 
                     manuscript.History =

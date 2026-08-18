@@ -739,6 +739,19 @@ Namespace Forms
                     PaperStage
                 )
 
+            If newStage = PaperStage.Published Then
+
+                _workingManuscript.Location =
+        ManuscriptLocation.Published
+
+            ElseIf _workingManuscript.Location =
+    ManuscriptLocation.Published Then
+
+                _workingManuscript.Location =
+        ManuscriptLocation.Pipeline
+
+            End If
+
             _workingManuscript.Title =
                 txtTitle.Text.Trim()
 

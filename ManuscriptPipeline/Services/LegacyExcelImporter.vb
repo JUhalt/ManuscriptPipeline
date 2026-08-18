@@ -349,7 +349,7 @@ Namespace Services
 
                 Case "P"
 
-                    manuscript.Location = ManuscriptLocation.Pipeline
+                    manuscript.Location = ManuscriptLocation.Published
                     manuscript.CurrentStage = PaperStage.Published
 
                 Case "FD"
