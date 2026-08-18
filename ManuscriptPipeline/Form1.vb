@@ -1139,214 +1139,249 @@ Public Class Form1
     ' =====================================================
 
     Private Sub ImportExcelHistory(
-        sender As Object,
-        e As EventArgs
-    )
+    sender As Object,
+    e As EventArgs
+)
 
         Using dialog As New OpenFileDialog()
 
-            dialog.Title =
-                "Import Manuscript History"
+            dialog.Title = "Import Manuscript History"
+            dialog.Filter = "Excel workbooks (*.xlsx;*.xlsm)|*.xlsx;*.xlsm|All files (*.*)|*.*"
+            dialog.CheckFileExists = True
+            dialog.Multiselect = False
 
-            dialog.Filter =
-                "Excel workbooks (*.xlsx;*.xlsm)|*.xlsx;*.xlsm|All files (*.*)|*.*"
-
-            dialog.CheckFileExists =
-                True
-
-            dialog.Multiselect =
-                False
-
-            If dialog.ShowDialog(Me) <>
-                DialogResult.OK Then
-
+            If dialog.ShowDialog(Me) <> DialogResult.OK Then
                 Return
-
             End If
 
-            Dim importer As New LegacyExcelImporter()
             Dim importResult As ExcelImportResult
+            Dim detectedFormat As String
 
             Try
 
-                importResult =
-                    importer.Import(
-                        dialog.FileName
-                    )
+                Dim isStandardTemplate As Boolean = False
+
+                Using workbook As New ClosedXML.Excel.XLWorkbook(dialog.FileName)
+
+                    Dim hasManuscripts As Boolean = False
+                    Dim hasSubmissions As Boolean = False
+                    Dim hasDecisions As Boolean = False
+                    Dim hasCorrespondence As Boolean = False
+
+                    For Each worksheet As ClosedXML.Excel.IXLWorksheet In workbook.Worksheets
+
+                        Select Case worksheet.Name.Trim().ToUpperInvariant()
+
+                            Case "MANUSCRIPTS"
+                                hasManuscripts = True
+
+                            Case "SUBMISSIONS"
+                                hasSubmissions = True
+
+                            Case "DECISIONS"
+                                hasDecisions = True
+
+                            Case "CORRESPONDENCE"
+                                hasCorrespondence = True
+
+                        End Select
+
+                    Next
+
+                    isStandardTemplate =
+                    hasManuscripts AndAlso
+                    hasSubmissions AndAlso
+                    hasDecisions AndAlso
+                    hasCorrespondence
+
+                End Using
+
+                If isStandardTemplate Then
+
+                    Dim importer As New StandardExcelImporter()
+
+                    importResult = importer.Import(dialog.FileName)
+                    detectedFormat = "Standard ManuscriptPipeline template"
+
+                Else
+
+                    Dim importer As New LegacyExcelImporter()
+
+                    importResult = importer.Import(dialog.FileName)
+                    detectedFormat = "Legacy tracker"
+
+                End If
 
             Catch ex As Exception
 
                 MessageBox.Show(
-                    Me,
-                    "ManuscriptPipeline could not read this workbook." &
-                    Environment.NewLine &
-                    Environment.NewLine &
-                    ex.Message,
-                    "Excel Import Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                )
+                Me,
+                "ManuscriptPipeline could not read this workbook." &
+                Environment.NewLine &
+                Environment.NewLine &
+                ex.Message,
+                "Excel Import Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            )
 
                 Return
 
             End Try
 
+
             Dim existingTitles As New HashSet(Of String)(
-                StringComparer.OrdinalIgnoreCase
-            )
+            StringComparer.OrdinalIgnoreCase
+        )
 
             For Each existingManuscript As Manuscript In manuscripts
 
-                If Not String.IsNullOrWhiteSpace(
-                    existingManuscript.Title
-                ) Then
-
-                    existingTitles.Add(
-                        existingManuscript.Title.Trim()
-                    )
-
+                If Not String.IsNullOrWhiteSpace(existingManuscript.Title) Then
+                    existingTitles.Add(existingManuscript.Title.Trim())
                 End If
 
             Next
+
 
             Dim manuscriptsToAdd As New List(Of Manuscript)()
             Dim duplicateCount As Integer = 0
 
             For Each importedManuscript As Manuscript In importResult.Manuscripts
 
-                If existingTitles.Contains(
-                    importedManuscript.Title.Trim()
-                ) Then
+                If existingTitles.Contains(importedManuscript.Title.Trim()) Then
 
                     duplicateCount += 1
 
                 Else
 
-                    manuscriptsToAdd.Add(
-                        importedManuscript
-                    )
+                    manuscriptsToAdd.Add(importedManuscript)
 
                 End If
 
             Next
+
 
             If manuscriptsToAdd.Count = 0 Then
 
                 MessageBox.Show(
-                    Me,
-                    "No new manuscripts are available to import." &
-                    Environment.NewLine &
-                    Environment.NewLine &
-                    duplicateCount.ToString() &
-                    " manuscript(s) matched titles already in ManuscriptPipeline.",
-                    "Nothing to Import",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information
-                )
+                Me,
+                "No new manuscripts are available to import." &
+                Environment.NewLine &
+                Environment.NewLine &
+                duplicateCount.ToString() &
+                " manuscript(s) matched titles already in ManuscriptPipeline.",
+                "Nothing to Import",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            )
 
                 Return
 
             End If
 
+
             Dim submissionCount As Integer = 0
             Dim decisionCount As Integer = 0
+            Dim correspondenceCount As Integer = 0
 
             For Each importedManuscript As Manuscript In manuscriptsToAdd
 
-                submissionCount +=
-                    importedManuscript.Submissions.Count
+                submissionCount += importedManuscript.Submissions.Count
 
                 For Each submission As JournalSubmission In importedManuscript.Submissions
 
-                    decisionCount +=
-                        submission.Decisions.Count
+                    decisionCount += submission.Decisions.Count
+                    correspondenceCount += submission.Correspondence.Count
 
                 Next
 
             Next
 
+
             Dim preview As String =
-                "Manuscripts to add: " &
-                manuscriptsToAdd.Count.ToString() &
-                Environment.NewLine &
-                "Journal submissions: " &
-                submissionCount.ToString() &
-                Environment.NewLine &
-                "Editorial decisions: " &
-                decisionCount.ToString()
+            "Detected format: " &
+            detectedFormat &
+            Environment.NewLine &
+            Environment.NewLine &
+            "Manuscripts to add: " &
+            manuscriptsToAdd.Count.ToString() &
+            Environment.NewLine &
+            "Journal submissions: " &
+            submissionCount.ToString() &
+            Environment.NewLine &
+            "Editorial decisions: " &
+            decisionCount.ToString() &
+            Environment.NewLine &
+            "Correspondence/files: " &
+            correspondenceCount.ToString()
+
 
             If duplicateCount > 0 Then
 
                 preview &=
-                    Environment.NewLine &
-                    "Existing manuscript titles skipped: " &
-                    duplicateCount.ToString()
+                Environment.NewLine &
+                "Existing manuscript titles skipped: " &
+                duplicateCount.ToString()
 
             End If
+
 
             If importResult.Warnings.Count > 0 Then
 
                 preview &=
-                    Environment.NewLine &
-                    "Import warnings: " &
-                    importResult.Warnings.Count.ToString()
+                Environment.NewLine &
+                "Import warnings: " &
+                importResult.Warnings.Count.ToString()
 
                 Dim warningLimit As Integer =
-                    Math.Min(
-                        5,
-                        importResult.Warnings.Count
-                    )
+                Math.Min(5, importResult.Warnings.Count)
 
                 preview &=
-                    Environment.NewLine &
-                    Environment.NewLine &
-                    "First warnings:"
+                Environment.NewLine &
+                Environment.NewLine &
+                "First warnings:"
 
                 For i As Integer = 0 To warningLimit - 1
 
                     preview &=
-                        Environment.NewLine &
-                        "- " &
-                        importResult.Warnings(i)
+                    Environment.NewLine &
+                    "- " &
+                    importResult.Warnings(i)
 
                 Next
 
-                If importResult.Warnings.Count >
-                    warningLimit Then
+                If importResult.Warnings.Count > warningLimit Then
 
                     preview &=
-                        Environment.NewLine &
-                        "- ...and " &
-                        (
-                            importResult.Warnings.Count -
-                            warningLimit
-                        ).ToString() &
-                        " more."
+                    Environment.NewLine &
+                    "- ...and " &
+                    (importResult.Warnings.Count - warningLimit).ToString() &
+                    " more."
 
                 End If
 
             End If
 
+
             preview &=
-                Environment.NewLine &
-                Environment.NewLine &
-                "Import these records?"
+            Environment.NewLine &
+            Environment.NewLine &
+            "Import these records?"
+
 
             Dim confirmation As DialogResult =
-                MessageBox.Show(
-                    Me,
-                    preview,
-                    "Excel Import Preview",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question
-                )
+            MessageBox.Show(
+                Me,
+                preview,
+                "Excel Import Preview",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            )
 
-            If confirmation <>
-                DialogResult.Yes Then
-
+            If confirmation <> DialogResult.Yes Then
                 Return
-
             End If
+
 
             Try
 
@@ -1355,55 +1390,54 @@ Public Class Form1
             Catch ex As Exception
 
                 MessageBox.Show(
-                    Me,
-                    "ManuscriptPipeline could not create the pre-import backup." &
-                    Environment.NewLine &
-                    Environment.NewLine &
-                    ex.Message &
-                    Environment.NewLine &
-                    Environment.NewLine &
-                    "The import has been cancelled.",
-                    "Backup Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                )
+                Me,
+                "ManuscriptPipeline could not create the pre-import backup." &
+                Environment.NewLine &
+                Environment.NewLine &
+                ex.Message &
+                Environment.NewLine &
+                Environment.NewLine &
+                "The import has been cancelled.",
+                "Backup Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            )
 
                 Return
 
             End Try
 
+
             For Each importedManuscript As Manuscript In manuscriptsToAdd
-
-                manuscripts.Add(
-                    importedManuscript
-                )
-
+                manuscripts.Add(importedManuscript)
             Next
+
 
             If Not SaveManuscripts() Then
 
                 For Each importedManuscript As Manuscript In manuscriptsToAdd
-
-                    manuscripts.Remove(
-                        importedManuscript
-                    )
-
+                    manuscripts.Remove(importedManuscript)
                 Next
 
                 Return
 
             End If
 
+
             RenderManuscripts()
 
             MessageBox.Show(
-                Me,
-                manuscriptsToAdd.Count.ToString() &
-                " manuscript(s) were imported successfully.",
-                "Import Complete",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information
-            )
+            Me,
+            manuscriptsToAdd.Count.ToString() &
+            " manuscript(s) were imported successfully." &
+            Environment.NewLine &
+            Environment.NewLine &
+            "Format: " &
+            detectedFormat,
+            "Import Complete",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information
+        )
 
         End Using
 
