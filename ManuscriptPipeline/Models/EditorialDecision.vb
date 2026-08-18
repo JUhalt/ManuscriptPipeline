@@ -2,6 +2,7 @@
 
     Public Enum EditorialDecision
         None
+        Rejected
         DeskRejected
         RejectedAfterReview
         MajorRevision

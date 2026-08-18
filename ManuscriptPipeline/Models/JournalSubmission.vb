@@ -15,8 +15,13 @@ Namespace Models
 
         Public Property Notes As String = String.Empty
 
+        Public Property PortalUrl As String = String.Empty
+
         Public Property Decisions As List(Of EditorialDecisionEvent) =
             New List(Of EditorialDecisionEvent)()
+
+        Public Property Correspondence As List(Of CorrespondenceItem) =
+            New List(Of CorrespondenceItem)()
 
     End Class
 
