@@ -10,6 +10,9 @@ Imports ManuscriptPipeline.Controls
 
 Public Class Form1
 
+    Private Const LongReviewThresholdDays As Integer = 90
+    Private Const RecentRejectionThresholdDays As Integer = 30
+
     Private ReadOnly settingsService As New AppSettingsService()
 
     Private appSettings As AppSettings =
@@ -33,6 +36,12 @@ Public Class Form1
     Private ReadOnly cboStageFilter As New ComboBox()
     Private ReadOnly cboBoardSort As New ComboBox()
     Private ReadOnly btnClearBoardFilters As New Button()
+
+    Private ReadOnly lblAttentionTitle As New Label()
+    Private ReadOnly lblOverdueRevisions As New Label()
+    Private ReadOnly lblLongReviews As New Label()
+    Private ReadOnly lblMissingJournal As New Label()
+    Private ReadOnly lblRecentRejections As New Label()
 
     Private uiInitialized As Boolean = False
 
@@ -111,7 +120,6 @@ Public Class Form1
         header.ColumnStyles.Add(
     New ColumnStyle(SizeType.AutoSize)
 )
-
 
         ' =================================================
         ' Branding
@@ -301,11 +309,12 @@ Public Class Form1
         Dim body As New TableLayoutPanel With {
             .Dock = DockStyle.Fill,
             .ColumnCount = 1,
-            .RowCount = 7,
+            .RowCount = 8,
             .Padding = New Padding(18, 8, 18, 12),
             .BackColor = UiTheme.BoardBackground()
         }
 
+        body.RowStyles.Add(New RowStyle(SizeType.Absolute, 40))
         body.RowStyles.Add(New RowStyle(SizeType.Absolute, 52))
 
         body.RowStyles.Add(New RowStyle(SizeType.Absolute, 34))
@@ -321,6 +330,70 @@ Public Class Form1
         ' =================================================
         ' Search / filter / sort bar
         ' =================================================
+
+        Dim attentionBar As New FlowLayoutPanel With {
+    .Dock = DockStyle.Fill,
+    .FlowDirection = FlowDirection.LeftToRight,
+    .WrapContents = False,
+    .Padding = New Padding(0, 7, 0, 3),
+    .BackColor = UiTheme.BoardBackground()
+}
+
+        lblAttentionTitle.Text =
+    "NEEDS ATTENTION"
+
+        lblAttentionTitle.AutoSize =
+    True
+
+        lblAttentionTitle.Font =
+    New Font(
+        Me.Font.FontFamily,
+        9.0F,
+        FontStyle.Bold
+    )
+
+        lblAttentionTitle.ForeColor =
+    UiTheme.PrimaryText()
+
+        lblAttentionTitle.Margin =
+    New Padding(0, 3, 16, 0)
+
+        ConfigureAttentionLabel(
+    lblOverdueRevisions
+)
+
+        ConfigureAttentionLabel(
+    lblLongReviews
+)
+
+        ConfigureAttentionLabel(
+    lblMissingJournal
+)
+
+        ConfigureAttentionLabel(
+    lblRecentRejections
+)
+
+
+        attentionBar.Controls.Add(
+    lblAttentionTitle
+)
+
+        attentionBar.Controls.Add(
+    lblOverdueRevisions
+)
+
+        attentionBar.Controls.Add(
+    lblLongReviews
+)
+
+        attentionBar.Controls.Add(
+    lblMissingJournal
+)
+
+        attentionBar.Controls.Add(
+    lblRecentRejections
+)
 
         Dim boardToolbar As New FlowLayoutPanel With {
             .Dock = DockStyle.Fill,
@@ -458,46 +531,52 @@ Public Class Form1
 
 
         body.Controls.Add(
-            boardToolbar,
-            0,
-            0
-        )
+    attentionBar,
+    0,
+    0
+)
 
         body.Controls.Add(
-            lblPipelineHeader,
-            0,
-            1
-        )
+    boardToolbar,
+    0,
+    1
+)
 
         body.Controls.Add(
-            pipelinePanel,
-            0,
-            2
-        )
+    lblPipelineHeader,
+    0,
+    2
+)
 
         body.Controls.Add(
-            lblPublishedHeader,
-            0,
-            3
-        )
+    pipelinePanel,
+    0,
+    3
+)
 
         body.Controls.Add(
-            publishedPanel,
-            0,
-            4
-        )
+    lblPublishedHeader,
+    0,
+    4
+)
 
         body.Controls.Add(
-            lblFileDrawerHeader,
-            0,
-            5
-        )
+    publishedPanel,
+    0,
+    5
+)
 
         body.Controls.Add(
-            fileDrawerPanel,
-            0,
-            6
-        )
+    lblFileDrawerHeader,
+    0,
+    6
+)
+
+        body.Controls.Add(
+    fileDrawerPanel,
+    0,
+    7
+)
 
         ' =================================================
         ' Footer
@@ -548,7 +627,155 @@ Public Class Form1
 
     End Sub
 
+    Private Sub ConfigureAttentionLabel(
+    label As Label
+)
 
+        label.AutoSize = True
+
+        label.ForeColor =
+        UiTheme.SecondaryText()
+
+        label.Margin =
+        New Padding(
+            0,
+            3,
+            18,
+            0
+        )
+
+    End Sub
+
+
+    Private Sub RefreshAttentionDashboard()
+
+        Dim overdueCount As Integer = 0
+        Dim longReviewCount As Integer = 0
+        Dim missingJournalCount As Integer = 0
+        Dim recentRejectionCount As Integer = 0
+
+
+        For Each manuscript As Manuscript In manuscripts
+
+            If HasOverdueRevision(
+            manuscript
+        ) Then
+
+                overdueCount += 1
+
+            End If
+
+
+            If IsLongWaitingManuscript(
+            manuscript
+        ) Then
+
+                longReviewCount += 1
+
+            End If
+
+
+            If HasMissingTargetJournal(
+            manuscript
+        ) Then
+
+                missingJournalCount += 1
+
+            End If
+
+
+            If WasRecentlyRejected(
+            manuscript
+        ) Then
+
+                recentRejectionCount += 1
+
+            End If
+
+        Next
+
+
+        lblOverdueRevisions.Text =
+        overdueCount.ToString() &
+        " overdue revision" &
+        If(
+            overdueCount = 1,
+            "",
+            "s"
+        )
+
+
+        lblLongReviews.Text =
+        longReviewCount.ToString() &
+        " waiting " &
+        LongReviewThresholdDays.ToString() &
+        "+ days"
+
+
+        lblMissingJournal.Text =
+        missingJournalCount.ToString() &
+        " no target journal"
+
+
+        lblRecentRejections.Text =
+        recentRejectionCount.ToString() &
+        " rejected in last " &
+        RecentRejectionThresholdDays.ToString() &
+        " days"
+
+
+        If overdueCount > 0 Then
+
+            lblOverdueRevisions.ForeColor =
+            UiTheme.DangerColor()
+
+        Else
+
+            lblOverdueRevisions.ForeColor =
+            UiTheme.SecondaryText()
+
+        End If
+
+
+        If longReviewCount > 0 Then
+
+            lblLongReviews.ForeColor =
+            UiTheme.WarningColor()
+
+        Else
+
+            lblLongReviews.ForeColor =
+            UiTheme.SecondaryText()
+
+        End If
+
+
+        If missingJournalCount > 0 Then
+
+            lblMissingJournal.ForeColor =
+            UiTheme.WarningColor()
+
+        Else
+
+            lblMissingJournal.ForeColor =
+            UiTheme.SecondaryText()
+
+        End If
+
+
+        If recentRejectionCount > 0 Then
+
+            lblRecentRejections.ForeColor =
+            UiTheme.DangerColor()
+
+        Else
+
+            lblRecentRejections.ForeColor =
+            UiTheme.SecondaryText()
+
+        End If
+
+    End Sub
     Private Sub ConfigureSectionHeader(
     label As Label,
     text As String
@@ -993,7 +1220,226 @@ Public Class Form1
 
     End Function
 
+    Private Function GetLatestSubmission(
+    manuscript As Manuscript
+) As JournalSubmission
+
+        Dim latest As JournalSubmission =
+        Nothing
+
+        For Each submission As JournalSubmission In manuscript.Submissions
+
+            If latest Is Nothing OrElse
+           submission.SubmittedDate >
+           latest.SubmittedDate Then
+
+                latest =
+                submission
+
+            End If
+
+        Next
+
+        Return latest
+
+    End Function
+
+
+    Private Function GetLatestDecision(
+    submission As JournalSubmission
+) As EditorialDecisionEvent
+
+        If submission Is Nothing Then
+            Return Nothing
+        End If
+
+        Dim latest As EditorialDecisionEvent =
+        Nothing
+
+        For Each decision As EditorialDecisionEvent In submission.Decisions
+
+            If latest Is Nothing OrElse
+           decision.DecisionDate >
+           latest.DecisionDate Then
+
+                latest =
+                decision
+
+            End If
+
+        Next
+
+        Return latest
+
+    End Function
+
+
+    Private Function HasOverdueRevision(
+    manuscript As Manuscript
+) As Boolean
+
+        If manuscript.Location <>
+        ManuscriptLocation.Pipeline Then
+
+            Return False
+
+        End If
+
+        If manuscript.CurrentStage <>
+        PaperStage.Revision Then
+
+            Return False
+
+        End If
+
+        Dim latestSubmission As JournalSubmission =
+        GetLatestSubmission(
+            manuscript
+        )
+
+        Dim latestDecision As EditorialDecisionEvent =
+        GetLatestDecision(
+            latestSubmission
+        )
+
+        If latestDecision Is Nothing OrElse
+       Not latestDecision.RevisionDeadline.HasValue Then
+
+            Return False
+
+        End If
+
+        Return latestDecision.RevisionDeadline.Value.Date <
+        DateTime.Today
+
+    End Function
+
+
+    Private Function IsLongWaitingManuscript(
+    manuscript As Manuscript
+) As Boolean
+
+        If manuscript.Location <>
+        ManuscriptLocation.Pipeline Then
+
+            Return False
+
+        End If
+
+        If manuscript.CurrentStage <>
+            PaperStage.Submitted AndAlso
+       manuscript.CurrentStage <>
+            PaperStage.UnderReview Then
+
+            Return False
+
+        End If
+
+        Dim latestSubmission As JournalSubmission =
+        GetLatestSubmission(
+            manuscript
+        )
+
+        If latestSubmission Is Nothing Then
+            Return False
+        End If
+
+        Dim waitingDays As Integer =
+        CInt(
+            Math.Floor(
+                (
+                    DateTime.Today -
+                    latestSubmission.SubmittedDate.Date
+                ).TotalDays
+            )
+        )
+
+        Return waitingDays >=
+        LongReviewThresholdDays
+
+    End Function
+
+
+    Private Function HasMissingTargetJournal(
+    manuscript As Manuscript
+) As Boolean
+
+        If manuscript.Location <>
+        ManuscriptLocation.Pipeline Then
+
+            Return False
+
+        End If
+
+        If manuscript.CurrentStage <>
+            PaperStage.Idea AndAlso
+       manuscript.CurrentStage <>
+            PaperStage.Draft Then
+
+            Return False
+
+        End If
+
+        Return String.IsNullOrWhiteSpace(
+        manuscript.TargetJournal
+    )
+
+    End Function
+
+
+    Private Function WasRecentlyRejected(
+    manuscript As Manuscript
+) As Boolean
+
+        Dim latestSubmission As JournalSubmission =
+        GetLatestSubmission(
+            manuscript
+        )
+
+        Dim latestDecision As EditorialDecisionEvent =
+        GetLatestDecision(
+            latestSubmission
+        )
+
+        If latestDecision Is Nothing Then
+            Return False
+        End If
+
+
+        Select Case latestDecision.Decision
+
+            Case EditorialDecision.Rejected,
+             EditorialDecision.DeskRejected,
+             EditorialDecision.RejectedAfterReview
+
+            Case Else
+
+                Return False
+
+        End Select
+
+
+        Dim daysAgo As Integer =
+        CInt(
+            Math.Floor(
+                (
+                    DateTime.Today -
+                    latestDecision.DecisionDate.Date
+                ).TotalDays
+            )
+        )
+
+        Return daysAgo >= 0 AndAlso
+        daysAgo <=
+        RecentRejectionThresholdDays
+
+    End Function
+
     Private Sub RenderManuscripts()
+
+        RefreshAttentionDashboard()
+
+        pipelinePanel.SuspendLayout()
 
         pipelinePanel.SuspendLayout()
         publishedPanel.SuspendLayout()
