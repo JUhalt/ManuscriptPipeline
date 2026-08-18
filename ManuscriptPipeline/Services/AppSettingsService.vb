@@ -69,13 +69,9 @@ Namespace Services
                     Return New AppSettings()
                 End If
 
-                If settings.FileDrawerSuggestionThreshold < 1 Then
-                    settings.FileDrawerSuggestionThreshold = 1
-                End If
-
-                If settings.FileDrawerSuggestionThreshold > 20 Then
-                    settings.FileDrawerSuggestionThreshold = 20
-                End If
+                Normalize(
+                    settings
+                )
 
                 Return settings
 
@@ -96,6 +92,10 @@ Namespace Services
                 Throw New ArgumentNullException(NameOf(settings))
             End If
 
+            Normalize(
+                settings
+            )
+
             Directory.CreateDirectory(
                 _settingsDirectory
             )
@@ -110,6 +110,49 @@ Namespace Services
                 _settingsPath,
                 json
             )
+
+        End Sub
+
+
+        Private Sub Normalize(
+            settings As AppSettings
+        )
+
+            settings.FileDrawerSuggestionThreshold =
+                Math.Max(
+                    1,
+                    Math.Min(
+                        20,
+                        settings.FileDrawerSuggestionThreshold
+                    )
+                )
+
+            settings.LongReviewThresholdDays =
+                Math.Max(
+                    1,
+                    Math.Min(
+                        730,
+                        settings.LongReviewThresholdDays
+                    )
+                )
+
+            settings.RevisionWarningDays =
+                Math.Max(
+                    1,
+                    Math.Min(
+                        180,
+                        settings.RevisionWarningDays
+                    )
+                )
+
+            settings.RecentRejectionThresholdDays =
+                Math.Max(
+                    1,
+                    Math.Min(
+                        365,
+                        settings.RecentRejectionThresholdDays
+                    )
+                )
 
         End Sub
 

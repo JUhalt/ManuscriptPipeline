@@ -17,6 +17,9 @@ Namespace Forms
         Private ReadOnly rbDark As New RadioButton()
 
         Private ReadOnly numFileDrawerThreshold As New NumericUpDown()
+        Private ReadOnly numLongReview As New NumericUpDown()
+        Private ReadOnly numRevisionWarning As New NumericUpDown()
+        Private ReadOnly numRecentRejection As New NumericUpDown()
 
         Private _appearanceChanged As Boolean = False
 
@@ -32,7 +35,8 @@ Namespace Forms
             settings As AppSettings
         )
 
-            _settings = settings
+            _settings =
+                settings
 
             BuildInterface()
             LoadValues()
@@ -44,33 +48,72 @@ Namespace Forms
 
         Private Sub BuildInterface()
 
-            Me.Text = "Settings"
-            Me.StartPosition = FormStartPosition.CenterParent
-            Me.FormBorderStyle = FormBorderStyle.FixedDialog
-            Me.MaximizeBox = False
-            Me.MinimizeBox = False
-            Me.ClientSize = New Size(520, 360)
-            Me.Font = New Font("Segoe UI", 10.0F)
-            Me.AutoScaleMode = AutoScaleMode.Dpi
+            Me.Text =
+                "Settings"
+
+            Me.StartPosition =
+                FormStartPosition.CenterParent
+
+            Me.FormBorderStyle =
+                FormBorderStyle.FixedDialog
+
+            Me.MaximizeBox =
+                False
+
+            Me.MinimizeBox =
+                False
+
+            Me.ClientSize =
+                New Size(
+                    600,
+                    570
+                )
+
+            Me.Font =
+                New Font(
+                    "Segoe UI",
+                    10.0F
+                )
+
+            Me.AutoScaleMode =
+                AutoScaleMode.Dpi
+
 
             Dim root As New TableLayoutPanel With {
                 .Dock = DockStyle.Fill,
                 .ColumnCount = 1,
-                .RowCount = 3,
+                .RowCount = 4,
                 .Padding = New Padding(20)
             }
 
             root.RowStyles.Add(
-                New RowStyle(SizeType.Absolute, 175)
+                New RowStyle(
+                    SizeType.Absolute,
+                    175
+                )
             )
 
             root.RowStyles.Add(
-                New RowStyle(SizeType.Percent, 100)
+                New RowStyle(
+                    SizeType.Absolute,
+                    205
+                )
             )
 
             root.RowStyles.Add(
-                New RowStyle(SizeType.Absolute, 55)
+                New RowStyle(
+                    SizeType.Percent,
+                    100
+                )
             )
+
+            root.RowStyles.Add(
+                New RowStyle(
+                    SizeType.Absolute,
+                    55
+                )
+            )
+
 
             ' =================================================
             ' Appearance
@@ -88,30 +131,140 @@ Namespace Forms
                 .WrapContents = False
             }
 
-            rbSystem.Text = "Follow Windows"
-            rbSystem.AutoSize = True
+            rbSystem.Text =
+                "Follow Windows"
 
-            rbLight.Text = "Light"
-            rbLight.AutoSize = True
+            rbSystem.AutoSize =
+                True
 
-            rbDark.Text = "Dark"
-            rbDark.AutoSize = True
+            rbLight.Text =
+                "Light"
+
+            rbLight.AutoSize =
+                True
+
+            rbDark.Text =
+                "Dark"
+
+            rbDark.AutoSize =
+                True
+
 
             Dim appearanceHelp As New Label With {
-                .Text = "Appearance changes take effect after ManuscriptPipeline restarts.",
+                .Text =
+                    "Appearance changes take effect after ManuscriptPipeline restarts.",
                 .AutoSize = True,
                 .ForeColor = SystemColors.GrayText,
                 .Margin = New Padding(22, 12, 0, 0)
             }
 
-            appearancePanel.Controls.Add(rbSystem)
-            appearancePanel.Controls.Add(rbLight)
-            appearancePanel.Controls.Add(rbDark)
-            appearancePanel.Controls.Add(appearanceHelp)
+
+            appearancePanel.Controls.Add(
+                rbSystem
+            )
+
+            appearancePanel.Controls.Add(
+                rbLight
+            )
+
+            appearancePanel.Controls.Add(
+                rbDark
+            )
+
+            appearancePanel.Controls.Add(
+                appearanceHelp
+            )
 
             appearanceGroup.Controls.Add(
                 appearancePanel
             )
+
+
+            ' =================================================
+            ' Attention rules
+            ' =================================================
+
+            Dim attentionGroup As New GroupBox With {
+                .Text = "Needs Attention",
+                .Dock = DockStyle.Fill,
+                .Padding = New Padding(16)
+            }
+
+            Dim attentionGrid As New TableLayoutPanel With {
+                .Dock = DockStyle.Fill,
+                .ColumnCount = 3,
+                .RowCount = 3
+            }
+
+            attentionGrid.ColumnStyles.Add(
+                New ColumnStyle(
+                    SizeType.Percent,
+                    100
+                )
+            )
+
+            attentionGrid.ColumnStyles.Add(
+                New ColumnStyle(
+                    SizeType.Absolute,
+                    75
+                )
+            )
+
+            attentionGrid.ColumnStyles.Add(
+                New ColumnStyle(
+                    SizeType.Absolute,
+                    70
+                )
+            )
+
+
+            ConfigureNumber(
+                numLongReview,
+                1,
+                730
+            )
+
+            ConfigureNumber(
+                numRevisionWarning,
+                1,
+                180
+            )
+
+            ConfigureNumber(
+                numRecentRejection,
+                1,
+                365
+            )
+
+
+            AddSettingRow(
+                attentionGrid,
+                0,
+                "Flag a long review after",
+                numLongReview,
+                "days"
+            )
+
+            AddSettingRow(
+                attentionGrid,
+                1,
+                "Warn about revision deadlines",
+                numRevisionWarning,
+                "days early"
+            )
+
+            AddSettingRow(
+                attentionGrid,
+                2,
+                "Treat a rejection as recent for",
+                numRecentRejection,
+                "days"
+            )
+
+            attentionGroup.Controls.Add(
+                attentionGrid
+            )
+
 
             ' =================================================
             ' File Drawer
@@ -129,15 +282,23 @@ Namespace Forms
                 .WrapContents = False
             }
 
+
             Dim lblThreshold As New Label With {
                 .Text = "Suggest the File Drawer after",
                 .AutoSize = True,
                 .Margin = New Padding(0, 7, 8, 0)
             }
 
-            numFileDrawerThreshold.Minimum = 1
-            numFileDrawerThreshold.Maximum = 20
-            numFileDrawerThreshold.Width = 60
+
+            ConfigureNumber(
+                numFileDrawerThreshold,
+                1,
+                20
+            )
+
+            numFileDrawerThreshold.Width =
+                65
+
 
             Dim lblRejections As New Label With {
                 .Text = "rejections.",
@@ -145,13 +306,23 @@ Namespace Forms
                 .Margin = New Padding(8, 7, 0, 0)
             }
 
-            drawerPanel.Controls.Add(lblThreshold)
-            drawerPanel.Controls.Add(numFileDrawerThreshold)
-            drawerPanel.Controls.Add(lblRejections)
+
+            drawerPanel.Controls.Add(
+                lblThreshold
+            )
+
+            drawerPanel.Controls.Add(
+                numFileDrawerThreshold
+            )
+
+            drawerPanel.Controls.Add(
+                lblRejections
+            )
 
             drawerGroup.Controls.Add(
                 drawerPanel
             )
+
 
             ' =================================================
             ' Buttons
@@ -163,33 +334,141 @@ Namespace Forms
                 .WrapContents = False
             }
 
+
             Dim btnSave As New Button With {
                 .Text = "Save",
-                .AutoSize = True,
+                .Width = 95,
                 .Height = 36
             }
 
             Dim btnCancel As New Button With {
                 .Text = "Cancel",
-                .AutoSize = True,
+                .Width = 95,
                 .Height = 36,
                 .DialogResult = DialogResult.Cancel
             }
 
+
             AddHandler btnSave.Click,
                 AddressOf SaveSettings
 
-            buttons.Controls.Add(btnSave)
-            buttons.Controls.Add(btnCancel)
 
-            root.Controls.Add(appearanceGroup, 0, 0)
-            root.Controls.Add(drawerGroup, 0, 1)
-            root.Controls.Add(buttons, 0, 2)
+            buttons.Controls.Add(
+                btnSave
+            )
 
-            Me.AcceptButton = btnSave
-            Me.CancelButton = btnCancel
+            buttons.Controls.Add(
+                btnCancel
+            )
 
-            Me.Controls.Add(root)
+
+            root.Controls.Add(
+                appearanceGroup,
+                0,
+                0
+            )
+
+            root.Controls.Add(
+                attentionGroup,
+                0,
+                1
+            )
+
+            root.Controls.Add(
+                drawerGroup,
+                0,
+                2
+            )
+
+            root.Controls.Add(
+                buttons,
+                0,
+                3
+            )
+
+
+            Me.AcceptButton =
+                btnSave
+
+            Me.CancelButton =
+                btnCancel
+
+
+            Me.Controls.Add(
+                root
+            )
+
+        End Sub
+
+
+        Private Sub ConfigureNumber(
+            numeric As NumericUpDown,
+            minimum As Integer,
+            maximum As Integer
+        )
+
+            numeric.Minimum =
+                minimum
+
+            numeric.Maximum =
+                maximum
+
+            numeric.Width =
+                68
+
+        End Sub
+
+
+        Private Sub AddSettingRow(
+            grid As TableLayoutPanel,
+            row As Integer,
+            description As String,
+            numeric As NumericUpDown,
+            suffix As String
+        )
+
+            grid.RowStyles.Add(
+                New RowStyle(
+                    SizeType.Absolute,
+                    48
+                )
+            )
+
+
+            Dim label As New Label With {
+                .Text = description,
+                .AutoSize = True,
+                .Anchor = AnchorStyles.Left
+            }
+
+            numeric.Anchor =
+                AnchorStyles.Left
+
+
+            Dim suffixLabel As New Label With {
+                .Text = suffix,
+                .AutoSize = True,
+                .Anchor = AnchorStyles.Left
+            }
+
+
+            grid.Controls.Add(
+                label,
+                0,
+                row
+            )
+
+            grid.Controls.Add(
+                numeric,
+                1,
+                row
+            )
+
+            grid.Controls.Add(
+                suffixLabel,
+                2,
+                row
+            )
 
         End Sub
 
@@ -200,26 +479,33 @@ Namespace Forms
 
                 Case AppAppearance.Light
 
-                    rbLight.Checked = True
+                    rbLight.Checked =
+                        True
 
                 Case AppAppearance.Dark
 
-                    rbDark.Checked = True
+                    rbDark.Checked =
+                        True
 
                 Case Else
 
-                    rbSystem.Checked = True
+                    rbSystem.Checked =
+                        True
 
             End Select
 
+
             numFileDrawerThreshold.Value =
-                Math.Max(
-                    numFileDrawerThreshold.Minimum,
-                    Math.Min(
-                        numFileDrawerThreshold.Maximum,
-                        _settings.FileDrawerSuggestionThreshold
-                    )
-                )
+                _settings.FileDrawerSuggestionThreshold
+
+            numLongReview.Value =
+                _settings.LongReviewThresholdDays
+
+            numRevisionWarning.Value =
+                _settings.RevisionWarningDays
+
+            numRecentRejection.Value =
+                _settings.RecentRejectionThresholdDays
 
         End Sub
 
@@ -230,6 +516,7 @@ Namespace Forms
         )
 
             Dim newAppearance As AppAppearance
+
 
             If rbLight.Checked Then
 
@@ -248,8 +535,11 @@ Namespace Forms
 
             End If
 
+
             _appearanceChanged =
-                newAppearance <> _settings.Appearance
+                newAppearance <>
+                _settings.Appearance
+
 
             _settings.Appearance =
                 newAppearance
@@ -258,6 +548,22 @@ Namespace Forms
                 CInt(
                     numFileDrawerThreshold.Value
                 )
+
+            _settings.LongReviewThresholdDays =
+                CInt(
+                    numLongReview.Value
+                )
+
+            _settings.RevisionWarningDays =
+                CInt(
+                    numRevisionWarning.Value
+                )
+
+            _settings.RecentRejectionThresholdDays =
+                CInt(
+                    numRecentRejection.Value
+                )
+
 
             Try
 
@@ -281,6 +587,7 @@ Namespace Forms
                 Return
 
             End Try
+
 
             Me.DialogResult =
                 DialogResult.OK

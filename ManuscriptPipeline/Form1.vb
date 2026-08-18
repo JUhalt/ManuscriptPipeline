@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 Imports System.Collections.Generic
 Imports System.Drawing
 Imports System.Windows.Forms
@@ -10,8 +10,10 @@ Imports ManuscriptPipeline.Controls
 
 Public Class Form1
 
-    Private Const LongReviewThresholdDays As Integer = 90
-    Private Const RecentRejectionThresholdDays As Integer = 30
+    Private activeAttentionFilter As AttentionFilter =
+    AttentionFilter.None
+
+    Private ReadOnly lblRevisionDueSoon As New Label()
 
     Private ReadOnly settingsService As New AppSettingsService()
 
@@ -50,6 +52,18 @@ Public Class Form1
     ' Startup
     ' =====================================================
 
+    Private Sub OpenAbout(
+    sender As Object,
+    e As EventArgs
+)
+
+        Using dialog As New AboutForm()
+
+            dialog.ShowDialog(Me)
+
+        End Using
+
+    End Sub
     Private Sub Form1_Load(
         sender As Object,
         e As EventArgs
@@ -63,6 +77,8 @@ Public Class Form1
 
         appSettings =
     settingsService.Load()
+
+        UiPolish.InstallGlobalDialogStyling()
 
         BuildInterface()
         LoadManuscripts()
@@ -248,6 +264,15 @@ Public Class Form1
     AddressOf RestoreLibraryBackup
 )
 
+        dataMenu.Items.Add(
+    New ToolStripSeparator()
+)
+
+        dataMenu.Items.Add(
+    "About ManuscriptPipeline",
+    Nothing,
+    AddressOf OpenAbout
+)
 
         ' =================================================
         ' Header handlers
@@ -363,6 +388,25 @@ Public Class Form1
 )
 
         ConfigureAttentionLabel(
+    lblRevisionDueSoon
+)
+
+        AddHandler lblOverdueRevisions.Click,
+    AddressOf FilterOverdueRevisions
+
+        AddHandler lblRevisionDueSoon.Click,
+    AddressOf FilterRevisionDueSoon
+
+        AddHandler lblLongReviews.Click,
+    AddressOf FilterLongReviews
+
+        AddHandler lblMissingJournal.Click,
+    AddressOf FilterMissingJournal
+
+        AddHandler lblRecentRejections.Click,
+    AddressOf FilterRecentRejections
+
+        ConfigureAttentionLabel(
     lblLongReviews
 )
 
@@ -381,6 +425,10 @@ Public Class Form1
 
         attentionBar.Controls.Add(
     lblOverdueRevisions
+)
+
+        attentionBar.Controls.Add(
+    lblRevisionDueSoon
 )
 
         attentionBar.Controls.Add(
@@ -496,7 +544,6 @@ Public Class Form1
         boardToolbar.Controls.Add(
             btnClearBoardFilters
         )
-
 
         ' =================================================
         ' Shelves
@@ -627,11 +674,93 @@ Public Class Form1
 
     End Sub
 
+    Private Sub FilterOverdueRevisions(
+    sender As Object,
+    e As EventArgs
+)
+
+        ToggleAttentionFilter(
+            AttentionFilter.OverdueRevision
+        )
+
+    End Sub
+
+
+    Private Sub FilterRevisionDueSoon(
+        sender As Object,
+        e As EventArgs
+    )
+
+        ToggleAttentionFilter(
+            AttentionFilter.RevisionDueSoon
+        )
+
+    End Sub
+
+
+    Private Sub FilterLongReviews(
+        sender As Object,
+        e As EventArgs
+    )
+
+        ToggleAttentionFilter(
+            AttentionFilter.LongReview
+        )
+
+    End Sub
+
+
+    Private Sub FilterMissingJournal(
+        sender As Object,
+        e As EventArgs
+    )
+
+        ToggleAttentionFilter(
+            AttentionFilter.MissingTargetJournal
+        )
+
+    End Sub
+
+
+    Private Sub FilterRecentRejections(
+        sender As Object,
+        e As EventArgs
+    )
+
+        ToggleAttentionFilter(
+            AttentionFilter.RecentRejection
+        )
+
+    End Sub
+
+
+    Private Sub ToggleAttentionFilter(
+        filter As AttentionFilter
+    )
+
+        If activeAttentionFilter =
+            filter Then
+
+            activeAttentionFilter =
+                AttentionFilter.None
+
+        Else
+
+            activeAttentionFilter =
+                filter
+
+        End If
+
+        RenderManuscripts()
+
+    End Sub
+
     Private Sub ConfigureAttentionLabel(
     label As Label
 )
 
-        label.AutoSize = True
+        label.AutoSize =
+        True
 
         label.ForeColor =
         UiTheme.SecondaryText()
@@ -644,12 +773,16 @@ Public Class Form1
             0
         )
 
+        label.Cursor =
+        Cursors.Hand
+
     End Sub
 
 
     Private Sub RefreshAttentionDashboard()
 
         Dim overdueCount As Integer = 0
+        Dim dueSoonCount As Integer = 0
         Dim longReviewCount As Integer = 0
         Dim missingJournalCount As Integer = 0
         Dim recentRejectionCount As Integer = 0
@@ -662,6 +795,15 @@ Public Class Form1
         ) Then
 
                 overdueCount += 1
+
+            End If
+
+
+            If IsRevisionDueSoon(
+            manuscript
+        ) Then
+
+                dueSoonCount += 1
 
             End If
 
@@ -705,10 +847,21 @@ Public Class Form1
         )
 
 
+        lblRevisionDueSoon.Text =
+        dueSoonCount.ToString() &
+        " revision" &
+        If(
+            dueSoonCount = 1,
+            "",
+            "s"
+        ) &
+        " due soon"
+
+
         lblLongReviews.Text =
         longReviewCount.ToString() &
         " waiting " &
-        LongReviewThresholdDays.ToString() &
+        appSettings.LongReviewThresholdDays.ToString() &
         "+ days"
 
 
@@ -720,62 +873,332 @@ Public Class Form1
         lblRecentRejections.Text =
         recentRejectionCount.ToString() &
         " rejected in last " &
-        RecentRejectionThresholdDays.ToString() &
+        appSettings.RecentRejectionThresholdDays.ToString() &
         " days"
 
 
-        If overdueCount > 0 Then
+        StyleAttentionLabel(
+        lblOverdueRevisions,
+        overdueCount,
+        AttentionFilter.OverdueRevision,
+        UiTheme.DangerColor()
+    )
 
-            lblOverdueRevisions.ForeColor =
-            UiTheme.DangerColor()
+        StyleAttentionLabel(
+        lblRevisionDueSoon,
+        dueSoonCount,
+        AttentionFilter.RevisionDueSoon,
+        UiTheme.WarningColor()
+    )
+
+        StyleAttentionLabel(
+        lblLongReviews,
+        longReviewCount,
+        AttentionFilter.LongReview,
+        UiTheme.WarningColor()
+    )
+
+        StyleAttentionLabel(
+        lblMissingJournal,
+        missingJournalCount,
+        AttentionFilter.MissingTargetJournal,
+        UiTheme.WarningColor()
+    )
+
+        StyleAttentionLabel(
+        lblRecentRejections,
+        recentRejectionCount,
+        AttentionFilter.RecentRejection,
+        UiTheme.DangerColor()
+    )
+
+    End Sub
+
+
+    Private Sub StyleAttentionLabel(
+    label As Label,
+    count As Integer,
+    filter As AttentionFilter,
+    attentionColor As Color
+)
+
+        label.Enabled =
+        count > 0
+
+        If count = 0 Then
+
+            label.ForeColor =
+            UiTheme.SecondaryText()
+
+            label.Cursor =
+            Cursors.Default
 
         Else
 
-            lblOverdueRevisions.ForeColor =
-            UiTheme.SecondaryText()
+            label.ForeColor =
+            attentionColor
+
+            label.Cursor =
+            Cursors.Hand
 
         End If
 
 
-        If longReviewCount > 0 Then
+        If activeAttentionFilter =
+        filter Then
 
-            lblLongReviews.ForeColor =
-            UiTheme.WarningColor()
-
-        Else
-
-            lblLongReviews.ForeColor =
-            UiTheme.SecondaryText()
-
-        End If
-
-
-        If missingJournalCount > 0 Then
-
-            lblMissingJournal.ForeColor =
-            UiTheme.WarningColor()
+            label.Font =
+            New Font(
+                label.Font,
+                FontStyle.Bold Or
+                FontStyle.Underline
+            )
 
         Else
 
-            lblMissingJournal.ForeColor =
-            UiTheme.SecondaryText()
-
-        End If
-
-
-        If recentRejectionCount > 0 Then
-
-            lblRecentRejections.ForeColor =
-            UiTheme.DangerColor()
-
-        Else
-
-            lblRecentRejections.ForeColor =
-            UiTheme.SecondaryText()
+            label.Font =
+            New Font(
+                label.Font,
+                FontStyle.Regular
+            )
 
         End If
 
     End Sub
+
+    Private Function BuildManuscriptInsight(
+    manuscript As Manuscript,
+    ByRef insightColor As Color
+) As String
+
+        insightColor =
+        UiTheme.SecondaryText()
+
+
+        ' =================================================
+        ' Overdue revision
+        ' =================================================
+
+        If HasOverdueRevision(
+        manuscript
+    ) Then
+
+            Dim latestSubmission As JournalSubmission =
+            GetLatestSubmission(
+                manuscript
+            )
+
+            Dim latestDecision As EditorialDecisionEvent =
+            GetLatestDecision(
+                latestSubmission
+            )
+
+            If latestDecision IsNot Nothing AndAlso
+           latestDecision.RevisionDeadline.HasValue Then
+
+                Dim overdueDays As Integer =
+                CInt(
+                    Math.Floor(
+                        (
+                            DateTime.Today -
+                            latestDecision.RevisionDeadline.Value.Date
+                        ).TotalDays
+                    )
+                )
+
+                insightColor =
+                UiTheme.DangerColor()
+
+                Return "Revision overdue by " &
+                overdueDays.ToString() &
+                " day" &
+                If(
+                    overdueDays = 1,
+                    "",
+                    "s"
+                )
+
+            End If
+
+        End If
+
+
+        ' =================================================
+        ' Revision due soon
+        ' =================================================
+
+        If IsRevisionDueSoon(
+        manuscript
+    ) Then
+
+            Dim latestSubmission As JournalSubmission =
+            GetLatestSubmission(
+                manuscript
+            )
+
+            Dim latestDecision As EditorialDecisionEvent =
+            GetLatestDecision(
+                latestSubmission
+            )
+
+            If latestDecision IsNot Nothing AndAlso
+           latestDecision.RevisionDeadline.HasValue Then
+
+                Dim remainingDays As Integer =
+                CInt(
+                    Math.Floor(
+                        (
+                            latestDecision.RevisionDeadline.Value.Date -
+                            DateTime.Today
+                        ).TotalDays
+                    )
+                )
+
+                insightColor =
+                UiTheme.WarningColor()
+
+                If remainingDays = 0 Then
+                    Return "Revision due today"
+                End If
+
+                Return "Revision due in " &
+                remainingDays.ToString() &
+                " day" &
+                If(
+                    remainingDays = 1,
+                    "",
+                    "s"
+                )
+
+            End If
+
+        End If
+
+
+        ' =================================================
+        ' Long review
+        ' =================================================
+
+        If IsLongWaitingManuscript(
+        manuscript
+    ) Then
+
+            Dim submission As JournalSubmission =
+            GetLatestSubmission(
+                manuscript
+            )
+
+            If submission IsNot Nothing Then
+
+                Dim waitingDays As Integer =
+                CInt(
+                    Math.Floor(
+                        (
+                            DateTime.Today -
+                            submission.SubmittedDate.Date
+                        ).TotalDays
+                    )
+                )
+
+                insightColor =
+                UiTheme.WarningColor()
+
+                Return "Waiting " &
+                waitingDays.ToString() &
+                " days for a decision"
+
+            End If
+
+        End If
+
+
+        ' =================================================
+        ' Recent rejection
+        ' =================================================
+
+        If WasRecentlyRejected(
+        manuscript
+    ) Then
+
+            Dim latestSubmission As JournalSubmission =
+            GetLatestSubmission(
+                manuscript
+            )
+
+            Dim latestDecision As EditorialDecisionEvent =
+            GetLatestDecision(
+                latestSubmission
+            )
+
+            If latestDecision IsNot Nothing Then
+
+                Dim daysAgo As Integer =
+                CInt(
+                    Math.Floor(
+                        (
+                            DateTime.Today -
+                            latestDecision.DecisionDate.Date
+                        ).TotalDays
+                    )
+                )
+
+                insightColor =
+                UiTheme.DangerColor()
+
+                Return "Rejected " &
+                daysAgo.ToString() &
+                " day" &
+                If(
+                    daysAgo = 1,
+                    "",
+                    "s"
+                ) &
+                " ago • choose the next target"
+
+            End If
+
+        End If
+
+
+        ' =================================================
+        ' Missing target
+        ' =================================================
+
+        If HasMissingTargetJournal(
+        manuscript
+    ) Then
+
+            insightColor =
+            UiTheme.WarningColor()
+
+            Return "No target journal selected"
+
+        End If
+
+
+        ' =================================================
+        ' File Drawer suggestion
+        ' =================================================
+
+        If manuscript.Location =
+            ManuscriptLocation.Pipeline AndAlso
+       manuscript.RejectionCount >=
+            appSettings.FileDrawerSuggestionThreshold Then
+
+            insightColor =
+            UiTheme.WarningColor()
+
+            Return "Consider filing after " &
+            manuscript.RejectionCount.ToString() &
+            " rejections"
+
+        End If
+
+
+        Return String.Empty
+
+    End Function
+
     Private Sub ConfigureSectionHeader(
     label As Label,
     text As String
@@ -957,6 +1380,9 @@ Public Class Form1
         cboBoardSort.SelectedIndex =
             0
 
+        activeAttentionFilter =
+    AttentionFilter.None
+
         RenderManuscripts()
 
     End Sub
@@ -978,6 +1404,13 @@ Public Class Form1
 
         If cboBoardSort.SelectedIndex > 0 Then
             Return True
+        End If
+
+        If activeAttentionFilter <>
+            AttentionFilter.None Then
+
+            Return True
+
         End If
 
         Return False
@@ -1003,27 +1436,30 @@ Public Class Form1
 
 
     Private Function ManuscriptMatchesBoardFilters(
-        manuscript As Manuscript
-    ) As Boolean
+    manuscript As Manuscript
+) As Boolean
 
         Dim query As String =
-            txtBoardSearch.Text.Trim()
+        txtBoardSearch.Text.Trim()
 
-        If Not String.IsNullOrWhiteSpace(query) Then
+
+        If Not String.IsNullOrWhiteSpace(
+        query
+    ) Then
 
             Dim matchesSearch As Boolean =
-                ContainsSearchText(
-                    manuscript.Title,
-                    query
-                ) OrElse
-                ContainsSearchText(
-                    manuscript.TargetJournal,
-                    query
-                ) OrElse
-                ContainsSearchText(
-                    manuscript.CoAuthors,
-                    query
-                )
+            ContainsSearchText(
+                manuscript.Title,
+                query
+            ) OrElse
+            ContainsSearchText(
+                manuscript.TargetJournal,
+                query
+            ) OrElse
+            ContainsSearchText(
+                manuscript.CoAuthors,
+                query
+            )
 
             If Not matchesSearch Then
                 Return False
@@ -1035,15 +1471,17 @@ Public Class Form1
         If cboStageFilter.SelectedIndex > 0 Then
 
             Dim selectedStage As String =
-                CStr(
-                    cboStageFilter.SelectedItem
-                )
+            CStr(
+                cboStageFilter.SelectedItem
+            )
 
             If Not String.Equals(
-                FormatStage(manuscript.CurrentStage),
-                selectedStage,
-                StringComparison.OrdinalIgnoreCase
-            ) Then
+            FormatStage(
+                manuscript.CurrentStage
+            ),
+            selectedStage,
+            StringComparison.OrdinalIgnoreCase
+        ) Then
 
                 Return False
 
@@ -1052,10 +1490,123 @@ Public Class Form1
         End If
 
 
+        Select Case activeAttentionFilter
+
+            Case AttentionFilter.OverdueRevision
+
+                If Not HasOverdueRevision(
+                manuscript
+            ) Then
+
+                    Return False
+
+                End If
+
+
+            Case AttentionFilter.RevisionDueSoon
+
+                If Not IsRevisionDueSoon(
+                manuscript
+            ) Then
+
+                    Return False
+
+                End If
+
+
+            Case AttentionFilter.LongReview
+
+                If Not IsLongWaitingManuscript(
+                manuscript
+            ) Then
+
+                    Return False
+
+                End If
+
+
+            Case AttentionFilter.MissingTargetJournal
+
+                If Not HasMissingTargetJournal(
+                manuscript
+            ) Then
+
+                    Return False
+
+                End If
+
+
+            Case AttentionFilter.RecentRejection
+
+                If Not WasRecentlyRejected(
+                manuscript
+            ) Then
+
+                    Return False
+
+                End If
+
+        End Select
+
+
         Return True
 
     End Function
 
+    Private Function IsRevisionDueSoon(
+    manuscript As Manuscript
+) As Boolean
+
+        If manuscript.Location <>
+        ManuscriptLocation.Pipeline Then
+
+            Return False
+
+        End If
+
+        If manuscript.CurrentStage <>
+        PaperStage.Revision Then
+
+            Return False
+
+        End If
+
+
+        Dim latestSubmission As JournalSubmission =
+        GetLatestSubmission(
+            manuscript
+        )
+
+        Dim latestDecision As EditorialDecisionEvent =
+        GetLatestDecision(
+            latestSubmission
+        )
+
+
+        If latestDecision Is Nothing OrElse
+       Not latestDecision.RevisionDeadline.HasValue Then
+
+            Return False
+
+        End If
+
+
+        Dim daysRemaining As Integer =
+        CInt(
+            Math.Floor(
+                (
+                    latestDecision.RevisionDeadline.Value.Date -
+                    DateTime.Today
+                ).TotalDays
+            )
+        )
+
+
+        Return daysRemaining >= 0 AndAlso
+        daysRemaining <=
+        appSettings.RevisionWarningDays
+
+    End Function
 
     Private Function GetVisibleManuscripts() As List(Of Manuscript)
 
@@ -1356,7 +1907,7 @@ Public Class Form1
         )
 
         Return waitingDays >=
-        LongReviewThresholdDays
+        appSettings.LongReviewThresholdDays
 
     End Function
 
@@ -1432,7 +1983,7 @@ Public Class Form1
 
         Return daysAgo >= 0 AndAlso
         daysAgo <=
-        RecentRejectionThresholdDays
+        appSettings.RecentRejectionThresholdDays
 
     End Function
 
@@ -2009,33 +2560,38 @@ Public Class Form1
         ' File Drawer suggestion
         ' =================================================
 
-        If manuscript.Location =
-                ManuscriptLocation.Pipeline AndAlso
-           manuscript.RejectionCount >=
-                appSettings.FileDrawerSuggestionThreshold Then
+        Dim insightColor As Color
+
+        Dim insightText As String =
+    BuildManuscriptInsight(
+        manuscript,
+        insightColor
+    )
+
+
+        If Not String.IsNullOrWhiteSpace(
+    insightText
+) Then
 
             card.Height =
-                148
+        148
 
-            Dim lblSuggestion As New Label With {
-                .Text =
-                    "Consider filing after " &
-                    manuscript.RejectionCount.ToString() &
-                    " rejections",
-                .AutoSize = True,
-                .Left = 18,
-                .Top = 111,
-                .ForeColor = UiTheme.WarningColor(),
-                .Font = New Font(
-                    Me.Font.FontFamily,
-                    9.0F,
-                    FontStyle.Bold
-                )
-            }
+            Dim lblInsight As New Label With {
+        .Text = insightText,
+        .AutoSize = True,
+        .Left = 18,
+        .Top = 111,
+        .ForeColor = insightColor,
+        .Font = New Font(
+            Me.Font.FontFamily,
+            9.0F,
+            FontStyle.Bold
+        )
+    }
 
             card.Controls.Add(
-                lblSuggestion
-            )
+        lblInsight
+    )
 
         End If
 

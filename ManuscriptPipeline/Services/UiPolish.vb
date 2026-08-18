@@ -1,4 +1,5 @@
 ﻿Imports System
+Imports System.Collections.Generic
 Imports System.Drawing
 Imports System.Windows.Forms
 
@@ -6,9 +7,100 @@ Namespace Services
 
     Public NotInheritable Class UiPolish
 
+        Private Shared _installed As Boolean = False
+
+        Private Shared ReadOnly _styledHandles As New HashSet(Of IntPtr)()
+
+
         Private Sub New()
         End Sub
 
+
+        ' =====================================================
+        ' Global installation
+        ' =====================================================
+
+        Public Shared Sub InstallGlobalDialogStyling()
+
+            If _installed Then
+                Return
+            End If
+
+            _installed = True
+
+            AddHandler Application.Idle,
+                AddressOf StyleOpenDialogs
+
+        End Sub
+
+
+        Private Shared Sub StyleOpenDialogs(
+            sender As Object,
+            e As EventArgs
+        )
+
+            For Each form As Form In Application.OpenForms
+
+                ' Form1 has its own custom board styling.
+                If String.Equals(
+                    form.GetType().Name,
+                    "Form1",
+                    StringComparison.Ordinal
+                ) Then
+
+                    Continue For
+
+                End If
+
+                If _styledHandles.Contains(
+                    form.Handle
+                ) Then
+
+                    Continue For
+
+                End If
+
+                ApplyDialog(
+                    form
+                )
+
+                _styledHandles.Add(
+                    form.Handle
+                )
+
+                AddHandler form.FormClosed,
+                    AddressOf StyledFormClosed
+
+            Next
+
+        End Sub
+
+
+        Private Shared Sub StyledFormClosed(
+            sender As Object,
+            e As FormClosedEventArgs
+        )
+
+            Dim form As Form =
+                TryCast(
+                    sender,
+                    Form
+                )
+
+            If form Is Nothing Then
+                Return
+            End If
+
+            _styledHandles.Remove(
+                form.Handle
+            )
+
+        End Sub
+
+
+        ' =====================================================
+        ' Public styling entry point
+        ' =====================================================
 
         Public Shared Sub ApplyDialog(
             form As Form
@@ -21,12 +113,19 @@ Namespace Services
             form.BackColor =
                 UiTheme.BoardBackground()
 
+            form.ForeColor =
+                UiTheme.PrimaryText()
+
             ApplyToControlTree(
                 form
             )
 
         End Sub
 
+
+        ' =====================================================
+        ' Recursive control styling
+        ' =====================================================
 
         Private Shared Sub ApplyToControlTree(
             parent As Control
@@ -91,22 +190,22 @@ Namespace Services
             End If
 
 
-            If TypeOf control Is ComboBox Then
+            If TypeOf control Is RichTextBox Then
 
-                Dim comboBox As ComboBox =
+                Dim richText As RichTextBox =
                     DirectCast(
                         control,
-                        ComboBox
+                        RichTextBox
                     )
 
-                comboBox.BackColor =
+                richText.BackColor =
                     UiTheme.CardBackground()
 
-                comboBox.ForeColor =
+                richText.ForeColor =
                     UiTheme.PrimaryText()
 
-                comboBox.FlatStyle =
-                    FlatStyle.Flat
+                richText.BorderStyle =
+                    BorderStyle.FixedSingle
 
                 Return
 
@@ -135,6 +234,28 @@ Namespace Services
             End If
 
 
+            If TypeOf control Is ComboBox Then
+
+                Dim comboBox As ComboBox =
+                    DirectCast(
+                        control,
+                        ComboBox
+                    )
+
+                comboBox.BackColor =
+                    UiTheme.CardBackground()
+
+                comboBox.ForeColor =
+                    UiTheme.PrimaryText()
+
+                comboBox.FlatStyle =
+                    FlatStyle.Flat
+
+                Return
+
+            End If
+
+
             If TypeOf control Is NumericUpDown Then
 
                 Dim numeric As NumericUpDown =
@@ -156,16 +277,16 @@ Namespace Services
 
             If TypeOf control Is DateTimePicker Then
 
-                Dim datePicker As DateTimePicker =
+                Dim picker As DateTimePicker =
                     DirectCast(
                         control,
                         DateTimePicker
                     )
 
-                datePicker.CalendarMonthBackground =
+                picker.CalendarMonthBackground =
                     UiTheme.CardBackground()
 
-                datePicker.CalendarForeColor =
+                picker.CalendarForeColor =
                     UiTheme.PrimaryText()
 
                 Return
@@ -175,16 +296,21 @@ Namespace Services
 
             If TypeOf control Is GroupBox Then
 
-                Dim groupBox As GroupBox =
-                    DirectCast(
-                        control,
-                        GroupBox
-                    )
+                control.BackColor =
+                    UiTheme.BoardBackground()
 
-                groupBox.ForeColor =
+                control.ForeColor =
                     UiTheme.PrimaryText()
 
-                groupBox.BackColor =
+                Return
+
+            End If
+
+
+            If TypeOf control Is TableLayoutPanel OrElse
+               TypeOf control Is FlowLayoutPanel Then
+
+                control.BackColor =
                     UiTheme.BoardBackground()
 
                 Return
@@ -206,30 +332,26 @@ Namespace Services
                     label.ForeColor =
                         UiTheme.SecondaryText()
 
-                Else
+                ElseIf label.ForeColor =
+                       SystemColors.ControlText OrElse
+                       label.ForeColor =
+                       Color.Black OrElse
+                       label.ForeColor =
+                       Color.White Then
 
                     label.ForeColor =
                         UiTheme.PrimaryText()
 
                 End If
 
-                Return
-
-            End If
-
-
-            If TypeOf control Is TableLayoutPanel OrElse
-               TypeOf control Is FlowLayoutPanel Then
-
-                control.BackColor =
-                    UiTheme.BoardBackground()
-
-                Return
-
             End If
 
         End Sub
 
+
+        ' =====================================================
+        ' Buttons
+        ' =====================================================
 
         Private Shared Sub StyleButton(
             button As Button
@@ -244,19 +366,18 @@ Namespace Services
             button.BackColor =
                 UiTheme.CardBackground()
 
-            button.FlatAppearance.BorderSize =
-                1
-
             button.Cursor =
                 Cursors.Hand
 
+            button.FlatAppearance.BorderSize =
+                1
 
-            Dim buttonText As String =
+            Dim text As String =
                 button.Text.Trim().ToUpperInvariant()
 
 
-            If buttonText.Contains("DELETE") OrElse
-               buttonText.Contains("REMOVE") Then
+            If text.Contains("DELETE") OrElse
+               text.Contains("REMOVE") Then
 
                 ApplyButtonAccent(
                     button,
@@ -268,7 +389,7 @@ Namespace Services
             End If
 
 
-            If buttonText.Contains("FILE DRAWER") Then
+            If text.Contains("FILE DRAWER") Then
 
                 ApplyButtonAccent(
                     button,
@@ -280,7 +401,7 @@ Namespace Services
             End If
 
 
-            If buttonText.Contains("RESTORE") Then
+            If text.Contains("RESTORE") Then
 
                 ApplyButtonAccent(
                     button,
@@ -292,9 +413,9 @@ Namespace Services
             End If
 
 
-            If buttonText = "CANCEL" OrElse
-               buttonText = "NO" OrElse
-               buttonText = "CLOSE" Then
+            If text = "CANCEL" OrElse
+               text = "NO" OrElse
+               text = "CLOSE" Then
 
                 ApplyButtonAccent(
                     button,
