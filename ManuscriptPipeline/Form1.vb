@@ -2,13 +2,18 @@
 Imports System.Collections.Generic
 Imports System.Drawing
 Imports System.Windows.Forms
+Imports DocumentFormat.OpenXml.Packaging
 Imports ManuscriptPipeline.Forms
 Imports ManuscriptPipeline.Models
 Imports ManuscriptPipeline.Services
+Imports ManuscriptPipeline.Controls
 
 Public Class Form1
 
-    Private Const FileDrawerSuggestionThreshold As Integer = 3
+    Private ReadOnly settingsService As New AppSettingsService()
+
+    Private appSettings As AppSettings =
+    New AppSettings()
 
     Private manuscripts As New List(Of Manuscript)()
 
@@ -23,6 +28,11 @@ Public Class Form1
     Private ReadOnly lblFileDrawerHeader As New Label()
 
     Private ReadOnly lblStatus As New Label()
+
+    Private ReadOnly txtBoardSearch As New TextBox()
+    Private ReadOnly cboStageFilter As New ComboBox()
+    Private ReadOnly cboBoardSort As New ComboBox()
+    Private ReadOnly btnClearBoardFilters As New Button()
 
     Private uiInitialized As Boolean = False
 
@@ -41,6 +51,9 @@ Public Class Form1
         End If
 
         uiInitialized = True
+
+        appSettings =
+    settingsService.Load()
 
         BuildInterface()
         LoadManuscripts()
@@ -73,7 +86,7 @@ Public Class Form1
             .BackColor = SystemColors.Control
         }
 
-        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 82))
+        root.RowStyles.Add(New RowStyle(SizeType.AutoSize))
         root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
         root.RowStyles.Add(New RowStyle(SizeType.Absolute, 32))
 
@@ -82,111 +95,204 @@ Public Class Form1
         ' =================================================
 
         Dim header As New TableLayoutPanel With {
-            .Dock = DockStyle.Fill,
-            .ColumnCount = 2,
-            .RowCount = 1,
-            .Padding = New Padding(18, 10, 18, 8),
-            .BackColor = SystemColors.Window
-        }
+    .Dock = DockStyle.Top,
+    .AutoSize = True,
+    .AutoSizeMode = AutoSizeMode.GrowAndShrink,
+    .ColumnCount = 2,
+    .RowCount = 1,
+    .Padding = New Padding(18, 10, 18, 10),
+    .BackColor = SystemColors.Window
+}
 
         header.ColumnStyles.Add(
-            New ColumnStyle(SizeType.Percent, 100)
-        )
+    New ColumnStyle(SizeType.Percent, 100)
+)
 
         header.ColumnStyles.Add(
-            New ColumnStyle(SizeType.AutoSize)
-        )
+    New ColumnStyle(SizeType.AutoSize)
+)
+
+
+        ' =================================================
+        ' Branding
+        ' =================================================
 
         Dim branding As New TableLayoutPanel With {
-            .Dock = DockStyle.Fill,
-            .ColumnCount = 1,
-            .RowCount = 2,
-            .Margin = New Padding(0)
-        }
+    .Dock = DockStyle.Fill,
+    .AutoSize = True,
+    .AutoSizeMode = AutoSizeMode.GrowAndShrink,
+    .ColumnCount = 1,
+    .RowCount = 2,
+    .Margin = New Padding(0)
+}
 
         branding.RowStyles.Add(
-            New RowStyle(SizeType.Absolute, 34)
-        )
+    New RowStyle(SizeType.AutoSize)
+)
 
         branding.RowStyles.Add(
-            New RowStyle(SizeType.Absolute, 26)
-        )
+    New RowStyle(SizeType.AutoSize)
+)
+
 
         Dim lblTitle As New Label With {
-            .Text = "ManuscriptPipeline",
-            .AutoSize = True,
-            .Anchor = AnchorStyles.Left,
-            .Font = New Font(
-                Me.Font.FontFamily,
-                16,
-                FontStyle.Bold
-            )
-        }
+    .Text = "ManuscriptPipeline",
+    .AutoSize = True,
+    .Anchor = AnchorStyles.Left,
+    .Font = New Font(
+        Me.Font.FontFamily,
+        16.0F,
+        FontStyle.Bold
+    )
+}
 
         Dim lblSubtitle As New Label With {
-            .Text = "Local-first academic manuscript tracking",
-            .AutoSize = True,
-            .Anchor = AnchorStyles.Left,
-            .ForeColor = SystemColors.GrayText
-        }
+    .Text = "Local-first academic manuscript tracking",
+    .AutoSize = True,
+    .Anchor = AnchorStyles.Left,
+    .ForeColor = SystemColors.GrayText,
+    .Margin = New Padding(0, 2, 0, 0)
+}
 
         branding.Controls.Add(
-            lblTitle,
-            0,
-            0
-        )
+    lblTitle,
+    0,
+    0
+)
 
         branding.Controls.Add(
-            lblSubtitle,
-            0,
-            1
-        )
+    lblSubtitle,
+    0,
+    1
+)
+
+
+        ' =================================================
+        ' Header actions
+        ' =================================================
 
         Dim headerActions As New FlowLayoutPanel With {
-            .AutoSize = True,
-            .Dock = DockStyle.Fill,
-            .FlowDirection = FlowDirection.RightToLeft,
-            .WrapContents = False,
-            .Margin = New Padding(12, 2, 0, 0)
-        }
+    .AutoSize = True,
+    .AutoSizeMode = AutoSizeMode.GrowAndShrink,
+    .Anchor = AnchorStyles.Top Or AnchorStyles.Right,
+    .FlowDirection = FlowDirection.RightToLeft,
+    .WrapContents = False,
+    .Margin = New Padding(12, 2, 0, 0)
+}
+
 
         Dim btnAdd As New Button With {
-            .Text = "+ Add Manuscript",
-            .Width = 175,
-            .Height = 44
-        }
+    .Text = "+ Add Manuscript",
+    .Width = 165,
+    .Height = 44
+}
 
-        Dim btnImport As New Button With {
-            .Text = "Import Excel...",
-            .Width = 145,
-            .Height = 44
-        }
+        Dim btnData As New Button With {
+    .Text = "Data ▼",
+    .Width = 110,
+    .Height = 44
+}
+
+        Dim btnSettings As New Button With {
+    .Text = "Settings",
+    .Width = 100,
+    .Height = 44
+}
+
+
+        ' =================================================
+        ' Data menu
+        ' =================================================
+
+        Dim dataMenu As New ContextMenuStrip()
+
+        dataMenu.Items.Add(
+    "Get Import Template...",
+    Nothing,
+    AddressOf ExportBlankTemplate
+)
+
+        dataMenu.Items.Add(
+    "Import Excel...",
+    Nothing,
+    AddressOf ImportExcelHistory
+)
+
+        dataMenu.Items.Add(
+    "Export Library to Excel...",
+    Nothing,
+    AddressOf ExportLibraryExcel
+)
+
+        dataMenu.Items.Add(
+    New ToolStripSeparator()
+)
+
+        dataMenu.Items.Add(
+    "Backup Library...",
+    Nothing,
+    AddressOf BackupLibrary
+)
+
+        dataMenu.Items.Add(
+    "Restore Backup...",
+    Nothing,
+    AddressOf RestoreLibraryBackup
+)
+
+
+        ' =================================================
+        ' Header handlers
+        ' =================================================
 
         AddHandler btnAdd.Click,
-            AddressOf AddManuscript
+    AddressOf AddManuscript
 
-        AddHandler btnImport.Click,
-            AddressOf ImportExcelHistory
+        AddHandler btnSettings.Click,
+    AddressOf OpenSettings
+
+        AddHandler btnData.Click,
+    Sub(sender, e)
+
+        dataMenu.Show(
+            btnData,
+            New Point(
+                0,
+                btnData.Height
+            )
+        )
+
+    End Sub
+
 
         headerActions.Controls.Add(
-            btnAdd
-        )
+    btnAdd
+)
 
         headerActions.Controls.Add(
-            btnImport
-        )
+    btnData
+)
+
+        headerActions.Controls.Add(
+    btnSettings
+)
+
+
+        ' =================================================
+        ' Assemble header
+        ' =================================================
 
         header.Controls.Add(
-            branding,
-            0,
-            0
-        )
+    branding,
+    0,
+    0
+)
 
         header.Controls.Add(
-            headerActions,
-            1,
-            0
-        )
+    headerActions,
+    1,
+    0
+)
 
         ' =================================================
         ' Main body
@@ -195,9 +301,12 @@ Public Class Form1
         Dim body As New TableLayoutPanel With {
             .Dock = DockStyle.Fill,
             .ColumnCount = 1,
-            .RowCount = 6,
-            .Padding = New Padding(18, 12, 18, 12)
+            .RowCount = 7,
+            .Padding = New Padding(18, 8, 18, 12),
+            .BackColor = UiTheme.BoardBackground()
         }
+
+        body.RowStyles.Add(New RowStyle(SizeType.Absolute, 52))
 
         body.RowStyles.Add(New RowStyle(SizeType.Absolute, 34))
         body.RowStyles.Add(New RowStyle(SizeType.Percent, 48))
@@ -207,6 +316,118 @@ Public Class Form1
 
         body.RowStyles.Add(New RowStyle(SizeType.Absolute, 34))
         body.RowStyles.Add(New RowStyle(SizeType.Percent, 27))
+
+
+        ' =================================================
+        ' Search / filter / sort bar
+        ' =================================================
+
+        Dim boardToolbar As New FlowLayoutPanel With {
+            .Dock = DockStyle.Fill,
+            .FlowDirection = FlowDirection.LeftToRight,
+            .WrapContents = False,
+            .Padding = New Padding(0, 6, 0, 4),
+            .BackColor = UiTheme.BoardBackground()
+        }
+
+
+        txtBoardSearch.Width = 310
+        txtBoardSearch.PlaceholderText =
+            "Search title, journal, or co-authors..."
+
+        txtBoardSearch.Margin =
+            New Padding(0, 2, 10, 0)
+
+
+        cboStageFilter.Width = 150
+        cboStageFilter.DropDownStyle =
+            ComboBoxStyle.DropDownList
+
+        cboStageFilter.Items.Clear()
+
+        cboStageFilter.Items.Add("All stages")
+        cboStageFilter.Items.Add("Idea")
+        cboStageFilter.Items.Add("Draft")
+        cboStageFilter.Items.Add("Submitted")
+        cboStageFilter.Items.Add("Under Review")
+        cboStageFilter.Items.Add("Revision")
+        cboStageFilter.Items.Add("Accepted")
+        cboStageFilter.Items.Add("In Press")
+        cboStageFilter.Items.Add("Published")
+
+        cboStageFilter.SelectedIndex = 0
+
+        cboStageFilter.Margin =
+            New Padding(0, 2, 10, 0)
+
+
+        cboBoardSort.Width = 235
+        cboBoardSort.DropDownWidth = 235
+        cboBoardSort.DropDownStyle =
+            ComboBoxStyle.DropDownList
+
+        cboBoardSort.Items.Clear()
+
+        cboBoardSort.Items.Add("Sort: Current order")
+        cboBoardSort.Items.Add("Sort: Title A-Z")
+        cboBoardSort.Items.Add("Sort: Title Z-A")
+        cboBoardSort.Items.Add("Sort: Most rejections")
+        cboBoardSort.Items.Add("Sort: Fewest rejections")
+        cboBoardSort.Items.Add("Sort: Newest stage change")
+        cboBoardSort.Items.Add("Sort: Oldest stage change")
+
+        cboBoardSort.SelectedIndex = 0
+
+        cboBoardSort.Margin =
+            New Padding(0, 2, 10, 0)
+
+
+        btnClearBoardFilters.Text = "Clear"
+        btnClearBoardFilters.Width = 80
+        btnClearBoardFilters.Height = 30
+        btnClearBoardFilters.Enabled = False
+        btnClearBoardFilters.Margin =
+            New Padding(0, 1, 0, 0)
+
+        StyleCardButton(
+            btnClearBoardFilters,
+            UiTheme.SecondaryText()
+        )
+
+
+        AddHandler txtBoardSearch.TextChanged,
+            AddressOf BoardFilterChanged
+
+        AddHandler cboStageFilter.SelectedIndexChanged,
+            AddressOf BoardFilterChanged
+
+        AddHandler cboBoardSort.SelectedIndexChanged,
+            AddressOf BoardFilterChanged
+
+        AddHandler btnClearBoardFilters.Click,
+            AddressOf ClearBoardFilters
+
+
+        boardToolbar.Controls.Add(
+            txtBoardSearch
+        )
+
+        boardToolbar.Controls.Add(
+            cboStageFilter
+        )
+
+        boardToolbar.Controls.Add(
+            cboBoardSort
+        )
+
+        boardToolbar.Controls.Add(
+            btnClearBoardFilters
+        )
+
+
+        ' =================================================
+        ' Shelves
+        ' =================================================
 
         ConfigureSectionHeader(
             lblPipelineHeader,
@@ -235,40 +456,47 @@ Public Class Form1
             fileDrawerPanel
         )
 
+
         body.Controls.Add(
-            lblPipelineHeader,
+            boardToolbar,
             0,
             0
         )
 
         body.Controls.Add(
-            pipelinePanel,
+            lblPipelineHeader,
             0,
             1
         )
 
         body.Controls.Add(
-            lblPublishedHeader,
+            pipelinePanel,
             0,
             2
         )
 
         body.Controls.Add(
-            publishedPanel,
+            lblPublishedHeader,
             0,
             3
         )
 
         body.Controls.Add(
-            lblFileDrawerHeader,
+            publishedPanel,
             0,
             4
         )
 
         body.Controls.Add(
-            fileDrawerPanel,
+            lblFileDrawerHeader,
             0,
             5
+        )
+
+        body.Controls.Add(
+            fileDrawerPanel,
+            0,
+            6
         )
 
         ' =================================================
@@ -322,17 +550,23 @@ Public Class Form1
 
 
     Private Sub ConfigureSectionHeader(
-        label As Label,
-        text As String
-    )
+    label As Label,
+    text As String
+)
 
         label.Text = text
         label.AutoSize = True
         label.Anchor = AnchorStyles.Left
-        label.Font = New Font(
-            Me.Font,
+
+        label.Font =
+        New Font(
+            Me.Font.FontFamily,
+            10.0F,
             FontStyle.Bold
         )
+
+        label.ForeColor =
+        UiTheme.PrimaryText()
 
     End Sub
 
@@ -419,16 +653,16 @@ Public Class Form1
     ' =====================================================
 
     Private Sub ConfigureFlowPanel(
-        panel As FlowLayoutPanel
-    )
+    panel As FlowLayoutPanel
+)
 
         panel.Dock = DockStyle.Fill
         panel.FlowDirection = FlowDirection.TopDown
         panel.WrapContents = False
         panel.AutoScroll = True
         panel.Padding = New Padding(8)
-        panel.BackColor = SystemColors.Window
-        panel.BorderStyle = BorderStyle.FixedSingle
+        panel.BackColor = UiTheme.BoardBackground()
+        panel.BorderStyle = BorderStyle.None
 
     End Sub
 
@@ -436,6 +670,328 @@ Public Class Form1
     ' =====================================================
     ' Render manuscripts
     ' =====================================================
+
+    Private Sub StyleCardButton(
+    button As Button,
+    accentColor As Color
+)
+
+        button.FlatStyle =
+        FlatStyle.Flat
+
+        button.UseVisualStyleBackColor =
+        False
+
+        button.BackColor =
+        UiTheme.CardBackground()
+
+        button.ForeColor =
+        accentColor
+
+        button.FlatAppearance.BorderColor =
+        accentColor
+
+        button.FlatAppearance.BorderSize =
+        1
+
+        button.FlatAppearance.MouseOverBackColor =
+        UiTheme.HoverBackground()
+
+        button.FlatAppearance.MouseDownBackColor =
+        UiTheme.HoverBackground()
+
+        button.Cursor =
+        Cursors.Hand
+
+    End Sub
+
+    Private Sub BoardFilterChanged(
+        sender As Object,
+        e As EventArgs
+    )
+
+        RenderManuscripts()
+
+    End Sub
+
+
+    Private Sub ClearBoardFilters(
+        sender As Object,
+        e As EventArgs
+    )
+
+        txtBoardSearch.Text =
+            String.Empty
+
+        cboStageFilter.SelectedIndex =
+            0
+
+        cboBoardSort.SelectedIndex =
+            0
+
+        RenderManuscripts()
+
+    End Sub
+
+
+    Private Function HasActiveBoardFilters() As Boolean
+
+        If Not String.IsNullOrWhiteSpace(
+            txtBoardSearch.Text
+        ) Then
+
+            Return True
+
+        End If
+
+        If cboStageFilter.SelectedIndex > 0 Then
+            Return True
+        End If
+
+        If cboBoardSort.SelectedIndex > 0 Then
+            Return True
+        End If
+
+        Return False
+
+    End Function
+
+
+    Private Function ContainsSearchText(
+        value As String,
+        query As String
+    ) As Boolean
+
+        If String.IsNullOrWhiteSpace(value) Then
+            Return False
+        End If
+
+        Return value.IndexOf(
+            query,
+            StringComparison.CurrentCultureIgnoreCase
+        ) >= 0
+
+    End Function
+
+
+    Private Function ManuscriptMatchesBoardFilters(
+        manuscript As Manuscript
+    ) As Boolean
+
+        Dim query As String =
+            txtBoardSearch.Text.Trim()
+
+        If Not String.IsNullOrWhiteSpace(query) Then
+
+            Dim matchesSearch As Boolean =
+                ContainsSearchText(
+                    manuscript.Title,
+                    query
+                ) OrElse
+                ContainsSearchText(
+                    manuscript.TargetJournal,
+                    query
+                ) OrElse
+                ContainsSearchText(
+                    manuscript.CoAuthors,
+                    query
+                )
+
+            If Not matchesSearch Then
+                Return False
+            End If
+
+        End If
+
+
+        If cboStageFilter.SelectedIndex > 0 Then
+
+            Dim selectedStage As String =
+                CStr(
+                    cboStageFilter.SelectedItem
+                )
+
+            If Not String.Equals(
+                FormatStage(manuscript.CurrentStage),
+                selectedStage,
+                StringComparison.OrdinalIgnoreCase
+            ) Then
+
+                Return False
+
+            End If
+
+        End If
+
+
+        Return True
+
+    End Function
+
+
+    Private Function GetVisibleManuscripts() As List(Of Manuscript)
+
+        Dim result As New List(Of Manuscript)()
+
+        For Each manuscript As Manuscript In manuscripts
+
+            If ManuscriptMatchesBoardFilters(
+                manuscript
+            ) Then
+
+                result.Add(
+                    manuscript
+                )
+
+            End If
+
+        Next
+
+
+        Select Case cboBoardSort.SelectedIndex
+
+            Case 1
+
+                result.Sort(
+                    AddressOf CompareTitleAscending
+                )
+
+            Case 2
+
+                result.Sort(
+                    AddressOf CompareTitleDescending
+                )
+
+            Case 3
+
+                result.Sort(
+                    AddressOf CompareRejectionsDescending
+                )
+
+            Case 4
+
+                result.Sort(
+                    AddressOf CompareRejectionsAscending
+                )
+
+            Case 5
+
+                result.Sort(
+                    AddressOf CompareStageDateDescending
+                )
+
+            Case 6
+
+                result.Sort(
+                    AddressOf CompareStageDateAscending
+                )
+
+        End Select
+
+
+        Return result
+
+    End Function
+
+
+    Private Function CompareTitleAscending(
+        first As Manuscript,
+        second As Manuscript
+    ) As Integer
+
+        Return StringComparer.CurrentCultureIgnoreCase.Compare(
+            first.Title,
+            second.Title
+        )
+
+    End Function
+
+
+    Private Function CompareTitleDescending(
+        first As Manuscript,
+        second As Manuscript
+    ) As Integer
+
+        Return StringComparer.CurrentCultureIgnoreCase.Compare(
+            second.Title,
+            first.Title
+        )
+
+    End Function
+
+
+    Private Function CompareRejectionsDescending(
+        first As Manuscript,
+        second As Manuscript
+    ) As Integer
+
+        Return second.RejectionCount.CompareTo(
+            first.RejectionCount
+        )
+
+    End Function
+
+
+    Private Function CompareRejectionsAscending(
+        first As Manuscript,
+        second As Manuscript
+    ) As Integer
+
+        Return first.RejectionCount.CompareTo(
+            second.RejectionCount
+        )
+
+    End Function
+
+
+    Private Function CompareStageDateDescending(
+        first As Manuscript,
+        second As Manuscript
+    ) As Integer
+
+        Return second.StageEnteredDate.CompareTo(
+            first.StageEnteredDate
+        )
+
+    End Function
+
+
+    Private Function CompareStageDateAscending(
+        first As Manuscript,
+        second As Manuscript
+    ) As Integer
+
+        Return first.StageEnteredDate.CompareTo(
+            second.StageEnteredDate
+        )
+
+    End Function
+
+
+    Private Function BuildSectionTitle(
+        title As String,
+        visibleCount As Integer,
+        totalCount As Integer
+    ) As String
+
+        If HasActiveBoardFilters() AndAlso
+           visibleCount <> totalCount Then
+
+            Return title &
+                " (" &
+                visibleCount.ToString() &
+                " of " &
+                totalCount.ToString() &
+                ")"
+
+        End If
+
+        Return title &
+            " (" &
+            totalCount.ToString() &
+            ")"
+
+    End Function
 
     Private Sub RenderManuscripts()
 
@@ -447,11 +1003,46 @@ Public Class Form1
         publishedPanel.Controls.Clear()
         fileDrawerPanel.Controls.Clear()
 
+
+        ' =================================================
+        ' Total counts
+        ' =================================================
+
+        Dim pipelineTotal As Integer = 0
+        Dim publishedTotal As Integer = 0
+        Dim drawerTotal As Integer = 0
+
+        For Each manuscript As Manuscript In manuscripts
+
+            Select Case manuscript.Location
+
+                Case ManuscriptLocation.Pipeline
+                    pipelineTotal += 1
+
+                Case ManuscriptLocation.Published
+                    publishedTotal += 1
+
+                Case ManuscriptLocation.FileDrawer
+                    drawerTotal += 1
+
+            End Select
+
+        Next
+
+
+        ' =================================================
+        ' Filtered / sorted records
+        ' =================================================
+
+        Dim visibleManuscripts As List(Of Manuscript) =
+            GetVisibleManuscripts()
+
         Dim pipelineCount As Integer = 0
         Dim publishedCount As Integer = 0
         Dim drawerCount As Integer = 0
 
-        For Each manuscript As Manuscript In manuscripts
+
+        For Each manuscript As Manuscript In visibleManuscripts
 
             Select Case manuscript.Location
 
@@ -466,6 +1057,7 @@ Public Class Form1
 
                     pipelineCount += 1
 
+
                 Case ManuscriptLocation.Published
 
                     publishedPanel.Controls.Add(
@@ -476,6 +1068,7 @@ Public Class Form1
                     )
 
                     publishedCount += 1
+
 
                 Case ManuscriptLocation.FileDrawer
 
@@ -492,54 +1085,120 @@ Public Class Form1
 
         Next
 
+
+        ' =================================================
+        ' Section headings
+        ' =================================================
+
         lblPipelineHeader.Text =
-            "PIPELINE (" &
-            pipelineCount.ToString() &
-            ")"
+            BuildSectionTitle(
+                "PIPELINE",
+                pipelineCount,
+                pipelineTotal
+            )
 
         lblPublishedHeader.Text =
-            "PUBLISHED (" &
-            publishedCount.ToString() &
-            ")"
+            BuildSectionTitle(
+                "PUBLISHED",
+                publishedCount,
+                publishedTotal
+            )
 
         lblFileDrawerHeader.Text =
-            "FILE DRAWER (" &
-            drawerCount.ToString() &
-            ")"
+            BuildSectionTitle(
+                "FILE DRAWER",
+                drawerCount,
+                drawerTotal
+            )
+
+
+        ' =================================================
+        ' Empty states
+        ' =================================================
 
         If pipelineCount = 0 Then
 
+            Dim pipelineMessage As String
+
+            If pipelineTotal = 0 Then
+
+                pipelineMessage =
+                    "No active manuscripts. Click + Add Manuscript."
+
+            Else
+
+                pipelineMessage =
+                    "No Pipeline manuscripts match the current search or filter."
+
+            End If
+
             pipelinePanel.Controls.Add(
                 CreateEmptyLabel(
-                    "No active manuscripts. Click + Add Manuscript."
+                    pipelineMessage
                 )
             )
 
         End If
+
 
         If publishedCount = 0 Then
 
+            Dim publishedMessage As String
+
+            If publishedTotal = 0 Then
+
+                publishedMessage =
+                    "No published manuscripts yet."
+
+            Else
+
+                publishedMessage =
+                    "No Published manuscripts match the current search or filter."
+
+            End If
+
             publishedPanel.Controls.Add(
                 CreateEmptyLabel(
-                    "No published manuscripts yet."
+                    publishedMessage
                 )
             )
 
         End If
+
 
         If drawerCount = 0 Then
 
+            Dim drawerMessage As String
+
+            If drawerTotal = 0 Then
+
+                drawerMessage =
+                    "The File Drawer is empty."
+
+            Else
+
+                drawerMessage =
+                    "No File Drawer manuscripts match the current search or filter."
+
+            End If
+
             fileDrawerPanel.Controls.Add(
                 CreateEmptyLabel(
-                    "The File Drawer is empty."
+                    drawerMessage
                 )
             )
 
         End If
+
+
+        btnClearBoardFilters.Enabled =
+            HasActiveBoardFilters()
+
 
         pipelinePanel.ResumeLayout()
         publishedPanel.ResumeLayout()
         fileDrawerPanel.ResumeLayout()
+
 
         ResizeCards(
             pipelinePanel
@@ -557,32 +1216,78 @@ Public Class Form1
 
 
     Private Function CreateManuscriptCard(
-        manuscript As Manuscript,
-        parentPanel As FlowLayoutPanel
-    ) As Panel
+    manuscript As Manuscript,
+    parentPanel As FlowLayoutPanel
+) As Panel
 
-        Dim card As New Panel With {
-            .Height = 118,
+        Dim card As New RoundedPanel With {
+            .Height = 122,
             .Width = GetCardWidth(parentPanel),
-            .BackColor = SystemColors.Window,
-            .BorderStyle = BorderStyle.FixedSingle,
-            .Margin = New Padding(4, 4, 4, 8),
+            .BackColor = UiTheme.CardBackground(),
+            .BorderColor = UiTheme.CardBorder(),
+            .BorderThickness = 1.0F,
+            .CornerRadius = 14,
+            .Margin = New Padding(4, 4, 4, 10),
             .Cursor = Cursors.Hand
         }
+
+
+        ' =================================================
+        ' Title
+        ' =================================================
 
         Dim lblTitle As New Label With {
             .Text = manuscript.Title,
             .AutoEllipsis = True,
-            .Left = 16,
-            .Top = 12,
-            .Height = 25,
+            .Left = 18,
+            .Top = 14,
+            .Height = 26,
             .Font = New Font(
                 Me.Font.FontFamily,
-                11,
+                11.0F,
                 FontStyle.Bold
             ),
+            .ForeColor = UiTheme.PrimaryText(),
             .Cursor = Cursors.Hand
         }
+
+
+        ' =================================================
+        ' Stage pill
+        ' =================================================
+
+        Dim stageText As String =
+            FormatStage(
+                manuscript.CurrentStage
+            )
+
+        Dim badgeFont As New Font(
+            Me.Font.FontFamily,
+            8.5F,
+            FontStyle.Bold
+        )
+
+        Dim badgeWidth As Integer =
+            TextRenderer.MeasureText(
+                stageText.ToUpperInvariant(),
+                badgeFont
+            ).Width + 22
+
+        Dim stageBadge As New PillLabel With {
+            .Text = stageText.ToUpperInvariant(),
+            .Left = 18,
+            .Top = 45,
+            .Width = badgeWidth,
+            .Height = 25,
+            .Font = badgeFont,
+            .BackColor = UiTheme.StageBackground(manuscript.CurrentStage),
+            .ForeColor = UiTheme.StageForeground(manuscript.CurrentStage)
+        }
+
+
+        ' =================================================
+        ' Journal
+        ' =================================================
 
         Dim journalText As String
 
@@ -591,254 +1296,256 @@ Public Class Form1
         ) Then
 
             journalText =
-                "Target journal: Not set"
+                "Target journal not set"
 
         Else
 
             journalText =
-                "Target journal: " &
                 manuscript.TargetJournal
 
         End If
 
-        Dim lblStage As New Label With {
-            .Text =
-                FormatStage(
-                    manuscript.CurrentStage
-                ) &
-                " - " &
-                journalText,
+        Dim lblJournal As New Label With {
+            .Text = journalText,
             .AutoEllipsis = True,
-            .Left = 16,
-            .Top = 42,
+            .Left = 18 + badgeWidth + 10,
+            .Top = 47,
             .Height = 23,
-            .ForeColor = SystemColors.GrayText,
+            .ForeColor = UiTheme.SecondaryText(),
             .Cursor = Cursors.Hand
         }
+
+
+        ' =================================================
+        ' Stats
+        ' =================================================
 
         Dim lblStats As New Label With {
             .Text =
                 manuscript.SubmissionCount.ToString() &
-                " submissions - " &
+                " submissions  •  " &
                 manuscript.RejectionCount.ToString() &
                 " rejections",
             .AutoSize = True,
-            .Left = 16,
-            .Top = 73,
+            .Left = 18,
+            .Top = 82,
+            .ForeColor = UiTheme.PrimaryText(),
             .Cursor = Cursors.Hand
         }
 
+
+        ' =================================================
+        ' Double-click behavior
+        ' =================================================
+
         AddHandler card.DoubleClick,
             Sub(sender, e)
-                OpenManuscript(
-                    manuscript
-                )
+                OpenManuscript(manuscript)
             End Sub
 
         AddHandler lblTitle.DoubleClick,
             Sub(sender, e)
-                OpenManuscript(
-                    manuscript
-                )
+                OpenManuscript(manuscript)
             End Sub
 
-        AddHandler lblStage.DoubleClick,
+        AddHandler lblJournal.DoubleClick,
             Sub(sender, e)
-                OpenManuscript(
-                    manuscript
-                )
+                OpenManuscript(manuscript)
             End Sub
 
         AddHandler lblStats.DoubleClick,
             Sub(sender, e)
-                OpenManuscript(
-                    manuscript
-                )
+                OpenManuscript(manuscript)
             End Sub
 
+
         ' =================================================
-        ' Delete button
+        ' Delete
         ' =================================================
 
         Dim btnDelete As New Button With {
             .Text = "Delete",
-            .Width = 90,
+            .Width = 88,
             .Height = 34,
-            .Top = 41,
-            .Anchor =
-                AnchorStyles.Top Or
-                AnchorStyles.Right,
-            .Cursor = Cursors.Default
+            .Top = 44,
+            .Anchor = AnchorStyles.Top Or AnchorStyles.Right
         }
 
         btnDelete.Left =
             card.ClientSize.Width -
             btnDelete.Width -
-            16
+            18
+
+        StyleCardButton(
+            btnDelete,
+            UiTheme.DangerColor()
+        )
 
         AddHandler btnDelete.Click,
             Sub(sender, e)
-                DeleteManuscript(
-                    manuscript
-                )
+                DeleteManuscript(manuscript)
             End Sub
 
         Dim nextRight As Integer =
-            btnDelete.Left - 8
+            btnDelete.Left - 10
+
 
         ' =================================================
-        ' Location button
+        ' Location-specific action
         ' =================================================
 
         If manuscript.Location =
             ManuscriptLocation.Pipeline Then
 
-            Dim btnLocation As New Button With {
+            Dim btnMoveToDrawer As New Button With {
                 .Text = "Move to File Drawer",
                 .Height = 34,
-                .Top = 41,
-                .Anchor =
-                    AnchorStyles.Top Or
-                    AnchorStyles.Right,
-                .Cursor = Cursors.Default
+                .Top = 44,
+                .Anchor = AnchorStyles.Top Or AnchorStyles.Right
             }
 
-            btnLocation.Width =
+            btnMoveToDrawer.Width =
                 Math.Max(
                     175,
                     TextRenderer.MeasureText(
-                        btnLocation.Text,
-                        btnLocation.Font
-                    ).Width + 34
+                        btnMoveToDrawer.Text,
+                        btnMoveToDrawer.Font
+                    ).Width + 32
                 )
 
-            btnLocation.Left =
+            btnMoveToDrawer.Left =
                 nextRight -
-                btnLocation.Width
+                btnMoveToDrawer.Width
 
             nextRight =
-                btnLocation.Left - 8
+                btnMoveToDrawer.Left - 10
 
-            AddHandler btnLocation.Click,
+            StyleCardButton(
+                btnMoveToDrawer,
+                UiTheme.WarningColor()
+            )
+
+            AddHandler btnMoveToDrawer.Click,
                 Sub(sender, e)
-                    MoveToFileDrawer(
-                        manuscript
-                    )
+                    MoveToFileDrawer(manuscript)
                 End Sub
 
             card.Controls.Add(
-                btnLocation
+                btnMoveToDrawer
             )
 
         ElseIf manuscript.Location =
             ManuscriptLocation.FileDrawer Then
 
-            Dim btnLocation As New Button With {
+            Dim btnRestoreToPipeline As New Button With {
                 .Text = "Restore to Pipeline",
                 .Height = 34,
-                .Top = 41,
-                .Anchor =
-                    AnchorStyles.Top Or
-                    AnchorStyles.Right,
-                .Cursor = Cursors.Default
+                .Top = 44,
+                .Anchor = AnchorStyles.Top Or AnchorStyles.Right
             }
 
-            btnLocation.Width =
+            btnRestoreToPipeline.Width =
                 Math.Max(
                     175,
                     TextRenderer.MeasureText(
-                        btnLocation.Text,
-                        btnLocation.Font
-                    ).Width + 34
+                        btnRestoreToPipeline.Text,
+                        btnRestoreToPipeline.Font
+                    ).Width + 32
                 )
 
-            btnLocation.Left =
+            btnRestoreToPipeline.Left =
                 nextRight -
-                btnLocation.Width
+                btnRestoreToPipeline.Width
 
             nextRight =
-                btnLocation.Left - 8
+                btnRestoreToPipeline.Left - 10
 
-            AddHandler btnLocation.Click,
+            StyleCardButton(
+                btnRestoreToPipeline,
+                UiTheme.SuccessColor()
+            )
+
+            AddHandler btnRestoreToPipeline.Click,
                 Sub(sender, e)
-                    RestoreToPipeline(
-                        manuscript
-                    )
+                    RestoreToPipeline(manuscript)
                 End Sub
 
             card.Controls.Add(
-                btnLocation
+                btnRestoreToPipeline
             )
 
         End If
 
         ' =================================================
-        ' Open button
+        ' Open
         ' =================================================
 
         Dim btnOpen As New Button With {
             .Text = "Open",
             .Width = 88,
             .Height = 34,
-            .Top = 41,
-            .Anchor =
-                AnchorStyles.Top Or
-                AnchorStyles.Right,
-            .Cursor = Cursors.Default
+            .Top = 44,
+            .Anchor = AnchorStyles.Top Or AnchorStyles.Right
         }
 
         btnOpen.Left =
             nextRight -
             btnOpen.Width
 
+        StyleCardButton(
+            btnOpen,
+            UiTheme.AccentColor()
+        )
+
         AddHandler btnOpen.Click,
             Sub(sender, e)
-                OpenManuscript(
-                    manuscript
-                )
+                OpenManuscript(manuscript)
             End Sub
+
+
+        ' =================================================
+        ' Responsive text width
+        ' =================================================
 
         Dim textWidth As Integer =
             Math.Max(
-                200,
-                btnOpen.Left - 32
+                220,
+                btnOpen.Left - 36
             )
 
         lblTitle.Width =
             textWidth
 
-        lblStage.Width =
-            textWidth
+        lblJournal.Width =
+            Math.Max(
+                80,
+                textWidth -
+                badgeWidth -
+                10
+            )
 
         lblTitle.Anchor =
             AnchorStyles.Top Or
             AnchorStyles.Left Or
             AnchorStyles.Right
 
-        lblStage.Anchor =
+        lblJournal.Anchor =
             AnchorStyles.Top Or
             AnchorStyles.Left Or
             AnchorStyles.Right
 
-        card.Controls.Add(
-            lblTitle
-        )
 
-        card.Controls.Add(
-            lblStage
-        )
+        ' =================================================
+        ' Assemble
+        ' =================================================
 
-        card.Controls.Add(
-            lblStats
-        )
+        card.Controls.Add(lblTitle)
+        card.Controls.Add(stageBadge)
+        card.Controls.Add(lblJournal)
+        card.Controls.Add(lblStats)
+        card.Controls.Add(btnOpen)
+        card.Controls.Add(btnDelete)
 
-        card.Controls.Add(
-            btnOpen
-        )
-
-        card.Controls.Add(
-            btnDelete
-        )
 
         ' =================================================
         ' File Drawer suggestion
@@ -847,22 +1554,23 @@ Public Class Form1
         If manuscript.Location =
                 ManuscriptLocation.Pipeline AndAlso
            manuscript.RejectionCount >=
-                FileDrawerSuggestionThreshold Then
+                appSettings.FileDrawerSuggestionThreshold Then
 
             card.Height =
-                142
+                148
 
             Dim lblSuggestion As New Label With {
                 .Text =
-                    "File Drawer suggestion: " &
+                    "Consider filing after " &
                     manuscript.RejectionCount.ToString() &
                     " rejections",
                 .AutoSize = True,
-                .Left = 16,
-                .Top = 99,
-                .ForeColor = SystemColors.HotTrack,
+                .Left = 18,
+                .Top = 111,
+                .ForeColor = UiTheme.WarningColor(),
                 .Font = New Font(
-                    Me.Font,
+                    Me.Font.FontFamily,
+                    9.0F,
                     FontStyle.Bold
                 )
             }
@@ -877,19 +1585,19 @@ Public Class Form1
 
     End Function
 
-
     Private Function CreateEmptyLabel(
-        text As String
-    ) As Label
+    text As String
+) As Label
 
         Return New Label With {
-            .Text = text,
-            .AutoSize = False,
-            .Width = 650,
-            .Height = 45,
-            .Padding = New Padding(10),
-            .ForeColor = SystemColors.GrayText
-        }
+        .Text = text,
+        .AutoSize = False,
+        .Width = 650,
+        .Height = 48,
+        .Padding = New Padding(12),
+        .ForeColor = UiTheme.SecondaryText(),
+        .BackColor = UiTheme.BoardBackground()
+    }
 
     End Function
 
@@ -1133,6 +1841,471 @@ Public Class Form1
 
     End Sub
 
+    ' =====================================================
+    ' Standard Excel template
+    ' =====================================================
+
+    Private Sub ExportBlankTemplate(
+    sender As Object,
+    e As EventArgs
+)
+
+        Using dialog As New SaveFileDialog()
+
+            dialog.Title =
+            "Save ManuscriptPipeline Import Template"
+
+            dialog.Filter =
+            "Excel workbook (*.xlsx)|*.xlsx"
+
+            dialog.DefaultExt =
+            "xlsx"
+
+            dialog.AddExtension =
+            True
+
+            dialog.FileName =
+            "ManuscriptPipeline_Import_Template.xlsx"
+
+            dialog.OverwritePrompt =
+            True
+
+            If dialog.ShowDialog(Me) <> DialogResult.OK Then
+                Return
+            End If
+
+            Try
+
+                Dim generator As New StandardTemplateGenerator()
+
+                generator.Generate(
+                dialog.FileName
+            )
+
+                MessageBox.Show(
+                Me,
+                "The ManuscriptPipeline import template was created successfully." &
+                Environment.NewLine &
+                Environment.NewLine &
+                dialog.FileName,
+                "Template Created",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            )
+
+            Catch ex As Exception
+
+                MessageBox.Show(
+                Me,
+                "ManuscriptPipeline could not create the Excel template." &
+                Environment.NewLine &
+                Environment.NewLine &
+                ex.Message,
+                "Template Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            )
+
+            End Try
+
+        End Using
+
+    End Sub
+
+
+    ' =====================================================
+    ' Export complete library
+    ' =====================================================
+
+    Private Sub ExportLibraryExcel(
+    sender As Object,
+    e As EventArgs
+)
+
+
+        If manuscripts.Count = 0 Then
+
+            MessageBox.Show(
+            Me,
+            "There are no manuscripts to export.",
+            "Nothing to Export",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information
+        )
+
+            Return
+
+        End If
+
+        Using dialog As New SaveFileDialog()
+
+            dialog.Title =
+            "Export ManuscriptPipeline Library"
+
+            dialog.Filter =
+            "Excel workbook (*.xlsx)|*.xlsx"
+
+            dialog.DefaultExt =
+            "xlsx"
+
+            dialog.AddExtension =
+            True
+
+            dialog.FileName =
+            "ManuscriptPipeline_Export_" &
+            DateTime.Now.ToString("yyyy-MM-dd") &
+            ".xlsx"
+
+            dialog.OverwritePrompt =
+            True
+
+            If dialog.ShowDialog(Me) <> DialogResult.OK Then
+                Return
+            End If
+
+            Try
+
+                Dim exporter As New LibraryExcelExporter()
+
+                exporter.Export(
+                dialog.FileName,
+                manuscripts
+            )
+
+                MessageBox.Show(
+                Me,
+                "Your ManuscriptPipeline library was exported successfully." &
+                Environment.NewLine &
+                Environment.NewLine &
+                manuscripts.Count.ToString() &
+                " manuscript(s)" &
+                Environment.NewLine &
+                Environment.NewLine &
+                dialog.FileName &
+                Environment.NewLine &
+                Environment.NewLine &
+                "Note: The workbook contains correspondence metadata and file paths. It does not embed the actual document files.",
+                "Export Complete",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            )
+
+            Catch ex As Exception
+
+                MessageBox.Show(
+                Me,
+                "ManuscriptPipeline could not export the library." &
+                Environment.NewLine &
+                Environment.NewLine &
+                ex.Message,
+                "Export Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            )
+
+            End Try
+
+        End Using
+
+    End Sub
+
+    ' =====================================================
+    ' Portable backup
+    ' =====================================================
+
+    Private Sub BackupLibrary(
+    sender As Object,
+    e As EventArgs
+)
+
+        If manuscripts.Count = 0 Then
+
+            MessageBox.Show(
+            Me,
+            "There are no manuscripts to back up.",
+            "Nothing to Back Up",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information
+        )
+
+            Return
+
+        End If
+
+        ' Make absolutely sure JSON and managed copies are current.
+        If Not SaveManuscripts() Then
+            Return
+        End If
+
+        Using dialog As New SaveFileDialog()
+
+            dialog.Title =
+            "Back Up ManuscriptPipeline Library"
+
+            dialog.Filter =
+            "ZIP archive (*.zip)|*.zip"
+
+            dialog.DefaultExt =
+            "zip"
+
+            dialog.AddExtension =
+            True
+
+            dialog.FileName =
+            "ManuscriptPipeline_Backup_" &
+            DateTime.Now.ToString("yyyy-MM-dd_HHmmss") &
+            ".zip"
+
+            dialog.OverwritePrompt =
+            True
+
+            If dialog.ShowDialog(Me) <> DialogResult.OK Then
+                Return
+            End If
+
+            Try
+
+                Dim backupService As New PortableBackupService()
+
+                backupService.CreateBackup(
+                dialog.FileName,
+                manuscripts,
+                repository
+            )
+
+                MessageBox.Show(
+                Me,
+                "Your ManuscriptPipeline library was backed up successfully." &
+                Environment.NewLine &
+                Environment.NewLine &
+                dialog.FileName &
+                Environment.NewLine &
+                Environment.NewLine &
+                "The backup contains:" &
+                Environment.NewLine &
+                "- Native ManuscriptPipeline data" &
+                Environment.NewLine &
+                "- Excel library export" &
+                Environment.NewLine &
+                "- Managed document files",
+                "Backup Complete",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            )
+
+            Catch ex As Exception
+
+                MessageBox.Show(
+                Me,
+                "ManuscriptPipeline could not create the backup." &
+                Environment.NewLine &
+                Environment.NewLine &
+                ex.Message,
+                "Backup Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            )
+
+            End Try
+
+        End Using
+
+    End Sub
+
+    ' =====================================================
+    ' Portable restore
+    ' =====================================================
+
+    Private Sub RestoreLibraryBackup(
+    sender As Object,
+    e As EventArgs
+)
+
+        Using dialog As New OpenFileDialog()
+
+            dialog.Title =
+            "Restore ManuscriptPipeline Backup"
+
+            dialog.Filter =
+            "ManuscriptPipeline backup (*.zip)|*.zip|ZIP archives (*.zip)|*.zip"
+
+            dialog.CheckFileExists =
+            True
+
+            dialog.Multiselect =
+            False
+
+            If dialog.ShowDialog(Me) <> DialogResult.OK Then
+                Return
+            End If
+
+            Dim restoreService As New PortableRestoreService()
+            Dim inspection As BackupInspection
+
+            Try
+
+                inspection =
+                restoreService.InspectBackup(
+                    dialog.FileName
+                )
+
+            Catch ex As Exception
+
+                MessageBox.Show(
+                Me,
+                "This backup could not be validated." &
+                Environment.NewLine &
+                Environment.NewLine &
+                ex.Message,
+                "Invalid Backup",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            )
+
+                Return
+
+            End Try
+
+            Dim sizeInMb As Double =
+            inspection.UncompressedBytes / 1024.0 / 1024.0
+
+            Dim preview As String =
+            "Restore this ManuscriptPipeline backup?" &
+            Environment.NewLine &
+            Environment.NewLine &
+            "Manuscripts: " &
+            inspection.ManuscriptCount.ToString() &
+            Environment.NewLine &
+            "Submissions: " &
+            inspection.SubmissionCount.ToString() &
+            Environment.NewLine &
+            "Editorial decisions: " &
+            inspection.DecisionCount.ToString() &
+            Environment.NewLine &
+            "Correspondence records: " &
+            inspection.CorrespondenceCount.ToString() &
+            Environment.NewLine &
+            "Managed files: " &
+            inspection.ManagedFileCount.ToString() &
+            Environment.NewLine &
+            "Archive entries: " &
+            inspection.ArchiveEntryCount.ToString() &
+            Environment.NewLine &
+            "Expanded size: " &
+            sizeInMb.ToString("N1") &
+            " MB" &
+            Environment.NewLine &
+            Environment.NewLine &
+            "IMPORTANT: This will REPLACE the library currently loaded in ManuscriptPipeline." &
+            Environment.NewLine &
+            Environment.NewLine &
+            "An emergency backup of your current library will be created before the restore begins."
+
+            Dim confirmation As DialogResult =
+            MessageBox.Show(
+                Me,
+                preview,
+                "Restore Backup",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning
+            )
+
+            If confirmation <> DialogResult.Yes Then
+                Return
+            End If
+
+            Dim typedConfirmation As String =
+            Microsoft.VisualBasic.Interaction.InputBox(
+                "Type RESTORE to replace your current ManuscriptPipeline library.",
+                "Confirm Restore",
+                ""
+            )
+
+            If Not String.Equals(
+            typedConfirmation.Trim(),
+            "RESTORE",
+            StringComparison.Ordinal
+        ) Then
+
+                MessageBox.Show(
+                Me,
+                "Restore cancelled. The confirmation text did not match RESTORE.",
+                "Restore Cancelled",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            )
+
+                Return
+
+            End If
+
+            Try
+
+                Dim restoreResult As RestoreResult =
+                restoreService.RestoreBackup(
+                    dialog.FileName,
+                    manuscripts,
+                    repository
+                )
+
+                manuscripts =
+                repository.Load()
+
+                RenderManuscripts()
+
+                Dim completionMessage As String =
+                "The ManuscriptPipeline backup was restored successfully." &
+                Environment.NewLine &
+                Environment.NewLine &
+                restoreResult.ManuscriptCount.ToString() &
+                " manuscript(s) restored."
+
+                If Not String.IsNullOrWhiteSpace(
+                restoreResult.EmergencyBackupPath
+            ) Then
+
+                    completionMessage &=
+                    Environment.NewLine &
+                    Environment.NewLine &
+                    "Your previous library was backed up automatically to:" &
+                    Environment.NewLine &
+                    restoreResult.EmergencyBackupPath
+
+                End If
+
+                MessageBox.Show(
+                Me,
+                completionMessage,
+                "Restore Complete",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            )
+
+                lblStatus.Text =
+                "Backup restored - " &
+                DateTime.Now.ToString("h:mm tt")
+
+            Catch ex As Exception
+
+                MessageBox.Show(
+                Me,
+                "ManuscriptPipeline could not restore the backup." &
+                Environment.NewLine &
+                Environment.NewLine &
+                ex.Message &
+                Environment.NewLine &
+                Environment.NewLine &
+                "The existing library was preserved or rolled back where possible.",
+                "Restore Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            )
+
+            End Try
+
+        End Using
+
+    End Sub
 
     ' =====================================================
     ' Excel import
@@ -1443,6 +2616,51 @@ Public Class Form1
 
     End Sub
 
+    ' =====================================================
+    ' Settings
+    ' =====================================================
+
+    Private Sub OpenSettings(
+    sender As Object,
+    e As EventArgs
+)
+
+        Using dialog As New SettingsForm(
+        appSettings
+    )
+
+            If dialog.ShowDialog(Me) <>
+            DialogResult.OK Then
+
+                Return
+
+            End If
+
+            RenderManuscripts()
+
+            If dialog.AppearanceChanged Then
+
+                Dim restartResult As DialogResult =
+                MessageBox.Show(
+                    Me,
+                    "Restart ManuscriptPipeline now to apply the new appearance?",
+                    "Restart Required",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question
+                )
+
+                If restartResult =
+                DialogResult.Yes Then
+
+                    Application.Restart()
+
+                End If
+
+            End If
+
+        End Using
+
+    End Sub
 
     ' =====================================================
     ' Formatting

@@ -3,6 +3,7 @@ Imports System.Collections.Generic
 Imports System.Drawing
 Imports System.Windows.Forms
 Imports ManuscriptPipeline.Models
+Imports ManuscriptPipeline.Services
 
 Namespace Forms
 
@@ -46,6 +47,7 @@ Namespace Forms
                 CloneManuscript(manuscript)
 
             BuildInterface()
+            UiPolish.ApplyDialog(Me)
             LoadManuscript()
 
         End Sub

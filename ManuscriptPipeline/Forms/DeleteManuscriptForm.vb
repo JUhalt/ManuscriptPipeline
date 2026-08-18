@@ -1,6 +1,7 @@
 ﻿Imports System
 Imports System.Drawing
 Imports System.Windows.Forms
+Imports ManuscriptPipeline.Services
 
 Namespace Forms
 
@@ -18,6 +19,7 @@ Namespace Forms
             _manuscriptTitle = manuscriptTitle
 
             BuildInterface()
+            UiPolish.ApplyDialog(Me)
 
         End Sub
 

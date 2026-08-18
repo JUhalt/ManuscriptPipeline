@@ -2,6 +2,7 @@
 Imports System.Drawing
 Imports System.Windows.Forms
 Imports ManuscriptPipeline.Models
+Imports ManuscriptPipeline.Services
 
 Namespace Forms
 
@@ -48,6 +49,7 @@ Namespace Forms
             _existingDecision = Nothing
 
             BuildInterface()
+            UiPolish.ApplyDialog(Me)
 
         End Sub
 

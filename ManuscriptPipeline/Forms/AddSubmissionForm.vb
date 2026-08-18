@@ -3,6 +3,7 @@ Imports System.Collections.Generic
 Imports System.Drawing
 Imports System.Windows.Forms
 Imports ManuscriptPipeline.Models
+Imports ManuscriptPipeline.Services
 
 Namespace Forms
 
@@ -44,7 +45,7 @@ Namespace Forms
                 existingSubmission
 
             BuildInterface()
-
+            UiPolish.ApplyDialog(Me)
             LoadExistingSubmission()
 
         End Sub

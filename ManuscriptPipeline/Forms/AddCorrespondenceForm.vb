@@ -3,6 +3,7 @@ Imports System.Drawing
 Imports System.IO
 Imports System.Windows.Forms
 Imports ManuscriptPipeline.Models
+Imports ManuscriptPipeline.Services
 
 Namespace Forms
 
@@ -59,6 +60,7 @@ Namespace Forms
             _existingItem = existingItem
 
             BuildInterface()
+            UiPolish.ApplyDialog(Me)
             LoadExistingItem()
 
         End Sub

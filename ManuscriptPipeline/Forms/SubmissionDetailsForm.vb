@@ -43,7 +43,7 @@ Namespace Forms
             _submission = submission
 
             BuildInterface()
-
+            UiPolish.ApplyDialog(Me)
             RefreshDecisionList()
             RefreshCorrespondenceList()
 

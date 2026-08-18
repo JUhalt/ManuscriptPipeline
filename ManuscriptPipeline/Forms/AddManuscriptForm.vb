@@ -1,6 +1,7 @@
 ﻿Imports System.Drawing
 Imports System.Windows.Forms
 Imports ManuscriptPipeline.Models
+Imports ManuscriptPipeline.Services
 
 Namespace Forms
 
@@ -22,6 +23,7 @@ Namespace Forms
 
         Public Sub New()
             BuildInterface()
+            UiPolish.ApplyDialog(Me)
         End Sub
 
         Private Sub BuildInterface()
