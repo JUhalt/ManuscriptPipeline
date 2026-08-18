@@ -887,6 +887,7 @@ Public Class Form1
         panel.FlowDirection = FlowDirection.TopDown
         panel.WrapContents = False
         panel.AutoScroll = True
+        panel.AutoSize = False
         panel.Padding = New Padding(8)
         panel.BackColor = UiTheme.BoardBackground()
         panel.BorderStyle = BorderStyle.None
@@ -1439,12 +1440,6 @@ Public Class Form1
 
         RefreshAttentionDashboard()
 
-        pipelinePanel.SuspendLayout()
-
-        pipelinePanel.SuspendLayout()
-        publishedPanel.SuspendLayout()
-        fileDrawerPanel.SuspendLayout()
-
         pipelinePanel.Controls.Clear()
         publishedPanel.Controls.Clear()
         fileDrawerPanel.Controls.Clear()
@@ -1481,7 +1476,7 @@ Public Class Form1
         ' =================================================
 
         Dim visibleManuscripts As List(Of Manuscript) =
-            GetVisibleManuscripts()
+        GetVisibleManuscripts()
 
         Dim pipelineCount As Integer = 0
         Dim publishedCount As Integer = 0
@@ -1494,36 +1489,45 @@ Public Class Form1
 
                 Case ManuscriptLocation.Pipeline
 
-                    pipelinePanel.Controls.Add(
-                        CreateManuscriptCard(
-                            manuscript,
-                            pipelinePanel
-                        )
+                    Dim card As Panel =
+                    CreateManuscriptCard(
+                        manuscript,
+                        pipelinePanel
                     )
+
+                    pipelinePanel.Controls.Add(
+                    card
+                )
 
                     pipelineCount += 1
 
 
                 Case ManuscriptLocation.Published
 
-                    publishedPanel.Controls.Add(
-                        CreateManuscriptCard(
-                            manuscript,
-                            publishedPanel
-                        )
+                    Dim card As Panel =
+                    CreateManuscriptCard(
+                        manuscript,
+                        publishedPanel
                     )
+
+                    publishedPanel.Controls.Add(
+                    card
+                )
 
                     publishedCount += 1
 
 
                 Case ManuscriptLocation.FileDrawer
 
-                    fileDrawerPanel.Controls.Add(
-                        CreateManuscriptCard(
-                            manuscript,
-                            fileDrawerPanel
-                        )
+                    Dim card As Panel =
+                    CreateManuscriptCard(
+                        manuscript,
+                        fileDrawerPanel
                     )
+
+                    fileDrawerPanel.Controls.Add(
+                    card
+                )
 
                     drawerCount += 1
 
@@ -1537,25 +1541,25 @@ Public Class Form1
         ' =================================================
 
         lblPipelineHeader.Text =
-            BuildSectionTitle(
-                "PIPELINE",
-                pipelineCount,
-                pipelineTotal
-            )
+        BuildSectionTitle(
+            "PIPELINE",
+            pipelineCount,
+            pipelineTotal
+        )
 
         lblPublishedHeader.Text =
-            BuildSectionTitle(
-                "PUBLISHED",
-                publishedCount,
-                publishedTotal
-            )
+        BuildSectionTitle(
+            "PUBLISHED",
+            publishedCount,
+            publishedTotal
+        )
 
         lblFileDrawerHeader.Text =
-            BuildSectionTitle(
-                "FILE DRAWER",
-                drawerCount,
-                drawerTotal
-            )
+        BuildSectionTitle(
+            "FILE DRAWER",
+            drawerCount,
+            drawerTotal
+        )
 
 
         ' =================================================
@@ -1569,20 +1573,20 @@ Public Class Form1
             If pipelineTotal = 0 Then
 
                 pipelineMessage =
-                    "No active manuscripts. Click + Add Manuscript."
+                "No active manuscripts. Click + Add Manuscript."
 
             Else
 
                 pipelineMessage =
-                    "No Pipeline manuscripts match the current search or filter."
+                "No Pipeline manuscripts match the current search or filter."
 
             End If
 
             pipelinePanel.Controls.Add(
-                CreateEmptyLabel(
-                    pipelineMessage
-                )
+            CreateEmptyLabel(
+                pipelineMessage
             )
+        )
 
         End If
 
@@ -1594,20 +1598,20 @@ Public Class Form1
             If publishedTotal = 0 Then
 
                 publishedMessage =
-                    "No published manuscripts yet."
+                "No published manuscripts yet."
 
             Else
 
                 publishedMessage =
-                    "No Published manuscripts match the current search or filter."
+                "No Published manuscripts match the current search or filter."
 
             End If
 
             publishedPanel.Controls.Add(
-                CreateEmptyLabel(
-                    publishedMessage
-                )
+            CreateEmptyLabel(
+                publishedMessage
             )
+        )
 
         End If
 
@@ -1619,44 +1623,52 @@ Public Class Form1
             If drawerTotal = 0 Then
 
                 drawerMessage =
-                    "The File Drawer is empty."
+                "The File Drawer is empty."
 
             Else
 
                 drawerMessage =
-                    "No File Drawer manuscripts match the current search or filter."
+                "No File Drawer manuscripts match the current search or filter."
 
             End If
 
             fileDrawerPanel.Controls.Add(
-                CreateEmptyLabel(
-                    drawerMessage
-                )
+            CreateEmptyLabel(
+                drawerMessage
             )
+        )
 
         End If
 
 
         btnClearBoardFilters.Enabled =
-            HasActiveBoardFilters()
+        HasActiveBoardFilters()
 
 
-        pipelinePanel.ResumeLayout()
-        publishedPanel.ResumeLayout()
-        fileDrawerPanel.ResumeLayout()
-
-
-        ResizeCards(
-            pipelinePanel
-        )
+        ' =================================================
+        ' Finish layout and repaint
+        ' =================================================
 
         ResizeCards(
-            publishedPanel
-        )
+        pipelinePanel
+    )
 
         ResizeCards(
-            fileDrawerPanel
-        )
+        publishedPanel
+    )
+
+        ResizeCards(
+        fileDrawerPanel
+    )
+
+
+        pipelinePanel.PerformLayout()
+        publishedPanel.PerformLayout()
+        fileDrawerPanel.PerformLayout()
+
+        pipelinePanel.Invalidate(True)
+        publishedPanel.Invalidate(True)
+        fileDrawerPanel.Invalidate(True)
 
     End Sub
 
