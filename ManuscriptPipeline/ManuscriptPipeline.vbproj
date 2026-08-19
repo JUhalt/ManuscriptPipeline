@@ -5,6 +5,9 @@
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
     <FileVersion>0.1.0.0</FileVersion>
     <Authors>Joshua Uhalt</Authors>
+    <AssemblyName>PaperRouteTracker</AssemblyName>
+    <Product>PaperRoute Tracker</Product>
+    <Title>PaperRoute Tracker</Title>
     <Description>Local-first academic manuscript tracking for researchers.</Description>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
