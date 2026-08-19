@@ -294,6 +294,57 @@ Namespace Services
             End If
 
 
+            If TypeOf control Is DataGridView Then
+
+                Dim grid As DataGridView =
+                    DirectCast(
+                        control,
+                        DataGridView
+                    )
+
+                grid.EnableHeadersVisualStyles = False
+                grid.BackgroundColor = UiTheme.CardBackground()
+                grid.GridColor = UiTheme.CardBorder()
+                grid.DefaultCellStyle.BackColor = UiTheme.CardBackground()
+                grid.DefaultCellStyle.ForeColor = UiTheme.PrimaryText()
+                grid.DefaultCellStyle.SelectionBackColor = UiTheme.HoverBackground()
+                grid.DefaultCellStyle.SelectionForeColor = UiTheme.PrimaryText()
+                grid.ColumnHeadersDefaultCellStyle.BackColor = UiTheme.HeaderBackground()
+                grid.ColumnHeadersDefaultCellStyle.ForeColor = UiTheme.PrimaryText()
+
+                Return
+
+            End If
+
+
+            If TypeOf control Is CheckBox OrElse
+               TypeOf control Is RadioButton Then
+
+                control.ForeColor = UiTheme.PrimaryText()
+                control.BackColor = UiTheme.BoardBackground()
+
+                Return
+
+            End If
+
+
+            If TypeOf control Is LinkLabel Then
+
+                Dim link As LinkLabel =
+                    DirectCast(
+                        control,
+                        LinkLabel
+                    )
+
+                link.LinkColor = UiTheme.AccentColor()
+                link.ActiveLinkColor = UiTheme.AccentSecondaryColor()
+                link.VisitedLinkColor = UiTheme.AccentColor()
+
+                Return
+
+            End If
+
+
             If TypeOf control Is GroupBox Then
 
                 control.BackColor =

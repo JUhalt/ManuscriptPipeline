@@ -20,7 +20,7 @@ Namespace Services
                     Environment.GetFolderPath(
                         Environment.SpecialFolder.LocalApplicationData
                     ),
-                    "ManuscriptPipeline"
+                    ProductInfo.LegacyDataFolderName
                 )
 
             _settingsPath =

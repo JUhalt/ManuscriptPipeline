@@ -10,19 +10,28 @@ Namespace Services
 
 
         Public Shared Function IsDark() As Boolean
-
             Return SystemColors.Window.GetBrightness() < 0.5F
-
         End Function
 
 
         Public Shared Function BoardBackground() As Color
 
             If IsDark() Then
-                Return Color.FromArgb(30, 30, 30)
+                Return Color.FromArgb(24, 27, 32)
             End If
 
-            Return Color.FromArgb(246, 247, 249)
+            Return Color.FromArgb(244, 247, 248)
+
+        End Function
+
+
+        Public Shared Function HeaderBackground() As Color
+
+            If IsDark() Then
+                Return Color.FromArgb(31, 35, 41)
+            End If
+
+            Return Color.White
 
         End Function
 
@@ -30,7 +39,7 @@ Namespace Services
         Public Shared Function CardBackground() As Color
 
             If IsDark() Then
-                Return Color.FromArgb(46, 46, 46)
+                Return Color.FromArgb(40, 44, 51)
             End If
 
             Return Color.White
@@ -41,10 +50,10 @@ Namespace Services
         Public Shared Function CardBorder() As Color
 
             If IsDark() Then
-                Return Color.FromArgb(72, 72, 72)
+                Return Color.FromArgb(61, 68, 79)
             End If
 
-            Return Color.FromArgb(218, 221, 226)
+            Return Color.FromArgb(218, 228, 231)
 
         End Function
 
@@ -52,35 +61,64 @@ Namespace Services
         Public Shared Function HoverBackground() As Color
 
             If IsDark() Then
-                Return Color.FromArgb(58, 58, 58)
+                Return Color.FromArgb(50, 56, 65)
             End If
 
-            Return Color.FromArgb(242, 244, 247)
+            Return Color.FromArgb(235, 244, 245)
 
         End Function
 
 
         Public Shared Function PrimaryText() As Color
-
             Return SystemColors.ControlText
-
         End Function
 
 
         Public Shared Function SecondaryText() As Color
 
-            Return SystemColors.GrayText
+            If IsDark() Then
+                Return Color.FromArgb(172, 181, 192)
+            End If
 
+            Return Color.FromArgb(91, 105, 119)
+
+        End Function
+
+
+        Public Shared Function BrandNavy() As Color
+            Return Color.FromArgb(15, 23, 42)
         End Function
 
 
         Public Shared Function AccentColor() As Color
 
             If IsDark() Then
-                Return Color.FromArgb(96, 165, 250)
+                Return Color.FromArgb(45, 212, 191)
             End If
 
-            Return Color.FromArgb(0, 102, 204)
+            Return Color.FromArgb(13, 148, 136)
+
+        End Function
+
+
+        Public Shared Function AccentSecondaryColor() As Color
+
+            If IsDark() Then
+                Return Color.FromArgb(34, 211, 238)
+            End If
+
+            Return Color.FromArgb(8, 145, 178)
+
+        End Function
+
+
+        Public Shared Function AccentMutedBackground() As Color
+
+            If IsDark() Then
+                Return Color.FromArgb(20, 69, 68)
+            End If
+
+            Return Color.FromArgb(204, 251, 241)
 
         End Function
 
@@ -136,7 +174,7 @@ Namespace Services
                         Return Color.FromArgb(30, 64, 110)
 
                     Case PaperStage.UnderReview
-                        Return Color.FromArgb(21, 73, 88)
+                        Return Color.FromArgb(17, 94, 89)
 
                     Case PaperStage.Revision
                         Return Color.FromArgb(92, 63, 21)
@@ -166,7 +204,7 @@ Namespace Services
                         Return Color.FromArgb(219, 234, 254)
 
                     Case PaperStage.UnderReview
-                        Return Color.FromArgb(207, 250, 254)
+                        Return Color.FromArgb(204, 251, 241)
 
                     Case PaperStage.Revision
                         Return Color.FromArgb(254, 243, 199)
@@ -175,7 +213,7 @@ Namespace Services
                         Return Color.FromArgb(220, 252, 231)
 
                     Case PaperStage.InPress
-                        Return Color.FromArgb(204, 251, 241)
+                        Return Color.FromArgb(207, 250, 254)
 
                     Case PaperStage.Published
                         Return Color.FromArgb(209, 250, 229)
@@ -207,7 +245,7 @@ Namespace Services
                         Return Color.FromArgb(191, 219, 254)
 
                     Case PaperStage.UnderReview
-                        Return Color.FromArgb(165, 243, 252)
+                        Return Color.FromArgb(153, 246, 228)
 
                     Case PaperStage.Revision
                         Return Color.FromArgb(253, 230, 138)
@@ -216,7 +254,7 @@ Namespace Services
                         Return Color.FromArgb(187, 247, 208)
 
                     Case PaperStage.InPress
-                        Return Color.FromArgb(153, 246, 228)
+                        Return Color.FromArgb(165, 243, 252)
 
                     Case PaperStage.Published
                         Return Color.FromArgb(167, 243, 208)
@@ -237,7 +275,7 @@ Namespace Services
                         Return Color.FromArgb(29, 78, 216)
 
                     Case PaperStage.UnderReview
-                        Return Color.FromArgb(14, 116, 144)
+                        Return Color.FromArgb(15, 118, 110)
 
                     Case PaperStage.Revision
                         Return Color.FromArgb(180, 83, 9)
@@ -246,7 +284,7 @@ Namespace Services
                         Return Color.FromArgb(21, 128, 61)
 
                     Case PaperStage.InPress
-                        Return Color.FromArgb(15, 118, 110)
+                        Return Color.FromArgb(14, 116, 144)
 
                     Case PaperStage.Published
                         Return Color.FromArgb(4, 120, 87)

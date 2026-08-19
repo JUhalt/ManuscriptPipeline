@@ -28,7 +28,7 @@ Namespace Services
             _rootDirectory =
                 Path.Combine(
                     documentsDirectory,
-                    "ManuscriptPipeline Library"
+                    ProductInfo.LegacyManagedLibraryFolderName
                 )
 
         End Sub
@@ -112,7 +112,7 @@ Namespace Services
                         If Not File.Exists(item.LocalFilePath) Then
 
                             Throw New FileNotFoundException(
-                                "A file marked for the ManuscriptPipeline Library could not be found.",
+                                "A file marked for the PaperRoute Library could not be found.",
                                 item.LocalFilePath
                             )
 

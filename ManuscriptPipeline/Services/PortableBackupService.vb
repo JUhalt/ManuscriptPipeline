@@ -28,7 +28,7 @@ Namespace Services
 
             If Not File.Exists(repository.DataFilePath) Then
                 Throw New FileNotFoundException(
-                    "The ManuscriptPipeline data file could not be found.",
+                    "The PaperRoute data file could not be found.",
                     repository.DataFilePath
                 )
             End If
@@ -36,7 +36,7 @@ Namespace Services
             Dim stagingDirectory As String =
                 Path.Combine(
                     Path.GetTempPath(),
-                    "ManuscriptPipelineBackup_" & Guid.NewGuid().ToString("N")
+                    "PaperRouteBackup_" & Guid.NewGuid().ToString("N")
                 )
 
             Try
@@ -44,7 +44,7 @@ Namespace Services
                 Directory.CreateDirectory(stagingDirectory)
 
                 ' =============================================
-                ' Native ManuscriptPipeline data
+                ' Native PaperRoute data
                 ' =============================================
 
                 Dim jsonDestination As String =
@@ -119,7 +119,7 @@ Namespace Services
                 Next
 
                 Dim backupInfo As String =
-                    "ManuscriptPipeline Portable Backup" &
+                    "PaperRoute Portable Backup" &
                     Environment.NewLine &
                     Environment.NewLine &
                     "Created: " &
@@ -138,11 +138,11 @@ Namespace Services
                     correspondenceCount.ToString() &
                     Environment.NewLine &
                     Environment.NewLine &
-                    "manuscripts.json is the native ManuscriptPipeline data file." &
+                    "manuscripts.json is the native PaperRoute data file." &
                     Environment.NewLine &
                     "library.xlsx is a human-readable export of the library." &
                     Environment.NewLine &
-                    "files contains documents managed by ManuscriptPipeline." &
+                    "files contains documents managed by PaperRoute." &
                     Environment.NewLine &
                     Environment.NewLine &
                     "Externally linked files are referenced by path but are not copied into this backup."

@@ -66,7 +66,7 @@ Namespace Services
             Next
 
             Throw New InvalidDataException(
-                "The standard ManuscriptPipeline workbook is missing the '" &
+                "The standard PaperRoute workbook is missing the '" &
                 worksheetName &
                 "' worksheet."
             )
@@ -265,7 +265,7 @@ Namespace Services
                         .Id = Guid.NewGuid(),
                         .EventDate = manuscript.StageEnteredDate,
                         .Stage = manuscript.CurrentStage,
-                        .Note = "Imported from standard ManuscriptPipeline workbook."
+                        .Note = "Imported from standard PaperRoute workbook."
                     }
                 )
 

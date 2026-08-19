@@ -186,7 +186,7 @@ Namespace Forms
             _createdManuscript.History.Add(
                 New HistoryEvent With {
                     .Stage = selectedStage,
-                    .Note = "Manuscript added to ManuscriptPipeline."
+                    .Note = "Manuscript added to PaperRoute."
                 }
             )
 

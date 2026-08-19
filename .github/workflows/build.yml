@@ -1,14 +1,12 @@
-﻿name: Build PaperRoute Tracker
+name: Build PaperRoute Tracker
 
 on:
   push:
     branches:
       - master
-
   pull_request:
     branches:
       - master
-
   workflow_dispatch:
 
 jobs:
@@ -39,6 +37,8 @@ jobs:
           --runtime win-x64
           --self-contained true
           -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=None
           -p:PublishDir=${{ github.workspace }}/publish/win-x64/
 
       - name: Upload Windows build
@@ -47,3 +47,4 @@ jobs:
           name: PaperRouteTracker-win-x64
           path: publish/win-x64/
           if-no-files-found: error
+          retention-days: 14

@@ -59,7 +59,7 @@ Namespace Forms
                 .Text =
                     "'" &
                     _manuscriptTitle &
-                    "' will be removed from ManuscriptPipeline, including its " &
+                    "' will be removed from PaperRoute, including its " &
                     "submission history, editorial decisions, notes, and file references.",
                 .Dock = DockStyle.Fill,
                 .AutoEllipsis = True

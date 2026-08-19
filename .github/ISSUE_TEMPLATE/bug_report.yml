@@ -1,0 +1,53 @@
+name: Bug report
+description: Report a reproducible problem in PaperRoute Tracker
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for helping test PaperRoute.
+  - type: input
+    id: version
+    attributes:
+      label: PaperRoute version
+      placeholder: 0.1.0-alpha.1
+    validations:
+      required: true
+  - type: dropdown
+    id: theme
+    attributes:
+      label: Appearance mode
+      options:
+        - Follow Windows
+        - Light
+        - Dark
+        - Not relevant
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Include the exact error text when possible.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open...
+        2. Click...
+        3. See...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Screenshots, anonymized spreadsheet headings, or other useful details.

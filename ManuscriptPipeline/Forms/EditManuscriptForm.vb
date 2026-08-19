@@ -676,7 +676,7 @@ Namespace Forms
                     Me,
                     "Delete '" &
                     _workingManuscript.Title &
-                    "' from ManuscriptPipeline?" &
+                    "' from PaperRoute?" &
                     Environment.NewLine &
                     Environment.NewLine &
                     "The complete manuscript record will be removed.",

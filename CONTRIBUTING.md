@@ -1,0 +1,34 @@
+# Contributing to PaperRoute
+
+Thanks for helping improve PaperRoute Tracker.
+
+## Good contributions for the alpha
+
+- Reproducible bug reports
+- Spreadsheet importer edge cases
+- Accessibility and DPI-scaling fixes
+- Academic publishing workflow improvements
+- Documentation corrections
+- Small, focused pull requests
+
+## Development setup
+
+PaperRoute currently targets .NET 10 Windows Forms and is written in Visual Basic .NET.
+
+```powershell
+dotnet restore ManuscriptPipeline.slnx
+dotnet build ManuscriptPipeline.slnx --configuration Release
+```
+
+Before opening a pull request, confirm the solution builds in Release configuration and describe how you tested the change.
+
+## Data safety
+
+Changes involving persistence, backup/restore, managed files, or import logic should preserve existing local data whenever possible. Avoid silently changing storage locations or destructive behavior without a migration path.
+
+## Style
+
+- Prefer clear, explicit VB.NET over clever compact syntax.
+- Keep UI changes DPI-aware.
+- Preserve Light/Dark/System theme compatibility.
+- Add user-facing validation before destructive actions.

@@ -1,8 +1,7 @@
-Imports System
+﻿Imports System
 Imports System.Collections.Generic
 Imports System.Drawing
 Imports System.Windows.Forms
-Imports DocumentFormat.OpenXml.Packaging
 Imports ManuscriptPipeline.Forms
 Imports ManuscriptPipeline.Models
 Imports ManuscriptPipeline.Services
@@ -95,20 +94,20 @@ Public Class Form1
 
         Me.Controls.Clear()
 
-        Me.Text = "ManuscriptPipeline"
+        Me.Text = "PaperRoute Tracker"
         Me.StartPosition = FormStartPosition.CenterScreen
         Me.Size = New Size(1180, 820)
         Me.MinimumSize = New Size(900, 680)
         Me.Font = New Font("Segoe UI", 10.0F)
         Me.AutoScaleMode = AutoScaleMode.Dpi
-        Me.BackColor = SystemColors.Control
+        Me.BackColor = UiTheme.BoardBackground()
         Me.DoubleBuffered = True
 
         Dim root As New TableLayoutPanel With {
             .Dock = DockStyle.Fill,
             .ColumnCount = 1,
             .RowCount = 3,
-            .BackColor = SystemColors.Control
+            .BackColor = UiTheme.BoardBackground()
         }
 
         root.RowStyles.Add(New RowStyle(SizeType.AutoSize))
@@ -126,7 +125,7 @@ Public Class Form1
     .ColumnCount = 2,
     .RowCount = 1,
     .Padding = New Padding(18, 10, 18, 10),
-    .BackColor = SystemColors.Window
+    .BackColor = UiTheme.HeaderBackground()
 }
 
         header.ColumnStyles.Add(
@@ -160,21 +159,22 @@ Public Class Form1
 
 
         Dim lblTitle As New Label With {
-    .Text = "ManuscriptPipeline",
+    .Text = "PaperRoute",
     .AutoSize = True,
     .Anchor = AnchorStyles.Left,
     .Font = New Font(
         Me.Font.FontFamily,
         16.0F,
         FontStyle.Bold
-    )
+    ),
+    .ForeColor = UiTheme.AccentColor()
 }
 
         Dim lblSubtitle As New Label With {
-    .Text = "Local-first academic manuscript tracking",
+    .Text = "Academic manuscript tracking, locally",
     .AutoSize = True,
     .Anchor = AnchorStyles.Left,
-    .ForeColor = SystemColors.GrayText,
+    .ForeColor = UiTheme.SecondaryText(),
     .Margin = New Padding(0, 2, 0, 0)
 }
 
@@ -237,7 +237,7 @@ Public Class Form1
 )
 
         dataMenu.Items.Add(
-    "Import Excel...",
+    "Import Spreadsheet...",
     Nothing,
     AddressOf ImportExcelHistory
 )
@@ -269,7 +269,7 @@ Public Class Form1
 )
 
         dataMenu.Items.Add(
-    "About ManuscriptPipeline",
+    "About PaperRoute",
     Nothing,
     AddressOf OpenAbout
 )
@@ -296,6 +296,21 @@ Public Class Form1
         )
 
     End Sub
+
+        StyleCardButton(
+            btnAdd,
+            UiTheme.AccentColor()
+        )
+
+        StyleCardButton(
+            btnData,
+            UiTheme.AccentSecondaryColor()
+        )
+
+        StyleCardButton(
+            btnSettings,
+            UiTheme.SecondaryText()
+        )
 
 
         headerActions.Controls.Add(
@@ -458,6 +473,9 @@ Public Class Form1
 
         txtBoardSearch.Margin =
             New Padding(0, 2, 10, 0)
+        txtBoardSearch.BackColor = UiTheme.CardBackground()
+        txtBoardSearch.ForeColor = UiTheme.PrimaryText()
+        txtBoardSearch.BorderStyle = BorderStyle.FixedSingle
 
 
         cboStageFilter.Width = 150
@@ -480,6 +498,9 @@ Public Class Form1
 
         cboStageFilter.Margin =
             New Padding(0, 2, 10, 0)
+        cboStageFilter.BackColor = UiTheme.CardBackground()
+        cboStageFilter.ForeColor = UiTheme.PrimaryText()
+        cboStageFilter.FlatStyle = FlatStyle.Flat
 
 
         cboBoardSort.Width = 235
@@ -501,6 +522,9 @@ Public Class Form1
 
         cboBoardSort.Margin =
             New Padding(0, 2, 10, 0)
+        cboBoardSort.BackColor = UiTheme.CardBackground()
+        cboBoardSort.ForeColor = UiTheme.PrimaryText()
+        cboBoardSort.FlatStyle = FlatStyle.Flat
 
 
         btnClearBoardFilters.Text = "Clear"
@@ -1244,7 +1268,7 @@ Public Class Form1
 
             MessageBox.Show(
                 Me,
-                "ManuscriptPipeline could not load your saved data." &
+                "PaperRoute could not load your saved data." &
                 Environment.NewLine &
                 Environment.NewLine &
                 ex.Message,
@@ -1279,7 +1303,7 @@ Public Class Form1
 
             MessageBox.Show(
                 Me,
-                "ManuscriptPipeline could not save your data." &
+                "PaperRoute could not save your data." &
                 Environment.NewLine &
                 Environment.NewLine &
                 ex.Message,
@@ -2867,7 +2891,7 @@ Public Class Form1
         Using dialog As New SaveFileDialog()
 
             dialog.Title =
-            "Save ManuscriptPipeline Import Template"
+            "Save PaperRoute Import Template"
 
             dialog.Filter =
             "Excel workbook (*.xlsx)|*.xlsx"
@@ -2879,7 +2903,7 @@ Public Class Form1
             True
 
             dialog.FileName =
-            "ManuscriptPipeline_Import_Template.xlsx"
+            "PaperRoute_Import_Template.xlsx"
 
             dialog.OverwritePrompt =
             True
@@ -2898,7 +2922,7 @@ Public Class Form1
 
                 MessageBox.Show(
                 Me,
-                "The ManuscriptPipeline import template was created successfully." &
+                "The PaperRoute import template was created successfully." &
                 Environment.NewLine &
                 Environment.NewLine &
                 dialog.FileName,
@@ -2911,7 +2935,7 @@ Public Class Form1
 
                 MessageBox.Show(
                 Me,
-                "ManuscriptPipeline could not create the Excel template." &
+                "PaperRoute could not create the Excel template." &
                 Environment.NewLine &
                 Environment.NewLine &
                 ex.Message,
@@ -2954,7 +2978,7 @@ Public Class Form1
         Using dialog As New SaveFileDialog()
 
             dialog.Title =
-            "Export ManuscriptPipeline Library"
+            "Export PaperRoute Library"
 
             dialog.Filter =
             "Excel workbook (*.xlsx)|*.xlsx"
@@ -2966,7 +2990,7 @@ Public Class Form1
             True
 
             dialog.FileName =
-            "ManuscriptPipeline_Export_" &
+            "PaperRoute_Export_" &
             DateTime.Now.ToString("yyyy-MM-dd") &
             ".xlsx"
 
@@ -2988,7 +3012,7 @@ Public Class Form1
 
                 MessageBox.Show(
                 Me,
-                "Your ManuscriptPipeline library was exported successfully." &
+                "Your PaperRoute library was exported successfully." &
                 Environment.NewLine &
                 Environment.NewLine &
                 manuscripts.Count.ToString() &
@@ -3008,7 +3032,7 @@ Public Class Form1
 
                 MessageBox.Show(
                 Me,
-                "ManuscriptPipeline could not export the library." &
+                "PaperRoute could not export the library." &
                 Environment.NewLine &
                 Environment.NewLine &
                 ex.Message,
@@ -3054,7 +3078,7 @@ Public Class Form1
         Using dialog As New SaveFileDialog()
 
             dialog.Title =
-            "Back Up ManuscriptPipeline Library"
+            "Back Up PaperRoute Library"
 
             dialog.Filter =
             "ZIP archive (*.zip)|*.zip"
@@ -3066,7 +3090,7 @@ Public Class Form1
             True
 
             dialog.FileName =
-            "ManuscriptPipeline_Backup_" &
+            "PaperRoute_Backup_" &
             DateTime.Now.ToString("yyyy-MM-dd_HHmmss") &
             ".zip"
 
@@ -3089,7 +3113,7 @@ Public Class Form1
 
                 MessageBox.Show(
                 Me,
-                "Your ManuscriptPipeline library was backed up successfully." &
+                "Your PaperRoute library was backed up successfully." &
                 Environment.NewLine &
                 Environment.NewLine &
                 dialog.FileName &
@@ -3097,7 +3121,7 @@ Public Class Form1
                 Environment.NewLine &
                 "The backup contains:" &
                 Environment.NewLine &
-                "- Native ManuscriptPipeline data" &
+                "- Native PaperRoute data" &
                 Environment.NewLine &
                 "- Excel library export" &
                 Environment.NewLine &
@@ -3111,7 +3135,7 @@ Public Class Form1
 
                 MessageBox.Show(
                 Me,
-                "ManuscriptPipeline could not create the backup." &
+                "PaperRoute could not create the backup." &
                 Environment.NewLine &
                 Environment.NewLine &
                 ex.Message,
@@ -3138,10 +3162,10 @@ Public Class Form1
         Using dialog As New OpenFileDialog()
 
             dialog.Title =
-            "Restore ManuscriptPipeline Backup"
+            "Restore PaperRoute Backup"
 
             dialog.Filter =
-            "ManuscriptPipeline backup (*.zip)|*.zip|ZIP archives (*.zip)|*.zip"
+            "PaperRoute backup (*.zip)|*.zip|ZIP archives (*.zip)|*.zip"
 
             dialog.CheckFileExists =
             True
@@ -3184,7 +3208,7 @@ Public Class Form1
             inspection.UncompressedBytes / 1024.0 / 1024.0
 
             Dim preview As String =
-            "Restore this ManuscriptPipeline backup?" &
+            "Restore this PaperRoute backup?" &
             Environment.NewLine &
             Environment.NewLine &
             "Manuscripts: " &
@@ -3210,7 +3234,7 @@ Public Class Form1
             " MB" &
             Environment.NewLine &
             Environment.NewLine &
-            "IMPORTANT: This will REPLACE the library currently loaded in ManuscriptPipeline." &
+            "IMPORTANT: This will REPLACE the library currently loaded in PaperRoute." &
             Environment.NewLine &
             Environment.NewLine &
             "An emergency backup of your current library will be created before the restore begins."
@@ -3230,7 +3254,7 @@ Public Class Form1
 
             Dim typedConfirmation As String =
             Microsoft.VisualBasic.Interaction.InputBox(
-                "Type RESTORE to replace your current ManuscriptPipeline library.",
+                "Type RESTORE to replace your current PaperRoute library.",
                 "Confirm Restore",
                 ""
             )
@@ -3268,7 +3292,7 @@ Public Class Form1
                 RenderManuscripts()
 
                 Dim completionMessage As String =
-                "The ManuscriptPipeline backup was restored successfully." &
+                "The PaperRoute backup was restored successfully." &
                 Environment.NewLine &
                 Environment.NewLine &
                 restoreResult.ManuscriptCount.ToString() &
@@ -3303,7 +3327,7 @@ Public Class Form1
 
                 MessageBox.Show(
                 Me,
-                "ManuscriptPipeline could not restore the backup." &
+                "PaperRoute could not restore the backup." &
                 Environment.NewLine &
                 Environment.NewLine &
                 ex.Message &
@@ -3332,7 +3356,7 @@ Public Class Form1
 
         Using dialog As New OpenFileDialog()
 
-            dialog.Title = "Import Manuscript History"
+            dialog.Title = "Import Spreadsheet into PaperRoute"
             dialog.Filter = "Excel workbooks (*.xlsx;*.xlsm)|*.xlsx;*.xlsm|All files (*.*)|*.*"
             dialog.CheckFileExists = True
             dialog.Multiselect = False
@@ -3388,14 +3412,40 @@ Public Class Form1
                     Dim importer As New StandardExcelImporter()
 
                     importResult = importer.Import(dialog.FileName)
-                    detectedFormat = "Standard ManuscriptPipeline template"
+                    detectedFormat = "Standard PaperRoute template"
 
                 Else
 
-                    Dim importer As New LegacyExcelImporter()
+                    Dim legacyImporter As New LegacyExcelImporter()
 
-                    importResult = importer.Import(dialog.FileName)
-                    detectedFormat = "Legacy tracker"
+                    If legacyImporter.CanImport(dialog.FileName) Then
+
+                        importResult = legacyImporter.Import(dialog.FileName)
+                        detectedFormat = "Legacy tracker"
+
+                    Else
+
+                        Using mappingDialog As New ExcelMappingForm(dialog.FileName)
+
+                            If mappingDialog.ShowDialog(Me) <> DialogResult.OK Then
+                                Return
+                            End If
+
+                            Dim flexibleImporter As New FlexibleExcelImporter()
+
+                            importResult =
+                                flexibleImporter.Import(
+                                    dialog.FileName,
+                                    mappingDialog.SelectedWorksheetName,
+                                    mappingDialog.HeaderRow,
+                                    mappingDialog.Mappings
+                                )
+
+                            detectedFormat = "Mapped spreadsheet"
+
+                        End Using
+
+                    End If
 
                 End If
 
@@ -3403,7 +3453,7 @@ Public Class Form1
 
                 MessageBox.Show(
                 Me,
-                "ManuscriptPipeline could not read this workbook." &
+                "PaperRoute could not read this workbook." &
                 Environment.NewLine &
                 Environment.NewLine &
                 ex.Message,
@@ -3456,7 +3506,7 @@ Public Class Form1
                 Environment.NewLine &
                 Environment.NewLine &
                 duplicateCount.ToString() &
-                " manuscript(s) matched titles already in ManuscriptPipeline.",
+                " manuscript(s) matched titles already in PaperRoute.",
                 "Nothing to Import",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information
@@ -3578,7 +3628,7 @@ Public Class Form1
 
                 MessageBox.Show(
                 Me,
-                "ManuscriptPipeline could not create the pre-import backup." &
+                "PaperRoute could not create the pre-import backup." &
                 Environment.NewLine &
                 Environment.NewLine &
                 ex.Message &
@@ -3657,7 +3707,7 @@ Public Class Form1
                 Dim restartResult As DialogResult =
                 MessageBox.Show(
                     Me,
-                    "Restart ManuscriptPipeline now to apply the new appearance?",
+                    "Restart PaperRoute now to apply the new appearance?",
                     "Restart Required",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question

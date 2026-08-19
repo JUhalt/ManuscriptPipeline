@@ -49,7 +49,7 @@ Namespace Forms
         Private Sub BuildInterface()
 
             Me.Text =
-                "Settings"
+                "PaperRoute Settings"
 
             Me.StartPosition =
                 FormStartPosition.CenterParent
@@ -152,7 +152,7 @@ Namespace Forms
 
             Dim appearanceHelp As New Label With {
                 .Text =
-                    "Appearance changes take effect after ManuscriptPipeline restarts.",
+                    "Appearance changes take effect after PaperRoute restarts.",
                 .AutoSize = True,
                 .ForeColor = SystemColors.GrayText,
                 .Margin = New Padding(22, 12, 0, 0)
@@ -575,7 +575,7 @@ Namespace Forms
 
                 MessageBox.Show(
                     Me,
-                    "ManuscriptPipeline could not save the settings." &
+                    "PaperRoute could not save the settings." &
                     Environment.NewLine &
                     Environment.NewLine &
                     ex.Message,

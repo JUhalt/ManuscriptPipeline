@@ -88,7 +88,7 @@ Namespace Services
                 If Not File.Exists(jsonPath) Then
 
                     Throw New InvalidDataException(
-                        "This archive does not contain manuscripts.json and does not appear to be a ManuscriptPipeline backup."
+                        "This archive does not contain manuscripts.json and does not appear to be a PaperRoute backup."
                     )
 
                 End If
@@ -172,7 +172,7 @@ Namespace Services
                 )
 
             If String.IsNullOrWhiteSpace(dataDirectory) Then
-                Throw New InvalidOperationException("The ManuscriptPipeline data directory could not be determined.")
+                Throw New InvalidOperationException("The PaperRoute data directory could not be determined.")
             End If
 
             Directory.CreateDirectory(
@@ -198,13 +198,13 @@ Namespace Services
             Dim stagedFilesDirectory As String =
                 Path.Combine(
                     managedParent,
-                    "ManuscriptPipeline Library.restore-staging-" & restoreId
+                    "PaperRoute Library.restore-staging-" & restoreId
                 )
 
             Dim rollbackFilesDirectory As String =
                 Path.Combine(
                     managedParent,
-                    "ManuscriptPipeline Library.restore-rollback-" & restoreId
+                    "PaperRoute Library.restore-rollback-" & restoreId
                 )
 
             Dim stagedJsonPath As String =
@@ -327,7 +327,7 @@ Namespace Services
                     emergencyBackupPath =
                         Path.Combine(
                             backupDirectory,
-                            "ManuscriptPipeline_PreRestore_" &
+                            "PaperRoute_PreRestore_" &
                             DateTime.Now.ToString("yyyy-MM-dd_HHmmss") &
                             ".zip"
                         )
@@ -786,7 +786,7 @@ Namespace Services
             Dim directoryPath As String =
                 Path.Combine(
                     Path.GetTempPath(),
-                    "ManuscriptPipelineRestore_" &
+                    "PaperRouteRestore_" &
                     Guid.NewGuid().ToString("N")
                 )
 

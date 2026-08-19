@@ -1,107 +1,163 @@
-# ManuscriptPipeline
+<p align="center">
+  <img src="docs/paperroute-logo.png" width="160" alt="PaperRoute logo">
+</p>
 
-A local-first, privacy-focused academic manuscript pipeline tracker built with VB.NET and Windows Forms.
+# PaperRoute
 
-> **Status:** Very early development / pre-alpha.  
-> The repository currently contains the initial application skeleton while core functionality is being developed.
+[![Build PaperRoute Tracker](https://github.com/JUhalt/PaperRoute-Tracker/actions/workflows/build.yml/badge.svg)](https://github.com/JUhalt/PaperRoute-Tracker/actions/workflows/build.yml)
 
-## About
+**A local-first academic manuscript tracker for researchers.**
 
-ManuscriptPipeline is an open-source Windows desktop application for researchers who want a simple way to track manuscripts throughout the academic publication process without storing their research workflow in a cloud service.
+> **Track • Submit • Publish**
 
-The application is intended to provide a visual overview of manuscripts as they progress through stages such as:
+PaperRoute Tracker helps researchers manage manuscripts from idea through submission, peer review, revision, publication—or the File Drawer—without requiring an account or sending the core workflow database to a cloud service.
 
-**Idea → Draft → Submitted → Under Review → Revision → Published**
 
-Each manuscript will also maintain its own chronological "paper trail" containing submission information, editorial decisions, revision rounds, deadlines, notes, and other publication events.
+## Current status
 
-## Core Principles
+**v0.1.0-alpha.1** — early public testing. The application is usable, but the data model and interface may still evolve before the first stable release.
 
-- **Local-first:** Manuscript tracking data belongs on the user's computer.
-- **Privacy-focused:** No account or cloud service should be required for core functionality.
-- **Offline-capable:** Core manuscript management should work without an internet connection.
-- **Open source:** The project is developed publicly and released under the GNU GPL v3.
-- **Researcher-focused:** Features should reflect the actual academic publication workflow rather than generic project management.
-- **Portable data:** Users should be able to inspect, back up, import, and export their own information.
+## Highlights
 
-## Planned Features
+- **Pipeline, Published, and File Drawer shelves** for the complete manuscript lifecycle.
+- **Journal submission history** with manuscript numbers, dates, notes, and publisher portal links.
+- **Editorial decisions** including rejection, revision, acceptance, and revision deadlines.
+- **Correspondence and local-file tracking** for decision letters, reviewer comments, response letters, revised manuscripts, and related material.
+- **Needs Attention dashboard** for overdue revisions, long reviews, missing target journals, and recent rejections.
+- **Search, stage filtering, and sorting** across the manuscript library.
+- **Light, Dark, and Follow Windows themes** using modern .NET 10 WinForms theming.
+- **Excel import/export** using the PaperRoute workbook format.
+- **Legacy tracker import** for the original development spreadsheet format.
+- **Column-mapping import wizard** for arbitrary spreadsheets whose headings do not match PaperRoute.
+- **Portable ZIP backup and restore** with an emergency pre-restore backup.
+- **Local-first storage** and a managed local document library.
 
-### Manuscript Pipeline
+## Privacy and local-first design
 
-- Visual publication-stage tracking
-- Custom manuscript metadata
-- Co-author information
-- Target journal information
-- Submission dates and manuscript IDs
-- Time-in-stage tracking
+PaperRoute is designed so that its core manuscript-tracking workflow works offline. No PaperRoute account is required.
 
-### Review and Revision Tracking
+For compatibility with pre-rebrand alpha builds, application data currently remains in the legacy local storage locations:
 
-- Under-review timers
-- Editorial decisions
-- Major and minor revision rounds
-- Revision deadlines
-- Reviewer and editor notes
-- Response-letter tracking
+```text
+%LocalAppData%\ManuscriptPipeline\
+Documents\ManuscriptPipeline Library\
+```
 
-### Paper Trail
+Those folder names are intentionally retained during the PaperRoute rebrand so existing alpha users do not lose access to their data. A future migration can move them without breaking compatibility.
 
-Each manuscript will maintain a chronological history of important events, allowing researchers to see the complete publication journey from initial idea through publication.
+## Installing a test build
 
-### Local Files
+### GitHub Actions artifact
 
-Future versions are planned to support links to local manuscript folders and files, making it possible to open drafts, figures, reviewer comments, response letters, and related materials directly from the application.
+1. Open the repository's **Actions** tab.
+2. Open the latest successful **Build PaperRoute Tracker** run.
+3. Download the `PaperRouteTracker-win-x64` artifact.
+4. Extract it and run `PaperRouteTracker.exe`.
 
-### Import and Export
+The Windows x64 build is self-contained, so the matching .NET runtime does not need to be installed separately.
 
-Planned formats include:
+### GitHub Releases
 
-- JSON
-- CSV
-- BibTeX
+Tagged versions are built by `.github/workflows/release.yml` and packaged as:
 
-Optional future integrations may include DOI/Crossref and ORCID metadata retrieval. Internet-connected functionality will remain separate from the application's local-first core.
+```text
+PaperRouteTracker-win-x64.zip
+```
 
-## Development Roadmap
+## Importing existing work
 
-The initial development plan is:
+Choose **Data → Import Spreadsheet...**.
 
-1. Create the core manuscript data model.
-2. Implement publication stages and stage transitions.
-3. Build the manuscript pipeline interface.
-4. Add manuscript history / paper-trail tracking.
-5. Add persistent local storage.
-6. Add revision deadlines and review timers.
-7. Add local file and folder integration.
-8. Add import/export functionality.
-9. Add optional academic metadata integrations.
-10. Package the application for easy Windows installation.
+PaperRoute uses three import paths automatically:
+
+### 1. Standard PaperRoute workbook
+
+Use **Data → Get Import Template...** to generate the supported multi-sheet workbook. It contains:
+
+- `Manuscripts`
+- `Submissions`
+- `Decisions`
+- `Correspondence`
+
+This is the best format for loss-minimized round-trip import/export.
+
+### 2. Legacy tracker
+
+PaperRoute recognizes the original development tracker when it contains the expected legacy columns such as `TITLE`, `JOURNAL`, `SUBMITTED`, `RESPONSE`, and `STATUS`.
+
+### 3. Map your spreadsheet
+
+If PaperRoute does not recognize either known format, it opens a column-mapping wizard. You can map headings such as:
+
+```text
+Paper Name       → Title
+Authors          → Co-authors
+Outlet           → Submission journal
+Date Sent        → Submitted date
+Current Status   → Current stage
+Outcome          → Editorial decision
+Decision Date    → Decision date
+Comments         → Notes
+```
+
+Only **Title** is required. PaperRoute auto-suggests mappings from common academic spreadsheet headings and shows sample values before import.
+
+## Backup and restore
+
+Choose **Data → Backup Library...** to create a portable ZIP containing:
+
+```text
+backup-info.txt
+manuscripts.json
+library.xlsx
+files\
+```
+
+Managed document copies are included in the backup. Externally linked files remain references to their original paths.
+
+**Restore Backup...** validates the archive, previews record/file counts, asks for explicit confirmation, creates an emergency backup of the current library, and then restores the selected archive.
+
+## File Drawer
+
+PaperRoute treats **Published** and **File Drawer** as terminal shelves, while still allowing a filed manuscript to be restored to the active Pipeline. The configurable File Drawer suggestion threshold is intended as a prompt, not an automatic decision.
+
+## Building from source
+
+Requirements:
+
+- Windows 11 recommended
+- .NET 10 SDK
+- Visual Studio 2026 or another environment capable of building VB.NET WinForms projects
+
+Clone the repository and build:
+
+```powershell
+git clone https://github.com/JUhalt/PaperRoute-Tracker.git
+cd PaperRoute-Tracker
+dotnet restore ManuscriptPipeline.slnx
+dotnet build ManuscriptPipeline.slnx --configuration Release
+```
+
+The internal project/folder name remains `ManuscriptPipeline` during the alpha rebrand to avoid unnecessary namespace churn. The built assembly is `PaperRouteTracker.exe`.
 
 ## Technology
 
-ManuscriptPipeline is currently being developed using:
-
 - Visual Basic .NET
-- .NET 10
-- Windows Forms
-- Visual Studio 2026
+- .NET 10 Windows Forms
+- ClosedXML for Excel workbook support
+- System.Text.Json for local persistence
+- GitHub Actions for Windows CI and release builds
 
-The initial target platform is Windows.
+## Inspiration and independence
 
-## Inspiration
+PaperRoute was inspired by the broader idea of academic manuscript pipeline tools, including the workflow concepts presented by PaperTrek. PaperRoute is an independent open-source project and is not affiliated with or endorsed by PaperTrek.
 
-The project was inspired by the general concept of academic manuscript pipeline tools, including the workflow presented by [PaperTrek](https://papertrek.app/).
-
-ManuscriptPipeline is an independent open-source project and is not affiliated with or endorsed by PaperTrek.
-
-The goal is not to reproduce PaperTrek's proprietary implementation or visual design, but to explore a local-first, open-source approach to academic manuscript workflow management.
+The implementation, local-first data model, import/export system, backup workflow, and interface are independently developed for PaperRoute.
 
 ## Contributing
 
-The project is currently in its earliest development stage, but contributions, ideas, bug reports, and feature suggestions will be welcome as the application matures.
+Bug reports, usability feedback, importer edge cases, and pull requests are welcome. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## License
 
-ManuscriptPipeline is licensed under the GNU General Public License v3.0.
-
-See `LICENSE.txt` for details.
+PaperRoute Tracker is licensed under the **GNU General Public License v3.0**. See [`LICENSE.txt`](LICENSE.txt).

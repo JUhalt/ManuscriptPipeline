@@ -55,7 +55,7 @@ Namespace Services
             worksheet As IXLWorksheet
         )
 
-            worksheet.Cell("A1").Value = "ManuscriptPipeline Import Template"
+            worksheet.Cell("A1").Value = "PaperRoute Import Template"
             worksheet.Range("A1:F1").Merge()
 
             StyleTitle(
@@ -89,7 +89,7 @@ Namespace Services
 
             worksheet.Cell("A9").Value =
                 "CurrentStage describes publication progress: Idea, Draft, Submitted, UnderReview, Revision, Accepted, InPress, or Published. " &
-                "Location describes where the manuscript lives in ManuscriptPipeline: Pipeline, Published, or FileDrawer. " &
+                "Location describes where the manuscript lives in PaperRoute: Pipeline, Published, or FileDrawer. " &
                 "FileDrawer is not a publication stage. A filed manuscript should retain its last meaningful CurrentStage."
 
             worksheet.Range("A9:F12").Merge()
@@ -158,7 +158,7 @@ Namespace Services
                 "Use real Excel dates and leave unknown dates blank. " &
                 "PortalURL and SourceURL should begin with http:// or https://. " &
                 "For correspondence, StorageMode=Link keeps the existing file path. " &
-                "StorageMode=ManagedCopy asks ManuscriptPipeline to archive its own copy when the workbook is imported."
+                "StorageMode=ManagedCopy asks PaperRoute to archive its own copy when the workbook is imported."
 
             worksheet.Range("A28:F32").Merge()
 

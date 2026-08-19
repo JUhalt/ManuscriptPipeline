@@ -884,13 +884,13 @@ Namespace Forms
 
                     details &=
             Environment.NewLine &
-            "Storage: ManuscriptPipeline Library"
+            "Storage: PaperRoute Library"
 
                 Else
 
                     details &=
             Environment.NewLine &
-            "Storage: Will copy to ManuscriptPipeline Library when saved"
+            "Storage: Will copy to PaperRoute Library when saved"
 
                 End If
 
@@ -987,7 +987,7 @@ Namespace Forms
             Using dialog As New OpenFileDialog()
 
                 dialog.Title =
-            "Copy files into the ManuscriptPipeline Library"
+            "Copy files into the PaperRoute Library"
 
                 dialog.Filter =
             "All files|*.*"
@@ -1064,10 +1064,10 @@ Namespace Forms
             Dim choice As DialogResult =
         MessageBox.Show(
             Me,
-            "How should ManuscriptPipeline handle the dropped file(s)?" &
+            "How should PaperRoute handle the dropped file(s)?" &
             Environment.NewLine &
             Environment.NewLine &
-            "YES  — Copy into the ManuscriptPipeline Library when you Save & Close" &
+            "YES  — Copy into the PaperRoute Library when you Save & Close" &
             Environment.NewLine &
             "NO   — Link to the files in their current location" &
             Environment.NewLine &

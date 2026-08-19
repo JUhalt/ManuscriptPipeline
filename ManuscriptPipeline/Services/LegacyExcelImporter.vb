@@ -51,6 +51,52 @@ Namespace Services
 
     Public Class LegacyExcelImporter
 
+        Public Function CanImport(filePath As String) As Boolean
+
+            If String.IsNullOrWhiteSpace(filePath) OrElse
+               Not File.Exists(filePath) Then
+
+                Return False
+
+            End If
+
+            Try
+
+                Using workbook As New XLWorkbook(filePath)
+
+                    Dim worksheet As IXLWorksheet = FindWorksheet(workbook)
+                    Dim headers As Dictionary(Of String, Integer) = BuildHeaderMap(worksheet)
+
+                    Dim requiredHeaders As String() = {
+                        "SUBMISSION",
+                        "SUBMITTED",
+                        "TITLE",
+                        "JOURNAL",
+                        "RESPONSE",
+                        "STATUS"
+                    }
+
+                    For Each requiredHeader As String In requiredHeaders
+
+                        If Not headers.ContainsKey(requiredHeader) Then
+                            Return False
+                        End If
+
+                    Next
+
+                End Using
+
+                Return True
+
+            Catch
+
+                Return False
+
+            End Try
+
+        End Function
+
+
         Public Function Import(filePath As String) As ExcelImportResult
 
             If String.IsNullOrWhiteSpace(filePath) Then

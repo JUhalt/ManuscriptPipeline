@@ -1,0 +1,25 @@
+name: Feature request
+description: Suggest an improvement to PaperRoute Tracker
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Research workflow need
+      description: What problem would this solve in your manuscript workflow?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Proposed behavior
+      description: Describe what you would like PaperRoute to do.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Current workaround
+      description: How do you handle this today?
