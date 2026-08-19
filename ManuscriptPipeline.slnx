@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="ManuscriptPipeline/ManuscriptPipeline.vbproj" />
+  <Project Path="PaperRoute.Tests/PaperRoute.Tests.vbproj" />
 </Solution>

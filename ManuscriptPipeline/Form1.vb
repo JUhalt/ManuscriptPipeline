@@ -1,7 +1,8 @@
-﻿Imports System
+Imports System
 Imports System.Collections.Generic
 Imports System.Drawing
 Imports System.Windows.Forms
+Imports System.Threading.Tasks
 Imports ManuscriptPipeline.Forms
 Imports ManuscriptPipeline.Models
 Imports ManuscriptPipeline.Services
@@ -82,6 +83,10 @@ Public Class Form1
         BuildInterface()
         LoadManuscripts()
         RenderManuscripts()
+
+        If appSettings.CheckForUpdatesAutomatically Then
+            BeginAutomaticUpdateCheck()
+        End If
 
     End Sub
 
@@ -218,8 +223,8 @@ Public Class Form1
 }
 
         Dim btnSettings As New Button With {
-    .Text = "Settings",
-    .Width = 100,
+    .Text = "Settings ▼",
+    .Width = 118,
     .Height = 44
 }
 
@@ -264,11 +269,39 @@ Public Class Form1
     AddressOf RestoreLibraryBackup
 )
 
-        dataMenu.Items.Add(
+        ' =================================================
+        ' Settings menu
+        ' =================================================
+
+        Dim settingsMenu As New ContextMenuStrip()
+
+        settingsMenu.Items.Add(
+    "Preferences...",
+    Nothing,
+    AddressOf OpenSettings
+)
+
+        settingsMenu.Items.Add(
     New ToolStripSeparator()
 )
 
-        dataMenu.Items.Add(
+        settingsMenu.Items.Add(
+    "Check for Updates...",
+    Nothing,
+    AddressOf CheckForUpdatesNow
+)
+
+        settingsMenu.Items.Add(
+    "Diagnostics...",
+    Nothing,
+    AddressOf OpenDiagnostics
+)
+
+        settingsMenu.Items.Add(
+    New ToolStripSeparator()
+)
+
+        settingsMenu.Items.Add(
     "About PaperRoute",
     Nothing,
     AddressOf OpenAbout
@@ -282,7 +315,17 @@ Public Class Form1
     AddressOf AddManuscript
 
         AddHandler btnSettings.Click,
-    AddressOf OpenSettings
+    Sub(sender, e)
+
+        settingsMenu.Show(
+            btnSettings,
+            New Point(
+                0,
+                btnSettings.Height
+            )
+        )
+
+    End Sub
 
         AddHandler btnData.Click,
     Sub(sender, e)
@@ -3681,6 +3724,38 @@ Public Class Form1
     End Sub
 
     ' =====================================================
+    ' Updates
+    ' =====================================================
+
+    Private Async Sub BeginAutomaticUpdateCheck()
+
+        ' Let the main window finish rendering before any update prompt appears.
+        Await Task.Delay(1500)
+
+        Await UpdateService.CheckAndOfferUpdateAsync(
+            Me,
+            appSettings.UpdateChannel,
+            False
+        )
+
+    End Sub
+
+
+    Private Async Sub CheckForUpdatesNow(
+        sender As Object,
+        e As EventArgs
+    )
+
+        Await UpdateService.CheckAndOfferUpdateAsync(
+            Me,
+            appSettings.UpdateChannel,
+            True
+        )
+
+    End Sub
+
+
+    ' =====================================================
     ' Settings
     ' =====================================================
 
@@ -3721,6 +3796,22 @@ Public Class Form1
                 End If
 
             End If
+
+        End Using
+
+    End Sub
+
+
+    Private Sub OpenDiagnostics(
+        sender As Object,
+        e As EventArgs
+    )
+
+        Using dialog As New DiagnosticsForm(
+            appSettings
+        )
+
+            dialog.ShowDialog(Me)
 
         End Using
 

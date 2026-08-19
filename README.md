@@ -15,7 +15,7 @@ PaperRoute Tracker helps researchers manage manuscripts from idea through submis
 
 ## Current status
 
-**v0.1.0-alpha.1** — early public testing. The application is usable, but the data model and interface may still evolve before the first stable release.
+**v0.1.0-alpha.2** — early public testing focused on installed updates and RC hardening. The application is usable, but the data model and interface may still evolve before the first stable release.
 
 ## Highlights
 
@@ -45,24 +45,17 @@ Documents\ManuscriptPipeline Library\
 
 Those folder names are intentionally retained during the PaperRoute rebrand so existing alpha users do not lose access to their data. A future migration can move them without breaking compatibility.
 
-## Installing a test build
+## Installing PaperRoute
 
-### GitHub Actions artifact
+### Recommended: GitHub Release installer
 
-1. Open the repository's **Actions** tab.
-2. Open the latest successful **Build PaperRoute Tracker** run.
-3. Download the `PaperRouteTracker-win-x64` artifact.
-4. Extract it and run `PaperRouteTracker.exe`.
+Prerelease tags are packaged with Velopack. On the GitHub **Releases** page, download and run the generated PaperRoute Setup executable. Installed builds can then check GitHub Releases for future PaperRoute updates.
 
-The Windows x64 build is self-contained, so the matching .NET runtime does not need to be installed separately.
+During alpha/RC testing, keep the update channel set to **Preview** in **Settings → Updates**. Stable releases will use the **Stable** channel.
 
-### GitHub Releases
+### Portable CI build
 
-Tagged versions are built by `.github/workflows/release.yml` and packaged as:
-
-```text
-PaperRouteTracker-win-x64.zip
-```
+The repository's **Build PaperRoute Tracker** workflow still produces a self-contained `PaperRouteTracker-win-x64` artifact for smoke testing. Portable/developer builds intentionally do not perform in-place automatic updates; install PaperRoute using the Setup program to test the updater.
 
 ## Importing existing work
 
@@ -147,12 +140,17 @@ The internal project/folder name remains `ManuscriptPipeline` during the alpha r
 - ClosedXML for Excel workbook support
 - System.Text.Json for local persistence
 - GitHub Actions for Windows CI and release builds
+- Velopack for Windows installation and automatic updates
 
 ## Inspiration and independence
 
 PaperRoute was inspired by the broader idea of academic manuscript pipeline tools, including the workflow concepts presented by PaperTrek. PaperRoute is an independent open-source project and is not affiliated with or endorsed by PaperTrek.
 
 The implementation, local-first data model, import/export system, backup workflow, and interface are independently developed for PaperRoute.
+
+## Roadmap
+
+See [`ROADMAP.md`](ROADMAP.md) for the public high-level route. GitHub milestones and issues are the live source of truth for active release work.
 
 ## Contributing
 

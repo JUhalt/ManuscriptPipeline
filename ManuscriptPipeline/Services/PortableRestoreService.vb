@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 Imports System.Collections.Generic
 Imports System.IO
 Imports System.IO.Compression
@@ -35,9 +35,23 @@ Namespace Services
         Private Const MaximumUncompressedBytes As Long = 21474836480L
 
         Private ReadOnly _jsonOptions As JsonSerializerOptions
+        Private ReadOnly _managedLibrary As ManagedLibraryService
 
 
         Public Sub New()
+            Me.New(Nothing)
+        End Sub
+
+
+        Friend Sub New(
+            managedLibraryRootDirectory As String
+        )
+
+            If String.IsNullOrWhiteSpace(managedLibraryRootDirectory) Then
+                _managedLibrary = New ManagedLibraryService()
+            Else
+                _managedLibrary = New ManagedLibraryService(managedLibraryRootDirectory)
+            End If
 
             _jsonOptions =
                 New JsonSerializerOptions With {
@@ -161,8 +175,6 @@ Namespace Services
             Dim extractionDirectory As String =
                 CreateTemporaryDirectory()
 
-            Dim managedLibrary As New ManagedLibraryService()
-
             Dim restoreId As String =
                 Guid.NewGuid().ToString("N")
 
@@ -180,7 +192,7 @@ Namespace Services
             )
 
             Dim managedRoot As String =
-                managedLibrary.RootDirectory
+                _managedLibrary.RootDirectory
 
             Dim managedParent As String =
                 Path.GetDirectoryName(
@@ -332,7 +344,7 @@ Namespace Services
                             ".zip"
                         )
 
-                    Dim backupService As New PortableBackupService()
+                    Dim backupService As New PortableBackupService(managedRoot)
 
                     backupService.CreateBackup(
                         emergencyBackupPath,

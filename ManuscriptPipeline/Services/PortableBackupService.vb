@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 Imports System.Collections.Generic
 Imports System.IO
 Imports System.IO.Compression
@@ -7,6 +7,26 @@ Imports ManuscriptPipeline.Models
 Namespace Services
 
     Public Class PortableBackupService
+
+        Private ReadOnly _managedLibrary As ManagedLibraryService
+
+
+        Public Sub New()
+            _managedLibrary = New ManagedLibraryService()
+        End Sub
+
+
+        Friend Sub New(
+            managedLibraryRootDirectory As String
+        )
+
+            _managedLibrary =
+                New ManagedLibraryService(
+                    managedLibraryRootDirectory
+                )
+
+        End Sub
+
 
         Public Sub CreateBackup(
             destinationZipPath As String,
@@ -80,9 +100,7 @@ Namespace Services
                 ' Managed document library
                 ' =============================================
 
-                Dim managedLibrary As New ManagedLibraryService()
-
-                If Directory.Exists(managedLibrary.RootDirectory) Then
+                If Directory.Exists(_managedLibrary.RootDirectory) Then
 
                     Dim filesDestination As String =
                         Path.Combine(
@@ -91,7 +109,7 @@ Namespace Services
                         )
 
                     CopyDirectory(
-                        managedLibrary.RootDirectory,
+                        _managedLibrary.RootDirectory,
                         filesDestination
                     )
 

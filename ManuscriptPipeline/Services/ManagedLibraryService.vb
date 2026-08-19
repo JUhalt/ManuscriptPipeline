@@ -1,4 +1,4 @@
-﻿'Imports System
+Imports System
 Imports System.Collections.Generic
 Imports System.IO
 Imports ManuscriptPipeline.Models
@@ -11,6 +11,25 @@ Namespace Services
 
 
         Public Sub New()
+            Me.New(GetDefaultRootDirectory())
+        End Sub
+
+
+        Friend Sub New(
+            rootDirectory As String
+        )
+
+            If String.IsNullOrWhiteSpace(rootDirectory) Then
+                Throw New ArgumentException("A managed-library root directory is required.", NameOf(rootDirectory))
+            End If
+
+            _rootDirectory =
+                Path.GetFullPath(rootDirectory)
+
+        End Sub
+
+
+        Private Shared Function GetDefaultRootDirectory() As String
 
             Dim documentsDirectory As String =
                 Environment.GetFolderPath(
@@ -25,13 +44,12 @@ Namespace Services
 
             End If
 
-            _rootDirectory =
-                Path.Combine(
-                    documentsDirectory,
-                    ProductInfo.LegacyManagedLibraryFolderName
-                )
+            Return Path.Combine(
+                documentsDirectory,
+                ProductInfo.ManagedLibraryFolderName
+            )
 
-        End Sub
+        End Function
 
 
         Public ReadOnly Property RootDirectory As String
@@ -85,11 +103,6 @@ Namespace Services
         )
 
             Dim operations As New List(Of CopyOperation)()
-
-            ' =================================================
-            ' Build copy plan first.
-            ' Nothing is changed yet.
-            ' =================================================
 
             For Each manuscript As Manuscript In manuscripts
 
@@ -174,12 +187,6 @@ Namespace Services
                 Return
             End If
 
-            ' =================================================
-            ' Copy files.
-            ' Track anything created so we can clean up
-            ' if one of the later copies fails.
-            ' =================================================
-
             Dim createdFiles As New List(Of String)()
 
             Try
@@ -221,11 +228,6 @@ Namespace Services
                 Throw
 
             End Try
-
-            ' =================================================
-            ' Every copy succeeded.
-            ' Only now update the in-memory records.
-            ' =================================================
 
             For Each operation As CopyOperation In operations
 

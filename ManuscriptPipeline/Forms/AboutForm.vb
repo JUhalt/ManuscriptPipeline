@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 Imports System.Drawing
 Imports System.Windows.Forms
 Imports ManuscriptPipeline.Services
@@ -23,7 +23,7 @@ Namespace Forms
             Me.FormBorderStyle = FormBorderStyle.FixedDialog
             Me.MaximizeBox = False
             Me.MinimizeBox = False
-            Me.ClientSize = New Size(610, 390)
+            Me.ClientSize = New Size(640, 410)
             Me.Font = New Font("Segoe UI", 10.0F)
             Me.AutoScaleMode = AutoScaleMode.Dpi
             Me.BackColor = UiTheme.BoardBackground()
@@ -40,10 +40,10 @@ Namespace Forms
             root.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
 
             root.RowStyles.Add(New RowStyle(SizeType.Absolute, 56))
-            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 32))
-            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 42))
+            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 30))
+            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 34))
             root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
-            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 44))
+            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 40))
             root.RowStyles.Add(New RowStyle(SizeType.Absolute, 48))
 
             Dim logo As New PictureBox With {
@@ -84,7 +84,7 @@ Namespace Forms
             }
 
             Dim lblVersion As New Label With {
-                .Text = "PaperRoute Tracker  •  Version " & Application.ProductVersion,
+                .Text = "PaperRoute Tracker  •  Version " & UpdateService.CurrentVersionText(),
                 .AutoSize = True,
                 .Font = New Font(Me.Font, FontStyle.Bold),
                 .Anchor = AnchorStyles.Left

@@ -13,19 +13,24 @@ Namespace Services
         Private ReadOnly _dataFilePath As String
         Private ReadOnly _backupFilePath As String
         Private ReadOnly _jsonOptions As JsonSerializerOptions
-        Private ReadOnly _managedLibrary As New ManagedLibraryService()
+        Private ReadOnly _managedLibrary As ManagedLibraryService
 
 
         Public Sub New()
+            Me.New(GetDefaultDataDirectory(), Nothing)
+        End Sub
 
-            _dataDirectory =
-                Path.Combine(
-                    Environment.GetFolderPath(
-                        Environment.SpecialFolder.LocalApplicationData
-                    ),
-                    ProductInfo.LegacyDataFolderName,
-                    "data"
-                )
+
+        Friend Sub New(
+            dataDirectory As String,
+            managedLibraryRoot As String
+        )
+
+            If String.IsNullOrWhiteSpace(dataDirectory) Then
+                Throw New ArgumentException("A data directory is required.", NameOf(dataDirectory))
+            End If
+
+            _dataDirectory = Path.GetFullPath(dataDirectory)
 
             _dataFilePath =
                 Path.Combine(
@@ -39,6 +44,12 @@ Namespace Services
                     "manuscripts.bak"
                 )
 
+            If String.IsNullOrWhiteSpace(managedLibraryRoot) Then
+                _managedLibrary = New ManagedLibraryService()
+            Else
+                _managedLibrary = New ManagedLibraryService(managedLibraryRoot)
+            End If
+
             _jsonOptions =
                 New JsonSerializerOptions With {
                     .WriteIndented = True,
@@ -51,6 +62,19 @@ Namespace Services
             )
 
         End Sub
+
+
+        Private Shared Function GetDefaultDataDirectory() As String
+
+            Return Path.Combine(
+                Environment.GetFolderPath(
+                    Environment.SpecialFolder.LocalApplicationData
+                ),
+                ProductInfo.DataFolderName,
+                "data"
+            )
+
+        End Function
 
 
         ' =====================================================
@@ -133,20 +157,44 @@ Namespace Services
                     _jsonOptions
                 )
 
-            If File.Exists(_dataFilePath) Then
-
-                File.Copy(
-                    _dataFilePath,
-                    _backupFilePath,
-                    True
+            Dim tempFilePath As String =
+                Path.Combine(
+                    _dataDirectory,
+                    "manuscripts.tmp"
                 )
 
-            End If
+            Try
 
-            File.WriteAllText(
-                _dataFilePath,
-                json
-            )
+                File.WriteAllText(
+                    tempFilePath,
+                    json
+                )
+
+                If File.Exists(_dataFilePath) Then
+
+                    File.Replace(
+                        tempFilePath,
+                        _dataFilePath,
+                        _backupFilePath,
+                        True
+                    )
+
+                Else
+
+                    File.Move(
+                        tempFilePath,
+                        _dataFilePath
+                    )
+
+                End If
+
+            Finally
+
+                If File.Exists(tempFilePath) Then
+                    File.Delete(tempFilePath)
+                End If
+
+            End Try
 
         End Sub
 

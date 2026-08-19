@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   release:
-    name: Build and Release Windows x64
+    name: Build, Package, and Release Windows x64
     runs-on: windows-latest
 
     steps:
@@ -22,34 +22,115 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Resolve release metadata
+        id: meta
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $version = $tag.TrimStart('v')
+          $isPrerelease = $version.Contains('-')
+          $channel = if ($isPrerelease) { 'preview' } else { 'stable' }
+          $notesPath = "docs/releases/$version.md"
+          if (-not (Test-Path $notesPath)) {
+            $notesPath = "CHANGELOG.md"
+          }
+
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "channel=$channel" >> $env:GITHUB_OUTPUT
+          "is_prerelease=$($isPrerelease.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          "notes_path=$notesPath" >> $env:GITHUB_OUTPUT
+
       - name: Restore dependencies
         run: dotnet restore ManuscriptPipeline.slnx
 
-      - name: Publish Windows x64
+      - name: Build release candidate
+        run: dotnet build ManuscriptPipeline.slnx --configuration Release --no-restore
+
+      - name: Run automated tests
+        run: dotnet test PaperRoute.Tests/PaperRoute.Tests.vbproj --configuration Release --no-build
+
+      - name: Publish Windows x64 for installer
         run: >
           dotnet publish
           ManuscriptPipeline/ManuscriptPipeline.vbproj
           --configuration Release
           --runtime win-x64
           --self-contained true
-          -p:PublishSingleFile=true
-          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:PublishSingleFile=false
           -p:DebugType=None
           -p:PublishDir=${{ github.workspace }}/publish/win-x64/
 
-      - name: Package release
+      - name: Download previous Preview Velopack release
+        if: steps.meta.outputs.is_prerelease == 'true'
+        continue-on-error: true
         shell: pwsh
-        run: Compress-Archive -Path "${{ github.workspace }}/publish/win-x64/*" -DestinationPath "${{ github.workspace }}/PaperRouteTracker-win-x64.zip" -Force
+        run: >
+          dnx vpk --version 1.2.0 download github
+          --repoUrl https://github.com/${{ github.repository }}
+          --token "${{ github.token }}"
+          --channel preview
+          --pre true
+          --outputDir "${{ github.workspace }}/Releases"
 
-      - name: Create GitHub release
+      - name: Download previous Stable Velopack release
+        if: steps.meta.outputs.is_prerelease != 'true'
+        continue-on-error: true
         shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          $tag = "${{ github.ref_name }}"
-          if ($tag -match "-") {
-            gh release create $tag "PaperRouteTracker-win-x64.zip" --title "PaperRoute Tracker $tag" --generate-notes --prerelease
-          }
-          else {
-            gh release create $tag "PaperRouteTracker-win-x64.zip" --title "PaperRoute Tracker $tag" --generate-notes
-          }
+        run: >
+          dnx vpk --version 1.2.0 download github
+          --repoUrl https://github.com/${{ github.repository }}
+          --token "${{ github.token }}"
+          --channel stable
+          --outputDir "${{ github.workspace }}/Releases"
+
+      - name: Build Velopack installer and update packages
+        shell: pwsh
+        run: >
+          dnx vpk --version 1.2.0 pack
+          --packId JUhalt.PaperRouteTracker
+          --packVersion "${{ steps.meta.outputs.version }}"
+          --packDir "${{ github.workspace }}/publish/win-x64"
+          --mainExe PaperRouteTracker.exe
+          --packTitle "PaperRoute Tracker"
+          --packAuthors "Joshua Uhalt"
+          --icon "${{ github.workspace }}/ManuscriptPipeline/Assets/PaperRoute.ico"
+          --releaseNotes "${{ github.workspace }}/${{ steps.meta.outputs.notes_path }}"
+          --channel "${{ steps.meta.outputs.channel }}"
+          --outputDir "${{ github.workspace }}/Releases"
+
+      - name: Upload Preview release to GitHub
+        if: steps.meta.outputs.is_prerelease == 'true'
+        shell: pwsh
+        run: >
+          dnx vpk --version 1.2.0 upload github
+          --repoUrl https://github.com/${{ github.repository }}
+          --token "${{ github.token }}"
+          --channel preview
+          --outputDir "${{ github.workspace }}/Releases"
+          --publish true
+          --pre true
+          --merge true
+          --releaseName "PaperRoute Tracker v${{ steps.meta.outputs.version }}"
+          --tag "v${{ steps.meta.outputs.version }}"
+
+      - name: Upload Stable release to GitHub
+        if: steps.meta.outputs.is_prerelease != 'true'
+        shell: pwsh
+        run: >
+          dnx vpk --version 1.2.0 upload github
+          --repoUrl https://github.com/${{ github.repository }}
+          --token "${{ github.token }}"
+          --channel stable
+          --outputDir "${{ github.workspace }}/Releases"
+          --publish true
+          --merge true
+          --releaseName "PaperRoute Tracker v${{ steps.meta.outputs.version }}"
+          --tag "v${{ steps.meta.outputs.version }}"
+
+      - name: Upload Velopack build artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: PaperRouteTracker-Velopack-${{ steps.meta.outputs.channel }}
+          path: Releases/
+          if-no-files-found: error
+          retention-days: 14

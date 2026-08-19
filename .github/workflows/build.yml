@@ -29,6 +29,18 @@ jobs:
       - name: Build Release
         run: dotnet build ManuscriptPipeline.slnx --configuration Release --no-restore
 
+      - name: Run automated tests
+        run: dotnet test PaperRoute.Tests/PaperRoute.Tests.vbproj --configuration Release --no-build --logger "trx;LogFileName=PaperRoute.Tests.trx" --results-directory "${{ github.workspace }}/TestResults"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: PaperRoute-test-results
+          path: TestResults/
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Publish Windows x64
         run: >
           dotnet publish

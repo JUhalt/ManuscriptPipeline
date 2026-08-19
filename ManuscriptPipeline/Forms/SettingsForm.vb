@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 Imports System.Drawing
 Imports System.Windows.Forms
 Imports ManuscriptPipeline.Models
@@ -21,6 +21,9 @@ Namespace Forms
         Private ReadOnly numRevisionWarning As New NumericUpDown()
         Private ReadOnly numRecentRejection As New NumericUpDown()
 
+        Private ReadOnly cboUpdateChannel As New ComboBox()
+        Private ReadOnly chkAutomaticUpdates As New CheckBox()
+
         Private _appearanceChanged As Boolean = False
 
 
@@ -35,8 +38,7 @@ Namespace Forms
             settings As AppSettings
         )
 
-            _settings =
-                settings
+            _settings = settings
 
             BuildInterface()
             LoadValues()
@@ -48,72 +50,48 @@ Namespace Forms
 
         Private Sub BuildInterface()
 
-            Me.Text =
-                "PaperRoute Settings"
-
-            Me.StartPosition =
-                FormStartPosition.CenterParent
-
-            Me.FormBorderStyle =
-                FormBorderStyle.FixedDialog
-
-            Me.MaximizeBox =
-                False
-
-            Me.MinimizeBox =
-                False
-
-            Me.ClientSize =
-                New Size(
-                    600,
-                    570
-                )
-
-            Me.Font =
-                New Font(
-                    "Segoe UI",
-                    10.0F
-                )
-
-            Me.AutoScaleMode =
-                AutoScaleMode.Dpi
-
+            Me.Text = "PaperRoute Preferences"
+            Me.StartPosition = FormStartPosition.CenterParent
+            Me.FormBorderStyle = FormBorderStyle.Sizable
+            Me.MaximizeBox = True
+            Me.MinimizeBox = False
+            Me.SizeGripStyle = SizeGripStyle.Show
+            Me.ClientSize = New Size(760, 720)
+            Me.MinimumSize = New Size(620, 520)
+            Me.Font = New Font("Segoe UI", 10.0F)
+            Me.AutoScaleMode = AutoScaleMode.Dpi
 
             Dim root As New TableLayoutPanel With {
                 .Dock = DockStyle.Fill,
                 .ColumnCount = 1,
-                .RowCount = 4,
-                .Padding = New Padding(20)
+                .RowCount = 2,
+                .Padding = New Padding(12)
             }
 
-            root.RowStyles.Add(
-                New RowStyle(
-                    SizeType.Absolute,
-                    175
-                )
-            )
+            root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
+            root.RowStyles.Add(New RowStyle(SizeType.AutoSize))
 
-            root.RowStyles.Add(
-                New RowStyle(
-                    SizeType.Absolute,
-                    205
-                )
-            )
+            Dim contentHost As New Panel With {
+                .Dock = DockStyle.Fill,
+                .AutoScroll = True,
+                .Padding = New Padding(4)
+            }
 
-            root.RowStyles.Add(
-                New RowStyle(
-                    SizeType.Percent,
-                    100
-                )
-            )
+            Dim settingsStack As New TableLayoutPanel With {
+                .Dock = DockStyle.Top,
+                .ColumnCount = 1,
+                .RowCount = 4,
+                .AutoSize = True,
+                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                .Margin = New Padding(0),
+                .Padding = New Padding(0)
+            }
 
-            root.RowStyles.Add(
-                New RowStyle(
-                    SizeType.Absolute,
-                    55
-                )
-            )
-
+            settingsStack.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
+            settingsStack.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+            settingsStack.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+            settingsStack.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+            settingsStack.RowStyles.Add(New RowStyle(SizeType.AutoSize))
 
             ' =================================================
             ' Appearance
@@ -121,150 +99,82 @@ Namespace Forms
 
             Dim appearanceGroup As New GroupBox With {
                 .Text = "Appearance",
-                .Dock = DockStyle.Fill,
-                .Padding = New Padding(16)
+                .Dock = DockStyle.Top,
+                .AutoSize = True,
+                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                .Padding = New Padding(16),
+                .Margin = New Padding(0, 0, 0, 10)
             }
 
             Dim appearancePanel As New FlowLayoutPanel With {
-                .Dock = DockStyle.Fill,
+                .Dock = DockStyle.Top,
+                .AutoSize = True,
+                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 .FlowDirection = FlowDirection.TopDown,
-                .WrapContents = False
+                .WrapContents = False,
+                .Margin = New Padding(0)
             }
 
-            rbSystem.Text =
-                "Follow Windows"
+            rbSystem.Text = "Follow Windows"
+            rbSystem.AutoSize = True
+            rbSystem.Margin = New Padding(0, 4, 0, 6)
 
-            rbSystem.AutoSize =
-                True
+            rbLight.Text = "Light"
+            rbLight.AutoSize = True
+            rbLight.Margin = New Padding(0, 4, 0, 6)
 
-            rbLight.Text =
-                "Light"
-
-            rbLight.AutoSize =
-                True
-
-            rbDark.Text =
-                "Dark"
-
-            rbDark.AutoSize =
-                True
-
+            rbDark.Text = "Dark"
+            rbDark.AutoSize = True
+            rbDark.Margin = New Padding(0, 4, 0, 6)
 
             Dim appearanceHelp As New Label With {
-                .Text =
-                    "Appearance changes take effect after PaperRoute restarts.",
+                .Text = "Theme changes take effect after PaperRoute restarts.",
                 .AutoSize = True,
                 .ForeColor = SystemColors.GrayText,
-                .Margin = New Padding(22, 12, 0, 0)
+                .Margin = New Padding(22, 8, 0, 4)
             }
 
-
-            appearancePanel.Controls.Add(
-                rbSystem
-            )
-
-            appearancePanel.Controls.Add(
-                rbLight
-            )
-
-            appearancePanel.Controls.Add(
-                rbDark
-            )
-
-            appearancePanel.Controls.Add(
-                appearanceHelp
-            )
-
-            appearanceGroup.Controls.Add(
-                appearancePanel
-            )
-
+            appearancePanel.Controls.Add(rbSystem)
+            appearancePanel.Controls.Add(rbLight)
+            appearancePanel.Controls.Add(rbDark)
+            appearancePanel.Controls.Add(appearanceHelp)
+            appearanceGroup.Controls.Add(appearancePanel)
 
             ' =================================================
-            ' Attention rules
+            ' Needs Attention
             ' =================================================
 
             Dim attentionGroup As New GroupBox With {
                 .Text = "Needs Attention",
-                .Dock = DockStyle.Fill,
-                .Padding = New Padding(16)
+                .Dock = DockStyle.Top,
+                .AutoSize = True,
+                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                .Padding = New Padding(16),
+                .Margin = New Padding(0, 0, 0, 10)
             }
 
             Dim attentionGrid As New TableLayoutPanel With {
-                .Dock = DockStyle.Fill,
+                .Dock = DockStyle.Top,
+                .AutoSize = True,
+                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 .ColumnCount = 3,
-                .RowCount = 3
+                .RowCount = 3,
+                .Margin = New Padding(0)
             }
 
-            attentionGrid.ColumnStyles.Add(
-                New ColumnStyle(
-                    SizeType.Percent,
-                    100
-                )
-            )
+            attentionGrid.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
+            attentionGrid.ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 82))
+            attentionGrid.ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 110))
 
-            attentionGrid.ColumnStyles.Add(
-                New ColumnStyle(
-                    SizeType.Absolute,
-                    75
-                )
-            )
+            ConfigureNumber(numLongReview, 1, 730)
+            ConfigureNumber(numRevisionWarning, 1, 180)
+            ConfigureNumber(numRecentRejection, 1, 365)
 
-            attentionGrid.ColumnStyles.Add(
-                New ColumnStyle(
-                    SizeType.Absolute,
-                    70
-                )
-            )
+            AddSettingRow(attentionGrid, 0, "Flag a long review after", numLongReview, "days")
+            AddSettingRow(attentionGrid, 1, "Warn about revision deadlines", numRevisionWarning, "days early")
+            AddSettingRow(attentionGrid, 2, "Treat a rejection as recent for", numRecentRejection, "days")
 
-
-            ConfigureNumber(
-                numLongReview,
-                1,
-                730
-            )
-
-            ConfigureNumber(
-                numRevisionWarning,
-                1,
-                180
-            )
-
-            ConfigureNumber(
-                numRecentRejection,
-                1,
-                365
-            )
-
-
-            AddSettingRow(
-                attentionGrid,
-                0,
-                "Flag a long review after",
-                numLongReview,
-                "days"
-            )
-
-            AddSettingRow(
-                attentionGrid,
-                1,
-                "Warn about revision deadlines",
-                numRevisionWarning,
-                "days early"
-            )
-
-            AddSettingRow(
-                attentionGrid,
-                2,
-                "Treat a rejection as recent for",
-                numRecentRejection,
-                "days"
-            )
-
-            attentionGroup.Controls.Add(
-                attentionGrid
-            )
-
+            attentionGroup.Controls.Add(attentionGrid)
 
             ' =================================================
             ' File Drawer
@@ -272,57 +182,116 @@ Namespace Forms
 
             Dim drawerGroup As New GroupBox With {
                 .Text = "File Drawer",
-                .Dock = DockStyle.Fill,
-                .Padding = New Padding(16)
+                .Dock = DockStyle.Top,
+                .AutoSize = True,
+                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                .Padding = New Padding(16),
+                .Margin = New Padding(0, 0, 0, 10)
             }
 
-            Dim drawerPanel As New FlowLayoutPanel With {
-                .Dock = DockStyle.Fill,
-                .FlowDirection = FlowDirection.LeftToRight,
-                .WrapContents = False
+            Dim drawerGrid As New TableLayoutPanel With {
+                .Dock = DockStyle.Top,
+                .AutoSize = True,
+                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                .ColumnCount = 3,
+                .RowCount = 1,
+                .Margin = New Padding(0)
             }
 
+            drawerGrid.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
+            drawerGrid.ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 82))
+            drawerGrid.ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 110))
+            drawerGrid.RowStyles.Add(New RowStyle(SizeType.AutoSize))
 
             Dim lblThreshold As New Label With {
                 .Text = "Suggest the File Drawer after",
                 .AutoSize = True,
-                .Margin = New Padding(0, 7, 8, 0)
+                .Anchor = AnchorStyles.Left,
+                .Margin = New Padding(0, 10, 8, 10)
             }
 
-
-            ConfigureNumber(
-                numFileDrawerThreshold,
-                1,
-                20
-            )
-
-            numFileDrawerThreshold.Width =
-                65
-
+            ConfigureNumber(numFileDrawerThreshold, 1, 20)
+            numFileDrawerThreshold.Anchor = AnchorStyles.Left
+            numFileDrawerThreshold.Margin = New Padding(0, 7, 0, 7)
 
             Dim lblRejections As New Label With {
-                .Text = "rejections.",
+                .Text = "rejections",
                 .AutoSize = True,
-                .Margin = New Padding(8, 7, 0, 0)
+                .Anchor = AnchorStyles.Left,
+                .Margin = New Padding(8, 10, 0, 10)
             }
 
+            drawerGrid.Controls.Add(lblThreshold, 0, 0)
+            drawerGrid.Controls.Add(numFileDrawerThreshold, 1, 0)
+            drawerGrid.Controls.Add(lblRejections, 2, 0)
+            drawerGroup.Controls.Add(drawerGrid)
 
-            drawerPanel.Controls.Add(
-                lblThreshold
-            )
+            ' =================================================
+            ' Updates
+            ' =================================================
 
-            drawerPanel.Controls.Add(
-                numFileDrawerThreshold
-            )
+            Dim updatesGroup As New GroupBox With {
+                .Text = "Updates",
+                .Dock = DockStyle.Top,
+                .AutoSize = True,
+                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                .Padding = New Padding(16),
+                .Margin = New Padding(0, 0, 0, 4)
+            }
 
-            drawerPanel.Controls.Add(
-                lblRejections
-            )
+            Dim updatesGrid As New TableLayoutPanel With {
+                .Dock = DockStyle.Top,
+                .AutoSize = True,
+                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                .ColumnCount = 2,
+                .RowCount = 2,
+                .Margin = New Padding(0)
+            }
 
-            drawerGroup.Controls.Add(
-                drawerPanel
-            )
+            updatesGrid.ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 165))
+            updatesGrid.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
+            updatesGrid.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+            updatesGrid.RowStyles.Add(New RowStyle(SizeType.AutoSize))
 
+            Dim lblChannel As New Label With {
+                .Text = "Update channel",
+                .AutoSize = True,
+                .Anchor = AnchorStyles.Left,
+                .Margin = New Padding(0, 10, 8, 10)
+            }
+
+            cboUpdateChannel.DropDownStyle = ComboBoxStyle.DropDownList
+            cboUpdateChannel.Width = 190
+            cboUpdateChannel.Items.Add("Stable")
+            cboUpdateChannel.Items.Add("Preview")
+            cboUpdateChannel.Anchor = AnchorStyles.Left
+            cboUpdateChannel.Margin = New Padding(0, 6, 0, 6)
+
+            Dim lblAutomatic As New Label With {
+                .Text = "Automatic checks",
+                .AutoSize = True,
+                .Anchor = AnchorStyles.Left,
+                .Margin = New Padding(0, 10, 8, 10)
+            }
+
+            chkAutomaticUpdates.Text = "Check for updates when PaperRoute starts"
+            chkAutomaticUpdates.AutoSize = True
+            chkAutomaticUpdates.Anchor = AnchorStyles.Left
+            chkAutomaticUpdates.Margin = New Padding(0, 8, 0, 8)
+
+            updatesGrid.Controls.Add(lblChannel, 0, 0)
+            updatesGrid.Controls.Add(cboUpdateChannel, 1, 0)
+            updatesGrid.Controls.Add(lblAutomatic, 0, 1)
+            updatesGrid.Controls.Add(chkAutomaticUpdates, 1, 1)
+
+            updatesGroup.Controls.Add(updatesGrid)
+
+            settingsStack.Controls.Add(appearanceGroup, 0, 0)
+            settingsStack.Controls.Add(attentionGroup, 0, 1)
+            settingsStack.Controls.Add(drawerGroup, 0, 2)
+            settingsStack.Controls.Add(updatesGroup, 0, 3)
+
+            contentHost.Controls.Add(settingsStack)
 
             ' =================================================
             ' Buttons
@@ -330,10 +299,12 @@ Namespace Forms
 
             Dim buttons As New FlowLayoutPanel With {
                 .Dock = DockStyle.Fill,
+                .AutoSize = True,
+                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 .FlowDirection = FlowDirection.RightToLeft,
-                .WrapContents = False
+                .WrapContents = False,
+                .Padding = New Padding(0, 10, 0, 0)
             }
-
 
             Dim btnSave As New Button With {
                 .Text = "Save",
@@ -348,55 +319,18 @@ Namespace Forms
                 .DialogResult = DialogResult.Cancel
             }
 
-
             AddHandler btnSave.Click,
                 AddressOf SaveSettings
 
+            buttons.Controls.Add(btnSave)
+            buttons.Controls.Add(btnCancel)
 
-            buttons.Controls.Add(
-                btnSave
-            )
+            root.Controls.Add(contentHost, 0, 0)
+            root.Controls.Add(buttons, 0, 1)
 
-            buttons.Controls.Add(
-                btnCancel
-            )
-
-
-            root.Controls.Add(
-                appearanceGroup,
-                0,
-                0
-            )
-
-            root.Controls.Add(
-                attentionGroup,
-                0,
-                1
-            )
-
-            root.Controls.Add(
-                drawerGroup,
-                0,
-                2
-            )
-
-            root.Controls.Add(
-                buttons,
-                0,
-                3
-            )
-
-
-            Me.AcceptButton =
-                btnSave
-
-            Me.CancelButton =
-                btnCancel
-
-
-            Me.Controls.Add(
-                root
-            )
+            Me.AcceptButton = btnSave
+            Me.CancelButton = btnCancel
+            Me.Controls.Add(root)
 
         End Sub
 
@@ -407,14 +341,9 @@ Namespace Forms
             maximum As Integer
         )
 
-            numeric.Minimum =
-                minimum
-
-            numeric.Maximum =
-                maximum
-
-            numeric.Width =
-                68
+            numeric.Minimum = minimum
+            numeric.Maximum = maximum
+            numeric.Width = 70
 
         End Sub
 
@@ -427,48 +356,28 @@ Namespace Forms
             suffix As String
         )
 
-            grid.RowStyles.Add(
-                New RowStyle(
-                    SizeType.Absolute,
-                    48
-                )
-            )
-
+            grid.RowStyles.Add(New RowStyle(SizeType.AutoSize))
 
             Dim label As New Label With {
                 .Text = description,
                 .AutoSize = True,
-                .Anchor = AnchorStyles.Left
+                .Anchor = AnchorStyles.Left,
+                .Margin = New Padding(0, 10, 8, 10)
             }
 
-            numeric.Anchor =
-                AnchorStyles.Left
-
+            numeric.Anchor = AnchorStyles.Left
+            numeric.Margin = New Padding(0, 7, 0, 7)
 
             Dim suffixLabel As New Label With {
                 .Text = suffix,
                 .AutoSize = True,
-                .Anchor = AnchorStyles.Left
+                .Anchor = AnchorStyles.Left,
+                .Margin = New Padding(8, 10, 0, 10)
             }
 
-
-            grid.Controls.Add(
-                label,
-                0,
-                row
-            )
-
-            grid.Controls.Add(
-                numeric,
-                1,
-                row
-            )
-
-            grid.Controls.Add(
-                suffixLabel,
-                2,
-                row
-            )
+            grid.Controls.Add(label, 0, row)
+            grid.Controls.Add(numeric, 1, row)
+            grid.Controls.Add(suffixLabel, 2, row)
 
         End Sub
 
@@ -478,36 +387,48 @@ Namespace Forms
             Select Case _settings.Appearance
 
                 Case AppAppearance.Light
-
-                    rbLight.Checked =
-                        True
+                    rbLight.Checked = True
 
                 Case AppAppearance.Dark
-
-                    rbDark.Checked =
-                        True
+                    rbDark.Checked = True
 
                 Case Else
-
-                    rbSystem.Checked =
-                        True
+                    rbSystem.Checked = True
 
             End Select
 
+            numFileDrawerThreshold.Value = _settings.FileDrawerSuggestionThreshold
+            numLongReview.Value = _settings.LongReviewThresholdDays
+            numRevisionWarning.Value = _settings.RevisionWarningDays
+            numRecentRejection.Value = _settings.RecentRejectionThresholdDays
 
-            numFileDrawerThreshold.Value =
-                _settings.FileDrawerSuggestionThreshold
+            If _settings.UpdateChannel = AppUpdateChannel.Preview Then
+                cboUpdateChannel.SelectedItem = "Preview"
+            Else
+                cboUpdateChannel.SelectedItem = "Stable"
+            End If
 
-            numLongReview.Value =
-                _settings.LongReviewThresholdDays
-
-            numRevisionWarning.Value =
-                _settings.RevisionWarningDays
-
-            numRecentRejection.Value =
-                _settings.RecentRejectionThresholdDays
+            chkAutomaticUpdates.Checked =
+                _settings.CheckForUpdatesAutomatically
 
         End Sub
+
+
+        Private Function SelectedUpdateChannel() As AppUpdateChannel
+
+            If String.Equals(
+                CStr(cboUpdateChannel.SelectedItem),
+                "Preview",
+                StringComparison.OrdinalIgnoreCase
+            ) Then
+
+                Return AppUpdateChannel.Preview
+
+            End If
+
+            Return AppUpdateChannel.Stable
+
+        End Function
 
 
         Private Sub SaveSettings(
@@ -517,69 +438,37 @@ Namespace Forms
 
             Dim newAppearance As AppAppearance
 
-
             If rbLight.Checked Then
-
-                newAppearance =
-                    AppAppearance.Light
-
+                newAppearance = AppAppearance.Light
             ElseIf rbDark.Checked Then
-
-                newAppearance =
-                    AppAppearance.Dark
-
+                newAppearance = AppAppearance.Dark
             Else
-
-                newAppearance =
-                    AppAppearance.System
-
+                newAppearance = AppAppearance.System
             End If
 
-
             _appearanceChanged =
-                newAppearance <>
-                _settings.Appearance
+                newAppearance <> _settings.Appearance
 
-
-            _settings.Appearance =
-                newAppearance
-
-            _settings.FileDrawerSuggestionThreshold =
-                CInt(
-                    numFileDrawerThreshold.Value
-                )
-
-            _settings.LongReviewThresholdDays =
-                CInt(
-                    numLongReview.Value
-                )
-
-            _settings.RevisionWarningDays =
-                CInt(
-                    numRevisionWarning.Value
-                )
-
-            _settings.RecentRejectionThresholdDays =
-                CInt(
-                    numRecentRejection.Value
-                )
-
+            _settings.Appearance = newAppearance
+            _settings.FileDrawerSuggestionThreshold = CInt(numFileDrawerThreshold.Value)
+            _settings.LongReviewThresholdDays = CInt(numLongReview.Value)
+            _settings.RevisionWarningDays = CInt(numRevisionWarning.Value)
+            _settings.RecentRejectionThresholdDays = CInt(numRecentRejection.Value)
+            _settings.UpdateChannel = SelectedUpdateChannel()
+            _settings.CheckForUpdatesAutomatically = chkAutomaticUpdates.Checked
 
             Try
 
-                _settingsService.Save(
-                    _settings
-                )
+                _settingsService.Save(_settings)
 
             Catch ex As Exception
 
                 MessageBox.Show(
                     Me,
-                    "PaperRoute could not save the settings." &
-                    Environment.NewLine &
-                    Environment.NewLine &
+                    "PaperRoute could not save the preferences." &
+                    Environment.NewLine & Environment.NewLine &
                     ex.Message,
-                    "Settings Error",
+                    "Preferences Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error
                 )
@@ -588,9 +477,7 @@ Namespace Forms
 
             End Try
 
-
-            Me.DialogResult =
-                DialogResult.OK
+            Me.DialogResult = DialogResult.OK
 
         End Sub
 

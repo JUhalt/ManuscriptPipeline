@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 Imports System.IO
 Imports System.Text.Json
 Imports System.Text.Json.Serialization
@@ -20,7 +20,7 @@ Namespace Services
                     Environment.GetFolderPath(
                         Environment.SpecialFolder.LocalApplicationData
                     ),
-                    ProductInfo.LegacyDataFolderName
+                    ProductInfo.DataFolderName
                 )
 
             _settingsPath =
