@@ -2,6 +2,27 @@
 
 All notable changes to PaperRoute Tracker will be documented here.
 
+## [0.1.0-alpha.3] - 2026-08-19
+
+### Added
+
+- Safe migration from legacy ManuscriptPipeline storage into PaperRoute storage with schema versioning and rollback retention.
+- Local diagnostics report with storage paths, runtime information, and privacy-safe troubleshooting details.
+- Automated regression coverage for persistence, migration, backup/restore, and spreadsheet import workflows.
+- **Copy Version Info** action in About PaperRoute for faster troubleshooting.
+
+### Changed
+
+- Preferences and Diagnostics dialogs now resize and reflow more reliably across display sizes and DPI settings.
+- GitHub Actions runs now use concise `CI • <ref>` and `Release • <ref>` names.
+- Superseded CI runs on the same ref are automatically canceled.
+- CI workflow permissions are explicitly read-only unless a release needs write access.
+
+### Testing focus
+
+- Prove that an installed `0.1.0-alpha.2` Preview build detects, downloads, applies, and restarts into `0.1.0-alpha.3`.
+- Verify all manuscript data, settings, and managed-library paths survive the update unchanged.
+
 ## [0.1.0-alpha.2] - 2026-08-19
 
 ### Added

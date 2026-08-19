@@ -121,7 +121,40 @@ Namespace Forms
                 .DialogResult = DialogResult.OK
             }
 
+            Dim btnCopyVersion As New Button With {
+                .Text = "Copy Version Info",
+                .AutoSize = True,
+                .MinimumSize = New Size(138, 36),
+                .Height = 36
+            }
+
+            AddHandler btnCopyVersion.Click,
+                Sub(sender As Object, e As EventArgs)
+                    Dim versionInfo As String =
+                        "PaperRoute Tracker " & UpdateService.CurrentVersionText() & Environment.NewLine &
+                        ".NET " & Environment.Version.ToString() & Environment.NewLine &
+                        "Windows " & Environment.OSVersion.Version.ToString()
+
+                    Try
+                        Clipboard.SetText(versionInfo)
+                        MessageBox.Show(
+                            Me,
+                            "Version information copied to the clipboard.",
+                            "PaperRoute",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information)
+                    Catch ex As Exception
+                        MessageBox.Show(
+                            Me,
+                            "PaperRoute could not copy the version information." & Environment.NewLine & Environment.NewLine & ex.Message,
+                            "PaperRoute",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Warning)
+                    End Try
+                End Sub
+
             buttons.Controls.Add(btnClose)
+            buttons.Controls.Add(btnCopyVersion)
 
             root.Controls.Add(logo, 0, 0)
             root.SetRowSpan(logo, 4)

@@ -15,7 +15,7 @@ PaperRoute Tracker helps researchers manage manuscripts from idea through submis
 
 ## Current status
 
-**v0.1.0-alpha.2** — early public testing focused on installed updates and RC hardening. The application is usable, but the data model and interface may still evolve before the first stable release.
+**v0.1.0-alpha.3** — update-path validation and RC hardening. The application is usable, but the data model and interface may still evolve before the first stable release.
 
 ## Highlights
 
