@@ -35,10 +35,29 @@ Namespace Services
             legacyManagedLibraryRoot As String
         )
 
-            ValidateRoot(currentDataRoot, NameOf(currentDataRoot))
-            ValidateRoot(legacyDataRoot, NameOf(legacyDataRoot))
-            ValidateRoot(currentManagedLibraryRoot, NameOf(currentManagedLibraryRoot))
-            ValidateRoot(legacyManagedLibraryRoot, NameOf(legacyManagedLibraryRoot))
+            ValidateRoot(
+                currentDataRoot,
+                NameOf(currentDataRoot)
+            )
+
+            ValidateRoot(
+                legacyDataRoot,
+                NameOf(legacyDataRoot)
+            )
+
+            ValidateRoot(
+                currentManagedLibraryRoot,
+                NameOf(currentManagedLibraryRoot)
+            )
+
+            ValidateRoot(
+                legacyManagedLibraryRoot,
+                NameOf(legacyManagedLibraryRoot)
+            )
+
+            ValidateExistingSchemaIfPresent(
+                currentDataRoot
+            )
 
             MigrateManagedLibraryIfNeeded(
                 currentManagedLibraryRoot,
@@ -52,7 +71,9 @@ Namespace Services
                 legacyManagedLibraryRoot
             )
 
-            EnsureSchemaVersion(currentDataRoot)
+            EnsureSchemaVersion(
+                currentDataRoot
+            )
 
         End Sub
 
@@ -60,7 +81,9 @@ Namespace Services
         Public Shared Function CurrentDataRoot() As String
 
             Return Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                Environment.GetFolderPath(
+                    Environment.SpecialFolder.LocalApplicationData
+                ),
                 ProductInfo.DataFolderName
             )
 
@@ -70,7 +93,9 @@ Namespace Services
         Public Shared Function LegacyDataRoot() As String
 
             Return Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                Environment.GetFolderPath(
+                    Environment.SpecialFolder.LocalApplicationData
+                ),
                 ProductInfo.LegacyDataFolderName
             )
 
@@ -80,7 +105,9 @@ Namespace Services
         Public Shared Function CurrentManagedLibraryRoot() As String
 
             Return Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                Environment.GetFolderPath(
+                    Environment.SpecialFolder.MyDocuments
+                ),
                 ProductInfo.ManagedLibraryFolderName
             )
 
@@ -90,7 +117,9 @@ Namespace Services
         Public Shared Function LegacyManagedLibraryRoot() As String
 
             Return Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                Environment.GetFolderPath(
+                    Environment.SpecialFolder.MyDocuments
+                ),
                 ProductInfo.LegacyManagedLibraryFolderName
             )
 
@@ -98,7 +127,11 @@ Namespace Services
 
 
         Public Shared Function SchemaFilePath() As String
-            Return SchemaFilePath(CurrentDataRoot())
+
+            Return SchemaFilePath(
+                CurrentDataRoot()
+            )
+
         End Function
 
 
@@ -115,8 +148,16 @@ Namespace Services
         End Function
 
 
+        ' =====================================================
+        ' Schema reading / validation
+        ' =====================================================
+
         Public Shared Function ReadSchemaVersion() As Integer
-            Return ReadSchemaVersion(SchemaFilePath())
+
+            Return ReadSchemaVersion(
+                SchemaFilePath()
+            )
+
         End Function
 
 
@@ -124,34 +165,152 @@ Namespace Services
             schemaPath As String
         ) As Integer
 
+            If Not File.Exists(schemaPath) Then
+                Return 0
+            End If
+
+            Dim json As String =
+                File.ReadAllText(schemaPath)
+
+            If String.IsNullOrWhiteSpace(json) Then
+
+                Throw New InvalidDataException(
+                    "The PaperRoute storage schema file is empty. " &
+                    "It was not changed."
+                )
+
+            End If
+
             Try
 
-                If Not File.Exists(schemaPath) Then
-                    Return 0
-                End If
+                Using document As JsonDocument =
+                    JsonDocument.Parse(json)
 
-                Using document As JsonDocument = JsonDocument.Parse(File.ReadAllText(schemaPath))
+                    Dim root As JsonElement =
+                        document.RootElement
 
-                    Dim root As JsonElement = document.RootElement
-                    Dim versionElement As JsonElement
+                    If root.ValueKind <> JsonValueKind.Object Then
 
-                    If root.TryGetProperty("SchemaVersion", versionElement) AndAlso
-                       versionElement.ValueKind = JsonValueKind.Number Then
-
-                        Return versionElement.GetInt32()
+                        Throw New InvalidDataException(
+                            "The PaperRoute storage schema file does not contain a valid schema object. " &
+                            "It was not changed."
+                        )
 
                     End If
 
+                    Dim versionElement As JsonElement
+
+                    If Not root.TryGetProperty(
+                        "SchemaVersion",
+                        versionElement
+                    ) Then
+
+                        Throw New InvalidDataException(
+                            "The PaperRoute storage schema file does not contain a SchemaVersion value. " &
+                            "It was not changed."
+                        )
+
+                    End If
+
+                    If versionElement.ValueKind <> JsonValueKind.Number Then
+
+                        Throw New InvalidDataException(
+                            "The PaperRoute storage schema version is not numeric. " &
+                            "The schema file was not changed."
+                        )
+
+                    End If
+
+                    Dim version As Integer
+
+                    If Not versionElement.TryGetInt32(version) Then
+
+                        Throw New InvalidDataException(
+                            "The PaperRoute storage schema version is not a valid integer. " &
+                            "The schema file was not changed."
+                        )
+
+                    End If
+
+                    If version <= 0 Then
+
+                        Throw New InvalidDataException(
+                            "The PaperRoute storage schema version must be greater than zero. " &
+                            "The schema file was not changed."
+                        )
+
+                    End If
+
+                    Return version
+
                 End Using
 
-            Catch
-                Return 0
-            End Try
+            Catch ex As JsonException
 
-            Return 0
+                Throw New InvalidDataException(
+                    "The PaperRoute storage schema file contains invalid JSON. " &
+                    "It was not changed.",
+                    ex
+                )
+
+            End Try
 
         End Function
 
+
+        Private Shared Sub ValidateExistingSchemaIfPresent(
+            applicationRoot As String
+        )
+
+            Dim schemaPath As String =
+                SchemaFilePath(applicationRoot)
+
+            If Not File.Exists(schemaPath) Then
+                Return
+            End If
+
+            Dim existingVersion As Integer =
+                ReadSchemaVersion(schemaPath)
+
+            ValidateSupportedSchemaVersion(
+                existingVersion
+            )
+
+        End Sub
+
+
+        Private Shared Sub ValidateSupportedSchemaVersion(
+            existingVersion As Integer
+        )
+
+            If existingVersion > CurrentSchemaVersion Then
+
+                Throw New InvalidOperationException(
+                    "This PaperRoute library was created by a newer storage schema (" &
+                    existingVersion.ToString() &
+                    "). Update PaperRoute before opening it."
+                )
+
+            End If
+
+            If existingVersion < CurrentSchemaVersion Then
+
+                Throw New InvalidOperationException(
+                    "This PaperRoute library uses storage schema " &
+                    existingVersion.ToString() &
+                    ", but this build expects schema " &
+                    CurrentSchemaVersion.ToString() &
+                    ". No automatic migration path is available in this build."
+                )
+
+            End If
+
+        End Sub
+
+
+        ' =====================================================
+        ' Application data migration
+        ' =====================================================
 
         Private Shared Sub MigrateApplicationDataIfNeeded(
             currentRoot As String,
@@ -165,12 +324,23 @@ Namespace Services
             End If
 
             If Not Directory.Exists(legacyRoot) Then
-                Directory.CreateDirectory(currentRoot)
+
+                Directory.CreateDirectory(
+                    currentRoot
+                )
+
                 Return
+
             End If
 
-            If Directory.Exists(currentRoot) AndAlso IsDirectoryEmpty(currentRoot) Then
-                Directory.Delete(currentRoot, True)
+            If Directory.Exists(currentRoot) AndAlso
+               IsDirectoryEmpty(currentRoot) Then
+
+                Directory.Delete(
+                    currentRoot,
+                    True
+                )
+
             End If
 
             If Directory.Exists(currentRoot) Then
@@ -178,11 +348,16 @@ Namespace Services
             End If
 
             Dim stagingRoot As String =
-                currentRoot & ".migration-" & Guid.NewGuid().ToString("N")
+                currentRoot &
+                ".migration-" &
+                Guid.NewGuid().ToString("N")
 
             Try
 
-                CopyDirectory(legacyRoot, stagingRoot)
+                CopyDirectory(
+                    legacyRoot,
+                    stagingRoot
+                )
 
                 RewriteManagedLibraryPathsInCopiedData(
                     stagingRoot,
@@ -190,9 +365,18 @@ Namespace Services
                     currentManagedLibraryRoot
                 )
 
-                ValidateCopiedManuscriptData(stagingRoot)
+                ValidateExistingSchemaIfPresent(
+                    stagingRoot
+                )
 
-                Directory.Move(stagingRoot, currentRoot)
+                ValidateCopiedManuscriptData(
+                    stagingRoot
+                )
+
+                Directory.Move(
+                    stagingRoot,
+                    currentRoot
+                )
 
                 WriteMigrationReceipt(
                     currentRoot,
@@ -203,12 +387,15 @@ Namespace Services
 
             Catch ex As Exception
 
-                DeleteDirectoryBestEffort(stagingRoot)
+                DeleteDirectoryBestEffort(
+                    stagingRoot
+                )
 
                 Throw New InvalidOperationException(
                     "PaperRoute could not safely migrate the legacy ManuscriptPipeline data folder. " &
                     "The original data was left unchanged." &
-                    Environment.NewLine & Environment.NewLine &
+                    Environment.NewLine &
+                    Environment.NewLine &
                     ex.Message,
                     ex
                 )
@@ -217,40 +404,65 @@ Namespace Services
 
         End Sub
 
+
+        ' =====================================================
+        ' Managed library migration
+        ' =====================================================
 
         Private Shared Sub MigrateManagedLibraryIfNeeded(
             currentRoot As String,
             legacyRoot As String
         )
 
-            If Directory.Exists(currentRoot) AndAlso Not IsDirectoryEmpty(currentRoot) Then
+            If Directory.Exists(currentRoot) AndAlso
+               Not IsDirectoryEmpty(currentRoot) Then
+
                 Return
+
             End If
 
             If Not Directory.Exists(legacyRoot) Then
                 Return
             End If
 
-            If Directory.Exists(currentRoot) AndAlso IsDirectoryEmpty(currentRoot) Then
-                Directory.Delete(currentRoot, True)
+            If Directory.Exists(currentRoot) AndAlso
+               IsDirectoryEmpty(currentRoot) Then
+
+                Directory.Delete(
+                    currentRoot,
+                    True
+                )
+
             End If
 
             Dim stagingRoot As String =
-                currentRoot & ".migration-" & Guid.NewGuid().ToString("N")
+                currentRoot &
+                ".migration-" &
+                Guid.NewGuid().ToString("N")
 
             Try
 
-                CopyDirectory(legacyRoot, stagingRoot)
-                Directory.Move(stagingRoot, currentRoot)
+                CopyDirectory(
+                    legacyRoot,
+                    stagingRoot
+                )
+
+                Directory.Move(
+                    stagingRoot,
+                    currentRoot
+                )
 
             Catch ex As Exception
 
-                DeleteDirectoryBestEffort(stagingRoot)
+                DeleteDirectoryBestEffort(
+                    stagingRoot
+                )
 
                 Throw New InvalidOperationException(
                     "PaperRoute could not safely migrate the managed manuscript library. " &
                     "The original library was left unchanged." &
-                    Environment.NewLine & Environment.NewLine &
+                    Environment.NewLine &
+                    Environment.NewLine &
                     ex.Message,
                     ex
                 )
@@ -260,46 +472,106 @@ Namespace Services
         End Sub
 
 
+        ' =====================================================
+        ' Schema creation
+        ' =====================================================
+
         Private Shared Sub EnsureSchemaVersion(
             currentRoot As String
         )
 
-            Dim dataDirectory As String = Path.Combine(currentRoot, "data")
-            Dim schemaPath As String = SchemaFilePath(currentRoot)
-
-            Directory.CreateDirectory(dataDirectory)
-
-            Dim existingVersion As Integer = ReadSchemaVersion(schemaPath)
-
-            If existingVersion > CurrentSchemaVersion Then
-
-                Throw New InvalidOperationException(
-                    "This PaperRoute library was created by a newer storage schema (" &
-                    existingVersion.ToString() & "). Update PaperRoute before opening it."
+            Dim dataDirectory As String =
+                Path.Combine(
+                    currentRoot,
+                    "data"
                 )
 
+            Dim schemaPath As String =
+                SchemaFilePath(currentRoot)
+
+            Directory.CreateDirectory(
+                dataDirectory
+            )
+
+            If Not File.Exists(schemaPath) Then
+
+                WriteCurrentSchemaVersion(
+                    schemaPath
+                )
+
+                Return
+
             End If
 
-            If existingVersion = CurrentSchemaVersion Then
-                Return
-            End If
+            Dim existingVersion As Integer =
+                ReadSchemaVersion(schemaPath)
+
+            ValidateSupportedSchemaVersion(
+                existingVersion
+            )
+
+        End Sub
+
+
+        Private Shared Sub WriteCurrentSchemaVersion(
+            schemaPath As String
+        )
 
             Dim payload As New Dictionary(Of String, Object) From {
-                {"SchemaVersion", CurrentSchemaVersion},
-                {"UpdatedAtUtc", DateTime.UtcNow.ToString("O")}
+                {
+                    "SchemaVersion",
+                    CurrentSchemaVersion
+                },
+                {
+                    "UpdatedAtUtc",
+                    DateTime.UtcNow.ToString("O")
+                }
             }
 
             Dim options As New JsonSerializerOptions With {
                 .WriteIndented = True
             }
 
-            File.WriteAllText(
-                schemaPath,
-                JsonSerializer.Serialize(payload, options)
-            )
+            Dim tempPath As String =
+                schemaPath &
+                ".tmp-" &
+                Guid.NewGuid().ToString("N")
+
+            Try
+
+                File.WriteAllText(
+                    tempPath,
+                    JsonSerializer.Serialize(
+                        payload,
+                        options
+                    )
+                )
+
+                File.Move(
+                    tempPath,
+                    schemaPath
+                )
+
+            Finally
+
+                If File.Exists(tempPath) Then
+
+                    Try
+                        File.Delete(tempPath)
+                    Catch
+                        ' Best-effort cleanup only.
+                    End Try
+
+                End If
+
+            End Try
 
         End Sub
 
+
+        ' =====================================================
+        ' Storage detection
+        ' =====================================================
 
         Private Shared Function HasCurrentApplicationData(
             root As String
@@ -309,12 +581,35 @@ Namespace Services
                 Return False
             End If
 
-            Return File.Exists(Path.Combine(root, "settings.json")) OrElse
-                   File.Exists(Path.Combine(root, "data", "manuscripts.json")) OrElse
-                   File.Exists(Path.Combine(root, "data", "schema.json"))
+            Return (
+                File.Exists(
+                    Path.Combine(
+                        root,
+                        "settings.json"
+                    )
+                ) OrElse
+                File.Exists(
+                    Path.Combine(
+                        root,
+                        "data",
+                        "manuscripts.json"
+                    )
+                ) OrElse
+                File.Exists(
+                    Path.Combine(
+                        root,
+                        "data",
+                        "schema.json"
+                    )
+                )
+            )
 
         End Function
 
+
+        ' =====================================================
+        ' Managed path rewriting
+        ' =====================================================
 
         Private Shared Sub RewriteManagedLibraryPathsInCopiedData(
             copiedApplicationRoot As String,
@@ -323,34 +618,54 @@ Namespace Services
         )
 
             Dim dataPath As String =
-                Path.Combine(copiedApplicationRoot, "data", "manuscripts.json")
+                Path.Combine(
+                    copiedApplicationRoot,
+                    "data",
+                    "manuscripts.json"
+                )
 
             If Not File.Exists(dataPath) Then
                 Return
             End If
 
-            Dim json As String = File.ReadAllText(dataPath)
+            Dim json As String =
+                File.ReadAllText(dataPath)
 
             If String.IsNullOrWhiteSpace(json) Then
                 Return
             End If
 
-            Dim options As JsonSerializerOptions = CreateManuscriptJsonOptions()
+            Dim options As JsonSerializerOptions =
+                CreateManuscriptJsonOptions()
 
             Dim manuscripts As List(Of Manuscript) =
-                JsonSerializer.Deserialize(Of List(Of Manuscript))(json, options)
+                JsonSerializer.Deserialize(
+                    Of List(Of Manuscript)
+                )(
+                    json,
+                    options
+                )
 
             If manuscripts Is Nothing Then
-                Throw New InvalidDataException("The copied manuscript data could not be read.")
+
+                Throw New InvalidDataException(
+                    "The copied manuscript data could not be read."
+                )
+
             End If
 
             Dim legacyRoot As String =
-                NormalizeDirectoryPrefix(legacyManagedLibraryRoot)
+                NormalizeDirectoryPrefix(
+                    legacyManagedLibraryRoot
+                )
 
             Dim currentRoot As String =
-                NormalizeDirectoryPrefix(currentManagedLibraryRoot)
+                NormalizeDirectoryPrefix(
+                    currentManagedLibraryRoot
+                )
 
-            Dim changed As Boolean = False
+            Dim changed As Boolean =
+                False
 
             For Each manuscript As Manuscript In manuscripts
 
@@ -373,19 +688,36 @@ Namespace Services
                         Dim fullPath As String
 
                         Try
-                            fullPath = Path.GetFullPath(item.LocalFilePath)
+
+                            fullPath =
+                                Path.GetFullPath(
+                                    item.LocalFilePath
+                                )
+
                         Catch
+
                             Continue For
+
                         End Try
 
-                        If fullPath.StartsWith(legacyRoot, StringComparison.OrdinalIgnoreCase) Then
+                        If fullPath.StartsWith(
+                            legacyRoot,
+                            StringComparison.OrdinalIgnoreCase
+                        ) Then
 
-                            Dim relativePath As String = fullPath.Substring(legacyRoot.Length)
+                            Dim relativePath As String =
+                                fullPath.Substring(
+                                    legacyRoot.Length
+                                )
 
                             item.LocalFilePath =
-                                Path.Combine(currentRoot, relativePath)
+                                Path.Combine(
+                                    currentRoot,
+                                    relativePath
+                                )
 
-                            changed = True
+                            changed =
+                                True
 
                         End If
 
@@ -399,7 +731,10 @@ Namespace Services
 
                 File.WriteAllText(
                     dataPath,
-                    JsonSerializer.Serialize(manuscripts, options)
+                    JsonSerializer.Serialize(
+                        manuscripts,
+                        options
+                    )
                 )
 
             End If
@@ -407,31 +742,46 @@ Namespace Services
         End Sub
 
 
+        ' =====================================================
+        ' Copied-data validation
+        ' =====================================================
+
         Private Shared Sub ValidateCopiedManuscriptData(
             copiedApplicationRoot As String
         )
 
             Dim dataPath As String =
-                Path.Combine(copiedApplicationRoot, "data", "manuscripts.json")
+                Path.Combine(
+                    copiedApplicationRoot,
+                    "data",
+                    "manuscripts.json"
+                )
 
             If Not File.Exists(dataPath) Then
                 Return
             End If
 
-            Dim json As String = File.ReadAllText(dataPath)
+            Dim json As String =
+                File.ReadAllText(dataPath)
 
             If String.IsNullOrWhiteSpace(json) Then
                 Return
             End If
 
             Dim manuscripts As List(Of Manuscript) =
-                JsonSerializer.Deserialize(Of List(Of Manuscript))(
+                JsonSerializer.Deserialize(
+                    Of List(Of Manuscript)
+                )(
                     json,
                     CreateManuscriptJsonOptions()
                 )
 
             If manuscripts Is Nothing Then
-                Throw New InvalidDataException("The copied manuscript data could not be validated.")
+
+                Throw New InvalidDataException(
+                    "The copied manuscript data could not be validated."
+                )
+
             End If
 
         End Sub
@@ -445,35 +795,56 @@ Namespace Services
                 .PropertyNameCaseInsensitive = True
             }
 
-            options.Converters.Add(New JsonStringEnumConverter())
+            options.Converters.Add(
+                New JsonStringEnumConverter()
+            )
 
             Return options
 
         End Function
 
 
+        ' =====================================================
+        ' File-system helpers
+        ' =====================================================
+
         Private Shared Sub CopyDirectory(
             sourceDirectory As String,
             destinationDirectory As String
         )
 
-            Directory.CreateDirectory(destinationDirectory)
+            Directory.CreateDirectory(
+                destinationDirectory
+            )
 
             For Each sourceFile As String In Directory.EnumerateFiles(sourceDirectory)
 
                 Dim destinationFile As String =
-                    Path.Combine(destinationDirectory, Path.GetFileName(sourceFile))
+                    Path.Combine(
+                        destinationDirectory,
+                        Path.GetFileName(sourceFile)
+                    )
 
-                File.Copy(sourceFile, destinationFile, False)
+                File.Copy(
+                    sourceFile,
+                    destinationFile,
+                    False
+                )
 
             Next
 
             For Each sourceSubdirectory As String In Directory.EnumerateDirectories(sourceDirectory)
 
                 Dim destinationSubdirectory As String =
-                    Path.Combine(destinationDirectory, Path.GetFileName(sourceSubdirectory))
+                    Path.Combine(
+                        destinationDirectory,
+                        Path.GetFileName(sourceSubdirectory)
+                    )
 
-                CopyDirectory(sourceSubdirectory, destinationSubdirectory)
+                CopyDirectory(
+                    sourceSubdirectory,
+                    destinationSubdirectory
+                )
 
             Next
 
@@ -497,12 +868,14 @@ Namespace Services
             directoryPath As String
         ) As String
 
-            Dim fullPath As String = Path.GetFullPath(directoryPath)
+            Dim fullPath As String =
+                Path.GetFullPath(directoryPath)
 
             Return fullPath.TrimEnd(
                 Path.DirectorySeparatorChar,
                 Path.AltDirectorySeparatorChar
-            ) & Path.DirectorySeparatorChar
+            ) &
+            Path.DirectorySeparatorChar
 
         End Function
 
@@ -512,15 +885,27 @@ Namespace Services
         )
 
             Try
+
                 If Directory.Exists(directoryPath) Then
-                    Directory.Delete(directoryPath, True)
+
+                    Directory.Delete(
+                        directoryPath,
+                        True
+                    )
+
                 End If
+
             Catch
-                ' The source data is never deleted. Cleanup is best-effort.
+                ' The source data is never deleted.
+                ' Cleanup is best-effort.
             End Try
 
         End Sub
 
+
+        ' =====================================================
+        ' Migration receipt
+        ' =====================================================
 
         Private Shared Sub WriteMigrationReceipt(
             currentRoot As String,
@@ -532,15 +917,36 @@ Namespace Services
             Try
 
                 Dim receiptPath As String =
-                    Path.Combine(currentRoot, "migration.json")
+                    Path.Combine(
+                        currentRoot,
+                        "migration.json"
+                    )
 
                 Dim payload As New Dictionary(Of String, Object) From {
-                    {"MigratedAtUtc", DateTime.UtcNow.ToString("O")},
-                    {"SourceDataRoot", legacyRoot},
-                    {"DestinationDataRoot", currentRoot},
-                    {"SourceManagedLibrary", legacyLibraryRoot},
-                    {"DestinationManagedLibrary", currentLibraryRoot},
-                    {"LegacyDataPreserved", True}
+                    {
+                        "MigratedAtUtc",
+                        DateTime.UtcNow.ToString("O")
+                    },
+                    {
+                        "SourceDataRoot",
+                        legacyRoot
+                    },
+                    {
+                        "DestinationDataRoot",
+                        currentRoot
+                    },
+                    {
+                        "SourceManagedLibrary",
+                        legacyLibraryRoot
+                    },
+                    {
+                        "DestinationManagedLibrary",
+                        currentLibraryRoot
+                    },
+                    {
+                        "LegacyDataPreserved",
+                        True
+                    }
                 }
 
                 Dim options As New JsonSerializerOptions With {
@@ -549,16 +955,22 @@ Namespace Services
 
                 File.WriteAllText(
                     receiptPath,
-                    JsonSerializer.Serialize(payload, options)
+                    JsonSerializer.Serialize(
+                        payload,
+                        options
+                    )
                 )
 
             Catch
-                ' The migration receipt is useful diagnostics, not a reason
-                ' to fail an otherwise successful migration.
+                ' The migration receipt is diagnostic information only.
             End Try
 
         End Sub
 
+
+        ' =====================================================
+        ' Argument validation
+        ' =====================================================
 
         Private Shared Sub ValidateRoot(
             rootPath As String,
@@ -566,7 +978,12 @@ Namespace Services
         )
 
             If String.IsNullOrWhiteSpace(rootPath) Then
-                Throw New ArgumentException("A storage root path is required.", parameterName)
+
+                Throw New ArgumentException(
+                    "A storage root path is required.",
+                    parameterName
+                )
+
             End If
 
         End Sub
