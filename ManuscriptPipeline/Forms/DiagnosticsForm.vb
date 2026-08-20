@@ -156,6 +156,7 @@ Namespace Forms
             builder.AppendLine("Version: " & UpdateService.CurrentVersionText())
             builder.AppendLine("Update channel: " & UpdateService.ChannelDisplayName(_settings.UpdateChannel))
             builder.AppendLine("Installed build: " & If(UpdateService.IsInstalledBuild(_settings.UpdateChannel), "Yes", "No (developer/portable)"))
+            builder.AppendLine("Storage profile: " & StorageEnvironment.ProfileDisplayName())
             builder.AppendLine("Automatic update checks: " & If(_settings.CheckForUpdatesAutomatically, "On", "Off"))
             builder.AppendLine("Storage schema: " & StorageMigrationService.ReadSchemaVersion().ToString())
             builder.AppendLine()

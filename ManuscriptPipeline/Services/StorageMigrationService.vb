@@ -90,7 +90,7 @@ Namespace Services
                 Environment.GetFolderPath(
                     Environment.SpecialFolder.LocalApplicationData
                 ),
-                ProductInfo.DataFolderName
+                StorageEnvironment.DataFolderName()
             )
 
         End Function
@@ -102,7 +102,7 @@ Namespace Services
                 Environment.GetFolderPath(
                     Environment.SpecialFolder.LocalApplicationData
                 ),
-                ProductInfo.LegacyDataFolderName
+                StorageEnvironment.LegacyDataFolderName()
             )
 
         End Function
@@ -114,7 +114,7 @@ Namespace Services
                 Environment.GetFolderPath(
                     Environment.SpecialFolder.MyDocuments
                 ),
-                ProductInfo.ManagedLibraryFolderName
+                StorageEnvironment.ManagedLibraryFolderName()
             )
 
         End Function
@@ -126,7 +126,7 @@ Namespace Services
                 Environment.GetFolderPath(
                     Environment.SpecialFolder.MyDocuments
                 ),
-                ProductInfo.LegacyManagedLibraryFolderName
+                StorageEnvironment.LegacyManagedLibraryFolderName()
             )
 
         End Function
