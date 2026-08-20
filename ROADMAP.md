@@ -14,14 +14,16 @@ Completed for the stable candidate:
 - Diagnostics and recovery tooling
 - Accessibility, keyboard, theme, and high-DPI review
 - Secondary-dialog and File Drawer usability polish
-- Release-pipeline version hardening
-
-Remaining before stable:
-
 - Documentation finalization
 - Clean-machine installation validation
-- Final stable packaging/release verification
-- Signing/reputation review where practical
+- Stable-by-default update-channel behavior
+- Release-pipeline version and supply-chain hardening
+
+Remaining before closing the v0.1 milestone:
+
+- Final stable packaging and published-installer validation
+- Defender/secondary malware scan and SmartScreen/reputation review
+- Code-signing decision documented for the release
 
 **RC rule:** `v0.1.0-rc.1` froze the feature set. Only bugs, compatibility, accessibility, documentation, and data-integrity fixes land before stable.
 

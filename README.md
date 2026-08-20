@@ -15,9 +15,9 @@ PaperRoute Tracker helps researchers manage manuscripts from idea through submis
 
 ## Current status
 
-**v0.1.0-rc.1** — first release candidate for the reliable-core release.
+**v0.1.0** — first stable release of the PaperRoute Reliable Core.
 
-The RC feature set is frozen. Post-RC work on `master` is limited to bug fixes, compatibility, accessibility, documentation, and data-integrity hardening on the route to stable `v0.1.0`.
+The stable 0.1 line focuses on trustworthy local storage, manuscript lifecycle tracking, spreadsheet import/export, backup/restore, installation and updates, accessibility, and recovery. New feature development continues toward v0.2 Metadata & Integrations.
 
 ## Highlights
 
@@ -48,9 +48,9 @@ When legacy ManuscriptPipeline storage is migrated, PaperRoute retains the legac
 
 ### Recommended: GitHub Release installer
 
-Prerelease tags are packaged with Velopack. On the GitHub **Releases** page, download and run the generated PaperRoute Setup executable. Installed builds can then check GitHub Releases for future PaperRoute updates.
+On the GitHub **Releases** page, download and run the PaperRoute Setup executable from the latest stable release. Installed builds can then check GitHub Releases for future PaperRoute updates.
 
-During alpha/RC testing, keep the update channel set to **Preview** in **Settings → Updates**. Stable releases will use the **Stable** channel.
+Fresh installations default to the **Stable** update channel. Users who intentionally want prerelease builds can opt into **Preview** from **Settings → Updates**.
 
 ### Portable CI build
 
