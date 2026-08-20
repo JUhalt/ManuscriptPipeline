@@ -182,6 +182,8 @@ Public Class Form1
     .Text = "PaperRoute",
     .AutoSize = True,
     .Anchor = AnchorStyles.Left,
+    .Margin = New Padding(0),
+    .Cursor = Cursors.Hand,
     .Font = New Font(
         Me.Font.FontFamily,
         16.0F,
@@ -226,19 +228,19 @@ Public Class Form1
 
 
         Dim btnAdd As New Button With {
-    .Text = "+ Add Manuscript",
-    .Width = 165,
+    .Text = "Add Manuscript",
+    .Width = 150,
     .Height = 44
 }
 
         Dim btnData As New Button With {
-    .Text = "Data ▼",
+    .Text = "Data ▾",
     .Width = 110,
     .Height = 44
 }
 
         Dim btnSettings As New Button With {
-    .Text = "Settings ▼",
+    .Text = "Settings ▾",
     .Width = 118,
     .Height = 44
 }
@@ -325,6 +327,9 @@ Public Class Form1
         ' =================================================
         ' Header handlers
         ' =================================================
+
+        AddHandler lblTitle.DoubleClick,
+    AddressOf OpenAbout
 
         AddHandler btnAdd.Click,
     AddressOf AddManuscript
@@ -416,10 +421,10 @@ Public Class Form1
         body.RowStyles.Add(New RowStyle(SizeType.Absolute, 52))
 
         body.RowStyles.Add(New RowStyle(SizeType.Absolute, 34))
-        body.RowStyles.Add(New RowStyle(SizeType.Percent, 48))
+        body.RowStyles.Add(New RowStyle(SizeType.Percent, 46))
 
         body.RowStyles.Add(New RowStyle(SizeType.Absolute, 34))
-        body.RowStyles.Add(New RowStyle(SizeType.Percent, 25))
+        body.RowStyles.Add(New RowStyle(SizeType.Percent, 27))
 
         body.RowStyles.Add(New RowStyle(SizeType.Absolute, 34))
         body.RowStyles.Add(New RowStyle(SizeType.Percent, 27))
@@ -761,6 +766,10 @@ Public Class Form1
     e As EventArgs
 )
 
+        If Not AttentionLabelHasItems(sender) Then
+            Return
+        End If
+
         ToggleAttentionFilter(
             AttentionFilter.OverdueRevision
         )
@@ -772,6 +781,10 @@ Public Class Form1
         sender As Object,
         e As EventArgs
     )
+
+        If Not AttentionLabelHasItems(sender) Then
+            Return
+        End If
 
         ToggleAttentionFilter(
             AttentionFilter.RevisionDueSoon
@@ -785,6 +798,10 @@ Public Class Form1
         e As EventArgs
     )
 
+        If Not AttentionLabelHasItems(sender) Then
+            Return
+        End If
+
         ToggleAttentionFilter(
             AttentionFilter.LongReview
         )
@@ -796,6 +813,10 @@ Public Class Form1
         sender As Object,
         e As EventArgs
     )
+
+        If Not AttentionLabelHasItems(sender) Then
+            Return
+        End If
 
         ToggleAttentionFilter(
             AttentionFilter.MissingTargetJournal
@@ -809,11 +830,48 @@ Public Class Form1
         e As EventArgs
     )
 
+        If Not AttentionLabelHasItems(sender) Then
+            Return
+        End If
+
         ToggleAttentionFilter(
             AttentionFilter.RecentRejection
         )
 
     End Sub
+
+
+    Private Function AttentionLabelHasItems(
+        sender As Object
+    ) As Boolean
+
+        Dim label As Label =
+            TryCast(
+                sender,
+                Label
+            )
+
+        If label Is Nothing OrElse
+           label.Tag Is Nothing Then
+
+            Return True
+
+        End If
+
+        Dim count As Integer
+
+        If Integer.TryParse(
+            label.Tag.ToString(),
+            count
+        ) Then
+
+            Return count > 0
+
+        End If
+
+        Return True
+
+    End Function
 
 
     Private Sub ToggleAttentionFilter(
@@ -1004,8 +1062,13 @@ Public Class Form1
     attentionColor As Color
 )
 
+        ' Keep zero-count labels enabled so WinForms does not replace
+        ' our theme-aware foreground with the low-contrast disabled color.
         label.Enabled =
-        count > 0
+        True
+
+        label.Tag =
+        count
 
         If count = 0 Then
 
@@ -2079,7 +2142,7 @@ Public Class Form1
             If pipelineTotal = 0 Then
 
                 pipelineMessage =
-                "No active manuscripts. Click + Add Manuscript."
+                "No active manuscripts. Click Add Manuscript."
 
             Else
 

@@ -20,6 +20,10 @@ Namespace Forms
         Private ReadOnly txtTargetJournal As New TextBox()
         Private ReadOnly cmbStage As New ComboBox()
 
+        Private ReadOnly fileDrawerGroup As New GroupBox()
+        Private ReadOnly lblFileDrawerDateValue As New Label()
+        Private ReadOnly txtFileDrawerReason As New TextBox()
+
         Private ReadOnly lstSubmissions As New ListBox()
 
         Private ReadOnly btnViewSubmission As New Button()
@@ -61,21 +65,33 @@ Namespace Forms
 
             Me.Text = "Manuscript Details"
             Me.StartPosition = FormStartPosition.CenterParent
-            Me.Size = New Size(920, 720)
-            Me.MinimumSize = New Size(820, 620)
+
+            If _workingManuscript.Location =
+                ManuscriptLocation.FileDrawer Then
+
+                Me.Size = New Size(920, 840)
+
+            Else
+
+                Me.Size = New Size(920, 760)
+
+            End If
+
+            Me.MinimumSize = New Size(820, 660)
             Me.Font = New Font("Segoe UI", 10.0F)
             Me.AutoScaleMode = AutoScaleMode.Dpi
 
             Dim root As New TableLayoutPanel With {
                 .Dock = DockStyle.Fill,
                 .ColumnCount = 1,
-                .RowCount = 3,
-                .Padding = New Padding(20)
+                .RowCount = 4,
+                .Padding = New Padding(20, 20, 20, 16)
             }
 
             root.RowStyles.Add(New RowStyle(SizeType.Absolute, 245))
+            root.RowStyles.Add(New RowStyle(SizeType.AutoSize))
             root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
-            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 62))
+            root.RowStyles.Add(New RowStyle(SizeType.AutoSize))
 
             ' =================================================
             ' Manuscript metadata
@@ -136,6 +152,80 @@ Namespace Forms
             detailsGroup.Controls.Add(details)
 
             ' =================================================
+            ' File Drawer metadata
+            ' =================================================
+
+            fileDrawerGroup.Text = "File Drawer"
+            fileDrawerGroup.Dock = DockStyle.Top
+            fileDrawerGroup.AutoSize = True
+            fileDrawerGroup.AutoSizeMode = AutoSizeMode.GrowAndShrink
+            fileDrawerGroup.Padding = New Padding(14)
+            fileDrawerGroup.Margin = New Padding(3, 8, 3, 8)
+            fileDrawerGroup.Visible =
+                _workingManuscript.Location =
+                ManuscriptLocation.FileDrawer
+
+            Dim fileDrawerLayout As New TableLayoutPanel With {
+                .Dock = DockStyle.Top,
+                .AutoSize = True,
+                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                .ColumnCount = 2,
+                .RowCount = 2,
+                .Margin = New Padding(0)
+            }
+
+            fileDrawerLayout.ColumnStyles.Add(
+                New ColumnStyle(SizeType.Absolute, 145)
+            )
+
+            fileDrawerLayout.ColumnStyles.Add(
+                New ColumnStyle(SizeType.Percent, 100)
+            )
+
+            fileDrawerLayout.RowStyles.Add(
+                New RowStyle(SizeType.Absolute, 34)
+            )
+
+            fileDrawerLayout.RowStyles.Add(
+                New RowStyle(SizeType.Absolute, 74)
+            )
+
+            lblFileDrawerDateValue.AutoSize = True
+            lblFileDrawerDateValue.Anchor = AnchorStyles.Left
+            lblFileDrawerDateValue.ForeColor = SystemColors.GrayText
+
+            txtFileDrawerReason.Dock = DockStyle.Fill
+            txtFileDrawerReason.Multiline = True
+            txtFileDrawerReason.ScrollBars = ScrollBars.Vertical
+            txtFileDrawerReason.MinimumSize = New Size(0, 58)
+
+            fileDrawerLayout.Controls.Add(
+                CreateFieldLabel("Filed on"),
+                0,
+                0
+            )
+
+            fileDrawerLayout.Controls.Add(
+                lblFileDrawerDateValue,
+                1,
+                0
+            )
+
+            fileDrawerLayout.Controls.Add(
+                CreateFieldLabel("Reason"),
+                0,
+                1
+            )
+
+            fileDrawerLayout.Controls.Add(
+                txtFileDrawerReason,
+                1,
+                1
+            )
+
+            fileDrawerGroup.Controls.Add(fileDrawerLayout)
+
+            ' =================================================
             ' Submissions
             ' =================================================
 
@@ -152,7 +242,7 @@ Namespace Forms
             }
 
             submissionsLayout.RowStyles.Add(
-                New RowStyle(SizeType.Absolute, 48)
+                New RowStyle(SizeType.AutoSize)
             )
 
             submissionsLayout.RowStyles.Add(
@@ -160,9 +250,12 @@ Namespace Forms
             )
 
             Dim submissionToolbar As New TableLayoutPanel With {
-                .Dock = DockStyle.Fill,
+                .Dock = DockStyle.Top,
+                .AutoSize = True,
+                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 .ColumnCount = 2,
-                .RowCount = 1
+                .RowCount = 1,
+                .Padding = New Padding(0, 2, 0, 6)
             }
 
             submissionToolbar.ColumnStyles.Add(
@@ -179,29 +272,31 @@ Namespace Forms
 
             Dim submissionButtons As New FlowLayoutPanel With {
                 .AutoSize = True,
+                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 .FlowDirection = FlowDirection.LeftToRight,
-                .WrapContents = False
+                .WrapContents = False,
+                .Margin = New Padding(0)
             }
 
             btnViewSubmission.Text = "View"
             btnViewSubmission.AutoSize = True
-            btnViewSubmission.Height = 34
+            btnViewSubmission.Height = 36
             btnViewSubmission.Visible = False
 
             btnEditSubmission.Text = "Edit Submission"
             btnEditSubmission.AutoSize = True
-            btnEditSubmission.Height = 34
+            btnEditSubmission.Height = 36
             btnEditSubmission.Visible = False
 
             btnDeleteSubmission.Text = "Delete Submission"
             btnDeleteSubmission.AutoSize = True
-            btnDeleteSubmission.Height = 34
+            btnDeleteSubmission.Height = 36
             btnDeleteSubmission.Visible = False
 
             Dim btnAddSubmission As New Button With {
-                .Text = "+ Add Submission",
+                .Text = "Add Submission",
                 .AutoSize = True,
-                .Height = 34
+                .Height = 36
             }
 
             AddHandler btnViewSubmission.Click,
@@ -244,9 +339,11 @@ Namespace Forms
 
             Dim footer As New TableLayoutPanel With {
                 .Dock = DockStyle.Fill,
+                .AutoSize = True,
+                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 .ColumnCount = 2,
                 .RowCount = 1,
-                .Padding = New Padding(0, 8, 0, 0)
+                .Padding = New Padding(0, 10, 0, 2)
             }
 
             footer.ColumnStyles.Add(
@@ -260,8 +357,9 @@ Namespace Forms
             Dim btnDeleteManuscript As New Button With {
                 .Text = "Delete Manuscript",
                 .AutoSize = True,
-                .Height = 36,
-                .Anchor = AnchorStyles.Left
+                .Height = 38,
+                .Anchor = AnchorStyles.Left,
+                .Margin = New Padding(3, 3, 3, 4)
             }
 
             AddHandler btnDeleteManuscript.Click,
@@ -269,21 +367,26 @@ Namespace Forms
 
             Dim rightButtons As New FlowLayoutPanel With {
                 .Dock = DockStyle.Fill,
+                .AutoSize = True,
+                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 .FlowDirection = FlowDirection.RightToLeft,
-                .WrapContents = False
+                .WrapContents = False,
+                .Margin = New Padding(0)
             }
 
             Dim btnSave As New Button With {
                 .Text = "Save & Close",
                 .AutoSize = True,
-                .Height = 36
+                .Height = 38,
+                .Margin = New Padding(3, 3, 3, 4)
             }
 
             Dim btnCancel As New Button With {
                 .Text = "Cancel",
                 .AutoSize = True,
-                .Height = 36,
-                .DialogResult = DialogResult.Cancel
+                .Height = 38,
+                .DialogResult = DialogResult.Cancel,
+                .Margin = New Padding(3, 3, 3, 4)
             }
 
             AddHandler btnSave.Click,
@@ -296,8 +399,9 @@ Namespace Forms
             footer.Controls.Add(rightButtons, 1, 0)
 
             root.Controls.Add(detailsGroup, 0, 0)
-            root.Controls.Add(submissionsGroup, 0, 1)
-            root.Controls.Add(footer, 0, 2)
+            root.Controls.Add(fileDrawerGroup, 0, 1)
+            root.Controls.Add(submissionsGroup, 0, 2)
+            root.Controls.Add(footer, 0, 3)
 
             Me.AcceptButton = btnSave
             Me.CancelButton = btnCancel
@@ -336,6 +440,30 @@ Namespace Forms
 
             cmbStage.SelectedItem =
                 _workingManuscript.CurrentStage
+
+            fileDrawerGroup.Visible =
+                _workingManuscript.Location =
+                ManuscriptLocation.FileDrawer
+
+            If _workingManuscript.FileDrawerDate.HasValue Then
+
+                lblFileDrawerDateValue.Text =
+                    _workingManuscript.FileDrawerDate.Value.ToString(
+                        "MMMM d, yyyy"
+                    )
+
+            Else
+
+                lblFileDrawerDateValue.Text =
+                    "Date not recorded"
+
+            End If
+
+            txtFileDrawerReason.Text =
+                If(
+                    _workingManuscript.FileDrawerReason,
+                    String.Empty
+                )
 
             RefreshSubmissionList()
 
@@ -790,10 +918,73 @@ Namespace Forms
 
             End If
 
+            UpdateFileDrawerReasonIfNeeded()
+
             CopyWorkingToOriginal()
 
             Me.DialogResult =
                 DialogResult.OK
+
+        End Sub
+
+
+        Private Sub UpdateFileDrawerReasonIfNeeded()
+
+            If Not fileDrawerGroup.Visible Then
+                Return
+            End If
+
+            Dim oldReason As String =
+                If(
+                    _workingManuscript.FileDrawerReason,
+                    String.Empty
+                ).Trim()
+
+            Dim newReason As String =
+                txtFileDrawerReason.Text.Trim()
+
+            If String.Equals(
+                oldReason,
+                newReason,
+                StringComparison.Ordinal
+            ) Then
+
+                Return
+
+            End If
+
+            _workingManuscript.FileDrawerReason =
+                newReason
+
+            Dim note As String
+
+            If String.IsNullOrWhiteSpace(newReason) Then
+
+                note =
+                    "File Drawer reason cleared."
+
+            ElseIf String.IsNullOrWhiteSpace(oldReason) Then
+
+                note =
+                    "File Drawer reason added. Reason: " &
+                    newReason
+
+            Else
+
+                note =
+                    "File Drawer reason updated. Reason: " &
+                    newReason
+
+            End If
+
+            _workingManuscript.History.Add(
+                New HistoryEvent With {
+                    .Stage =
+                        _workingManuscript.CurrentStage,
+                    .Note =
+                        note
+                }
+            )
 
         End Sub
 
