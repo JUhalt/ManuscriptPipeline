@@ -40,9 +40,11 @@ Development on `master` is now targeting **v0.2.0-alpha.1**, beginning with stor
 
 PaperRoute is designed so that its core manuscript-tracking workflow works offline. No PaperRoute account is required.
 
-Current PaperRoute application data is stored under `%LocalAppData%\PaperRoute\`.
+Current installed/portable PaperRoute application data is stored under `%LocalAppData%\PaperRoute\`.
 
-The manuscript database, automatic backup, settings, and storage-schema metadata are stored there. Managed document copies are stored in the PaperRoute managed library, normally `Documents\PaperRoute Library\`.
+Visual Studio debugger launches use an isolated development profile under `%LocalAppData%\PaperRoute-Dev\`, with managed copies in `Documents\PaperRoute Dev Library\`. This prevents experimental schema or UI work from modifying the stable library.
+
+The manuscript database, automatic backup, settings, and storage-schema metadata are stored in the active profile. Managed document copies are stored in the corresponding PaperRoute managed library.
 
 When legacy ManuscriptPipeline storage is migrated, PaperRoute retains the legacy source data where possible for rollback and recovery rather than silently deleting it.
 

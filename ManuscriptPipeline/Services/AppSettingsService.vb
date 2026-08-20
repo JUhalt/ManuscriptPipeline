@@ -16,12 +16,7 @@ Namespace Services
         Public Sub New()
 
             _settingsDirectory =
-                Path.Combine(
-                    Environment.GetFolderPath(
-                        Environment.SpecialFolder.LocalApplicationData
-                    ),
-                    ProductInfo.DataFolderName
-                )
+                StorageMigrationService.CurrentDataRoot()
 
             _settingsPath =
                 Path.Combine(

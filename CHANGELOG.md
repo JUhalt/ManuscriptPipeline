@@ -11,12 +11,16 @@ All notable changes to PaperRoute Tracker will be documented here.
 - Preservation of the previous schema metadata as `schema.v1.bak` during schema-1 to schema-2 migration.
 - Structured manuscript metadata for abstracts, keywords, DOI, publication details, preprint links, and external identifiers.
 - Regression coverage for schema migration safety and schema-2 metadata persistence.
+- Isolated development storage for Visual Studio debugger launches so experimental builds do not modify the stable PaperRoute library.
+- Stage-filter counts showing the number of manuscripts currently in each lifecycle stage.
+- Regression coverage for development-profile selection and stage-count summaries.
 
 ### Changed
 
 - Development version advances to `0.2.0-alpha.1`.
 - Existing schema-1 libraries are validated before schema metadata is upgraded.
 - Schema migration no longer rejects every lower positive schema version; supported migrations are applied explicitly and sequentially.
+- Developer windows and Diagnostics clearly identify when the isolated development storage profile is active.
 
 ### Compatibility
 
