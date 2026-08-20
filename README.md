@@ -15,7 +15,9 @@ PaperRoute Tracker helps researchers manage manuscripts from idea through submis
 
 ## Current status
 
-**v0.1.0-alpha.3** — update-path validation and RC hardening. The application is usable, but the data model and interface may still evolve before the first stable release.
+**v0.1.0-rc.1** — first release candidate for the reliable-core release.
+
+RC.1 focuses on data safety, recovery, schema protection, importer regression coverage, updater reliability, and release hardening. The feature set is frozen while release-candidate validation is completed.
 
 ## Highlights
 
@@ -36,11 +38,15 @@ PaperRoute Tracker helps researchers manage manuscripts from idea through submis
 
 PaperRoute is designed so that its core manuscript-tracking workflow works offline. No PaperRoute account is required.
 
-For compatibility with pre-rebrand alpha builds, application data currently remains in the legacy local storage locations:
 
-```text
-%LocalAppData%\ManuscriptPipeline\
-Documents\ManuscriptPipeline Library\
+with:
+
+```markdown
+Current PaperRoute application data is stored under `%LocalAppData%\PaperRoute\`.
+
+The manuscript database, automatic backup, settings, and storage-schema metadata are stored there. Managed document copies are stored in the PaperRoute managed library, normally `Documents\PaperRoute Library\`.
+
+When legacy ManuscriptPipeline storage is migrated, PaperRoute retains the legacy source data where possible for rollback and recovery rather than silently deleting it.
 ```
 
 Those folder names are intentionally retained during the PaperRoute rebrand so existing alpha users do not lose access to their data. A future migration can move them without breaking compatibility.
