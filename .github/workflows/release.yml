@@ -1,5 +1,5 @@
 name: Release
-run-name: "Release • ${{ github.ref_name }}"
+run-name: "Release - ${{ github.ref_name }}"
 
 on:
   push:
@@ -28,13 +28,26 @@ jobs:
         shell: pwsh
         run: |
           $tag = "${{ github.ref_name }}"
-          $version = $tag.TrimStart('v')
+
+          if ($tag -notmatch '^v(?<version>\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)$') {
+              throw "Release tag '$tag' is not a supported PaperRoute version tag."
+          }
+
+          $version = $Matches.version
           $isPrerelease = $version.Contains('-')
           $channel = if ($isPrerelease) { 'preview' } else { 'stable' }
+
           $notesPath = "docs/releases/$version.md"
+
           if (-not (Test-Path $notesPath)) {
-            $notesPath = "CHANGELOG.md"
+              $notesPath = "CHANGELOG.md"
           }
+
+          Write-Host "Tag:        $tag"
+          Write-Host "Version:    $version"
+          Write-Host "Channel:    $channel"
+          Write-Host "Prerelease: $isPrerelease"
+          Write-Host "Notes:      $notesPath"
 
           "version=$version" >> $env:GITHUB_OUTPUT
           "channel=$channel" >> $env:GITHUB_OUTPUT
@@ -45,10 +58,20 @@ jobs:
         run: dotnet restore ManuscriptPipeline.slnx
 
       - name: Build release candidate
-        run: dotnet build ManuscriptPipeline.slnx --configuration Release --no-restore
+        run: >
+          dotnet build
+          ManuscriptPipeline.slnx
+          --configuration Release
+          --no-restore
+          -p:Version="${{ steps.meta.outputs.version }}"
+          -p:ContinuousIntegrationBuild=true
 
       - name: Run automated tests
-        run: dotnet test PaperRoute.Tests/PaperRoute.Tests.vbproj --configuration Release --no-build
+        run: >
+          dotnet test
+          PaperRoute.Tests/PaperRoute.Tests.vbproj
+          --configuration Release
+          --no-build
 
       - name: Publish Windows x64 for installer
         run: >
@@ -57,9 +80,49 @@ jobs:
           --configuration Release
           --runtime win-x64
           --self-contained true
+          -p:Version="${{ steps.meta.outputs.version }}"
+          -p:ContinuousIntegrationBuild=true
           -p:PublishSingleFile=false
           -p:DebugType=None
           -p:PublishDir=${{ github.workspace }}/publish/win-x64/
+
+      - name: Verify published binary version
+        shell: pwsh
+        run: |
+          $expected = "${{ steps.meta.outputs.version }}"
+
+          $publishedDll = Join-Path `
+              "${{ github.workspace }}" `
+              "publish\win-x64\PaperRouteTracker.dll"
+
+          if (-not (Test-Path $publishedDll)) {
+              throw "Published PaperRouteTracker.dll was not found at '$publishedDll'."
+          }
+
+          $versionInfo =
+              [System.Diagnostics.FileVersionInfo]::GetVersionInfo(
+                  $publishedDll
+              )
+
+          $productVersion = $versionInfo.ProductVersion
+
+          if ([string]::IsNullOrWhiteSpace($productVersion)) {
+              throw "The published PaperRoute binary does not contain a ProductVersion."
+          }
+
+          $normalizedVersion =
+              ($productVersion -split '\+')[0]
+
+          Write-Host "Expected version:  $expected"
+          Write-Host "Binary version:    $productVersion"
+          Write-Host "Normalized binary: $normalizedVersion"
+
+          if ($normalizedVersion -ne $expected) {
+              throw "Release version mismatch. Tag expects '$expected' but the published binary reports '$productVersion'."
+          }
+
+          Write-Host ""
+          Write-Host "Binary/package version verification passed."
 
       - name: Download previous Preview Velopack release
         if: steps.meta.outputs.is_prerelease == 'true'
