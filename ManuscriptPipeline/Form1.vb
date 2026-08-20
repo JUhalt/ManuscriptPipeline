@@ -65,9 +65,9 @@ Public Class Form1
 
     End Sub
     Private Sub Form1_Load(
-        sender As Object,
-        e As EventArgs
-    ) Handles MyBase.Load
+    sender As Object,
+    e As EventArgs
+) Handles MyBase.Load
 
         If uiInitialized Then
             Return
@@ -76,12 +76,28 @@ Public Class Form1
         uiInitialized = True
 
         appSettings =
-    settingsService.Load()
+        settingsService.Load()
 
         UiPolish.InstallGlobalDialogStyling()
 
         BuildInterface()
-        LoadManuscripts()
+
+        If Not LoadManuscripts() Then
+
+            ' Do not allow PaperRoute to continue running with an
+            ' artificial empty library after a data-load failure.
+            BeginInvoke(
+            New Action(
+                Sub()
+                    Close()
+                End Sub
+            )
+        )
+
+            Return
+
+        End If
+
         RenderManuscripts()
 
         If appSettings.CheckForUpdatesAutomatically Then
@@ -89,7 +105,6 @@ Public Class Form1
         End If
 
     End Sub
-
 
     ' =====================================================
     ' Interface
@@ -1292,71 +1307,95 @@ Public Class Form1
     ' Persistence
     ' =====================================================
 
-    Private Sub LoadManuscripts()
+    Private Function LoadManuscripts() As Boolean
 
         Try
 
             manuscripts =
-                repository.Load()
+            repository.Load()
 
-            lblStatus.Text =
+            If repository.LastLoadRecoveredFromBackup Then
+
+                Dim recoveryMessage As String =
+                "PaperRoute detected a problem with the primary manuscript data file." &
+                Environment.NewLine &
+                Environment.NewLine &
+                "Your library was recovered successfully from the automatic safety backup." &
+                Environment.NewLine &
+                Environment.NewLine &
+                manuscripts.Count.ToString() &
+                " manuscript(s) were recovered."
+
+                If Not String.IsNullOrWhiteSpace(
+                repository.LastRecoveryPreservedFilePath
+            ) Then
+
+                    recoveryMessage &=
+                    Environment.NewLine &
+                    Environment.NewLine &
+                    "The damaged primary file was preserved for recovery and diagnostics at:" &
+                    Environment.NewLine &
+                    repository.LastRecoveryPreservedFilePath
+
+                End If
+
+                recoveryMessage &=
+                Environment.NewLine &
+                Environment.NewLine &
+                "PaperRoute has restored a valid primary data file and can continue normally."
+
+                MessageBox.Show(
+                Me,
+                recoveryMessage,
+                "Library Recovered",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning
+            )
+
+                lblStatus.Text =
+                "Library recovered from safety backup - " &
+                DateTime.Now.ToString("h:mm tt")
+
+            Else
+
+                lblStatus.Text =
                 "Loaded " &
                 manuscripts.Count.ToString() &
                 " manuscript(s) from local storage."
 
-        Catch ex As Exception
-
-            manuscripts =
-                New List(Of Manuscript)()
-
-            MessageBox.Show(
-                Me,
-                "PaperRoute could not load your saved data." &
-                Environment.NewLine &
-                Environment.NewLine &
-                ex.Message,
-                "Data Load Error",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error
-            )
-
-            lblStatus.Text =
-                "Saved data could not be loaded."
-
-        End Try
-
-    End Sub
-
-
-    Private Function SaveManuscripts() As Boolean
-
-        Try
-
-            repository.Save(
-                manuscripts
-            )
-
-            lblStatus.Text =
-                "Saved locally - " &
-                DateTime.Now.ToString("h:mm tt")
+            End If
 
             Return True
 
         Catch ex As Exception
 
+            manuscripts =
+            New List(Of Manuscript)()
+
+            Dim errorMessage As String =
+            "PaperRoute could not safely load your manuscript library." &
+            Environment.NewLine &
+            Environment.NewLine &
+            "The primary data file could not be read, and PaperRoute could not recover a valid safety backup." &
+            Environment.NewLine &
+            Environment.NewLine &
+            "PaperRoute will close rather than continue with an empty library. Your existing data files have not been intentionally overwritten." &
+            Environment.NewLine &
+            Environment.NewLine &
+            "Error details:" &
+            Environment.NewLine &
+            ex.Message
+
             MessageBox.Show(
-                Me,
-                "PaperRoute could not save your data." &
-                Environment.NewLine &
-                Environment.NewLine &
-                ex.Message,
-                "Save Error",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error
-            )
+            Me,
+            errorMessage,
+            "Library Could Not Be Loaded",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Error
+        )
 
             lblStatus.Text =
-                "Warning: latest changes were not saved."
+            "Library could not be loaded safely."
 
             Return False
 
@@ -1364,6 +1403,41 @@ Public Class Form1
 
     End Function
 
+    Private Function SaveManuscripts() As Boolean
+
+        Try
+
+            repository.Save(
+            manuscripts
+        )
+
+            lblStatus.Text =
+            "Saved locally - " &
+            DateTime.Now.ToString("h:mm tt")
+
+            Return True
+
+        Catch ex As Exception
+
+            MessageBox.Show(
+            Me,
+            "PaperRoute could not save your data." &
+            Environment.NewLine &
+            Environment.NewLine &
+            ex.Message,
+            "Save Error",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Error
+        )
+
+            lblStatus.Text =
+            "Warning: latest changes were not saved."
+
+            Return False
+
+        End Try
+
+    End Function
 
     ' =====================================================
     ' Flow panels
