@@ -4,39 +4,24 @@ PaperRoute is moving toward a simple goal: **a trustworthy, local-first home for
 
 The live GitHub milestones and issues are the source of truth for active work. This file is the public high-level route.
 
-## NOW — v0.1 Reliable Core
+## COMPLETE — v0.1 Reliable Core
 
-Completed for the stable candidate:
+PaperRoute v0.1.0 established the trusted local core: installation and updates, schema validation, recovery, import/export, backup/restore, accessibility, high-DPI support, diagnostics, and release hardening.
 
-- Installer and automatic updates
-- Safe data/schema migration and fail-closed validation
-- Automated persistence/import/backup/recovery regression tests
-- Diagnostics and recovery tooling
-- Accessibility, keyboard, theme, and high-DPI review
-- Secondary-dialog and File Drawer usability polish
-- Documentation finalization
-- Clean-machine installation validation
-- Stable-by-default update-channel behavior
-- Release-pipeline version and supply-chain hardening
+## NOW — v0.2 Metadata & Integrations
 
-Remaining before closing the v0.1 milestone:
+Development begins with the **schema 2 metadata foundation**, followed by:
 
-- Final stable packaging and published-installer validation
-- Defender/secondary malware scan and SmartScreen/reputation review
-- Code-signing decision documented for the release
-
-**RC rule:** `v0.1.0-rc.1` froze the feature set. Only bugs, compatibility, accessibility, documentation, and data-integrity fixes land before stable.
-
-## NEXT — v0.2 Metadata & Integrations
-
-- ORCID import/sync
+- Reusable authors and affiliations
 - DOI and Crossref metadata enrichment
+- ORCID import/sync
 - BibTeX and RIS import/export
-- Reusable author library and affiliations
-- Rich journal cards, target-journal shortlist, submission portal shortcuts
+- Rich journal cards, target-journal shortlist, and submission portal shortcuts
 - Preprint / journal-version linkage
 - Calendar export, reminders, and Windows notifications
 - CV/publication-list exports
+
+**Safety rule:** external integrations may suggest metadata, but they must not silently overwrite user-entered metadata or change manuscript lifecycle state.
 
 ## THEN — v0.3 The Route
 

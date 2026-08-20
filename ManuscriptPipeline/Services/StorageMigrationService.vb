@@ -10,7 +10,9 @@ Namespace Services
 
     Public NotInheritable Class StorageMigrationService
 
-        Public Const CurrentSchemaVersion As Integer = 1
+        Public Const CurrentSchemaVersion As Integer = 2
+
+        Private Const MinimumMigratableSchemaVersion As Integer = 1
 
         Private Sub New()
         End Sub
@@ -69,6 +71,10 @@ Namespace Services
                 legacyDataRoot,
                 currentManagedLibraryRoot,
                 legacyManagedLibraryRoot
+            )
+
+            MigrateSchemaIfNeeded(
+                currentDataRoot
             )
 
             EnsureSchemaVersion(
@@ -293,17 +299,236 @@ Namespace Services
 
             End If
 
-            If existingVersion < CurrentSchemaVersion Then
+            If existingVersion < MinimumMigratableSchemaVersion Then
 
                 Throw New InvalidOperationException(
                     "This PaperRoute library uses storage schema " &
                     existingVersion.ToString() &
-                    ", but this build expects schema " &
-                    CurrentSchemaVersion.ToString() &
-                    ". No automatic migration path is available in this build."
+                    ", which cannot be migrated by this build."
                 )
 
             End If
+
+        End Sub
+
+
+        Private Shared Sub MigrateSchemaIfNeeded(
+            currentRoot As String
+        )
+
+            Dim schemaPath As String =
+                SchemaFilePath(
+                    currentRoot
+                )
+
+            If Not File.Exists(schemaPath) Then
+                Return
+            End If
+
+            Dim existingVersion As Integer =
+                ReadSchemaVersion(
+                    schemaPath
+                )
+
+            ValidateSupportedSchemaVersion(
+                existingVersion
+            )
+
+            While existingVersion < CurrentSchemaVersion
+
+                Select Case existingVersion
+
+                    Case 1
+
+                        MigrateSchema1To2(
+                            currentRoot,
+                            schemaPath
+                        )
+
+                    Case Else
+
+                        Throw New InvalidOperationException(
+                            "PaperRoute does not have a migration path from storage schema " &
+                            existingVersion.ToString() &
+                            " to schema " &
+                            CurrentSchemaVersion.ToString() &
+                            "."
+                        )
+
+                End Select
+
+                existingVersion =
+                    ReadSchemaVersion(
+                        schemaPath
+                    )
+
+            End While
+
+        End Sub
+
+
+        Private Shared Sub MigrateSchema1To2(
+            currentRoot As String,
+            schemaPath As String
+        )
+
+            ValidateCurrentManuscriptDataForSchema2(
+                currentRoot
+            )
+
+            Dim backupPath As String =
+                Path.Combine(
+                    Path.GetDirectoryName(schemaPath),
+                    "schema.v1.bak"
+                )
+
+            WriteSchemaVersionReplacingExisting(
+                schemaPath,
+                2,
+                backupPath
+            )
+
+        End Sub
+
+
+        Private Shared Sub ValidateCurrentManuscriptDataForSchema2(
+            currentRoot As String
+        )
+
+            Dim dataPath As String =
+                Path.Combine(
+                    currentRoot,
+                    "data",
+                    "manuscripts.json"
+                )
+
+            If Not File.Exists(dataPath) Then
+                Return
+            End If
+
+            Dim json As String =
+                File.ReadAllText(
+                    dataPath
+                )
+
+            If String.IsNullOrWhiteSpace(json) Then
+
+                Throw New InvalidDataException(
+                    "PaperRoute cannot migrate storage schema 1 because the manuscript data file is empty. " &
+                    "The existing schema and manuscript data were left unchanged."
+                )
+
+            End If
+
+            Try
+
+                Dim manuscripts As List(Of Manuscript) =
+                    JsonSerializer.Deserialize(
+                        Of List(Of Manuscript)
+                    )(
+                        json,
+                        CreateManuscriptJsonOptions()
+                    )
+
+                If manuscripts Is Nothing Then
+
+                    Throw New InvalidDataException(
+                        "PaperRoute cannot migrate storage schema 1 because the manuscript data could not be read. " &
+                        "The existing schema and manuscript data were left unchanged."
+                    )
+
+                End If
+
+                For Each manuscript As Manuscript In manuscripts
+
+                    If manuscript Is Nothing Then
+
+                        Throw New InvalidDataException(
+                            "PaperRoute cannot migrate storage schema 1 because the manuscript library contains a null record. " &
+                            "The existing schema and manuscript data were left unchanged."
+                        )
+
+                    End If
+
+                Next
+
+            Catch ex As JsonException
+
+                Throw New InvalidDataException(
+                    "PaperRoute cannot migrate storage schema 1 because the manuscript data contains invalid JSON. " &
+                    "The existing schema and manuscript data were left unchanged.",
+                    ex
+                )
+
+            End Try
+
+        End Sub
+
+
+        Private Shared Sub WriteSchemaVersionReplacingExisting(
+            schemaPath As String,
+            schemaVersion As Integer,
+            backupPath As String
+        )
+
+            Dim payload As New Dictionary(Of String, Object) From {
+                {
+                    "SchemaVersion",
+                    schemaVersion
+                },
+                {
+                    "UpdatedAtUtc",
+                    DateTime.UtcNow.ToString("O")
+                }
+            }
+
+            Dim options As New JsonSerializerOptions With {
+                .WriteIndented = True
+            }
+
+            Dim tempPath As String =
+                schemaPath &
+                ".tmp-" &
+                Guid.NewGuid().ToString("N")
+
+            Try
+
+                File.WriteAllText(
+                    tempPath,
+                    JsonSerializer.Serialize(
+                        payload,
+                        options
+                    )
+                )
+
+                If File.Exists(backupPath) Then
+
+                    File.Delete(
+                        backupPath
+                    )
+
+                End If
+
+                File.Replace(
+                    tempPath,
+                    schemaPath,
+                    backupPath,
+                    True
+                )
+
+            Finally
+
+                If File.Exists(tempPath) Then
+
+                    Try
+                        File.Delete(tempPath)
+                    Catch
+                        ' Best-effort cleanup only.
+                    End Try
+
+                End If
+
+            End Try
 
         End Sub
 
