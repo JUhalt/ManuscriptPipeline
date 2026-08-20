@@ -19,6 +19,8 @@ PaperRoute Tracker helps researchers manage manuscripts from idea through submis
 
 The stable 0.1 line focuses on trustworthy local storage, manuscript lifecycle tracking, spreadsheet import/export, backup/restore, installation and updates, accessibility, and recovery. New feature development continues toward v0.2 Metadata & Integrations.
 
+Development on `master` is now targeting **v0.2.0-alpha.1**, beginning with storage schema 2 and the metadata foundation. Stable users remain on the published v0.1.x release line unless they intentionally opt into Preview builds.
+
 ## Highlights
 
 - **Pipeline, Published, and File Drawer shelves** for the complete manuscript lifecycle.

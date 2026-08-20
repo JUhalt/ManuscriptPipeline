@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 Imports System.Collections.Generic
 
 Namespace Models
@@ -12,6 +12,9 @@ Namespace Models
         Public Property CoAuthors As String = String.Empty
 
         Public Property TargetJournal As String = String.Empty
+
+        Public Property Metadata As ManuscriptMetadata =
+            New ManuscriptMetadata()
 
         Public Property CurrentStage As PaperStage = PaperStage.Idea
 

@@ -92,6 +92,158 @@ Public Class PersistenceTests
 
 
     <TestMethod>
+    Public Sub SaveAndLoad_RoundTripsSchema2Metadata()
+
+        Dim repository As New ManuscriptRepository(
+            _dataDirectory,
+            _managedLibrary
+        )
+
+        Dim manuscripts As List(Of Manuscript) =
+            CreateRepresentativeLibrary()
+
+        manuscripts(0).Metadata.AbstractText =
+            "A representative abstract for schema 2."
+
+        manuscripts(0).Metadata.Keywords.Add(
+            "metadata"
+        )
+
+        manuscripts(0).Metadata.Keywords.Add(
+            "manuscript tracking"
+        )
+
+        manuscripts(0).Metadata.Doi =
+            "10.1234/example.2026.1"
+
+        manuscripts(0).Metadata.PublicationJournal =
+            "Journal of Example Studies"
+
+        manuscripts(0).Metadata.PublishedDate =
+            New DateTime(
+                2026,
+                8,
+                20
+            )
+
+        manuscripts(0).Metadata.Volume =
+            "12"
+
+        manuscripts(0).Metadata.Issue =
+            "3"
+
+        manuscripts(0).Metadata.Pages =
+            "101-118"
+
+        manuscripts(0).Metadata.PublicationUrl =
+            "https://example.invalid/article"
+
+        manuscripts(0).Metadata.PreprintUrl =
+            "https://example.invalid/preprint"
+
+        manuscripts(0).Metadata.ExternalIdentifiers("crossref") =
+            "example-record"
+
+        repository.Save(
+            manuscripts
+        )
+
+        Dim loaded As List(Of Manuscript) =
+            repository.Load()
+
+        Assert.AreEqual(
+            "A representative abstract for schema 2.",
+            loaded(0).Metadata.AbstractText
+        )
+
+        CollectionAssert.AreEqual(
+            New List(Of String) From {
+                "metadata",
+                "manuscript tracking"
+            },
+            loaded(0).Metadata.Keywords
+        )
+
+        Assert.AreEqual(
+            "10.1234/example.2026.1",
+            loaded(0).Metadata.Doi
+        )
+
+        Assert.AreEqual(
+            New DateTime(2026, 8, 20),
+            loaded(0).Metadata.PublishedDate.Value
+        )
+
+        Assert.AreEqual(
+            "example-record",
+            loaded(0).Metadata.ExternalIdentifiers(
+                "crossref"
+            )
+        )
+
+    End Sub
+
+
+    <TestMethod>
+    Public Sub Load_NormalizesNullSchema2MetadataCollections()
+
+        Directory.CreateDirectory(
+            _dataDirectory
+        )
+
+        Dim json As String =
+            "[{" &
+            """Title"":""Schema 2 Null Metadata""," &
+            """CurrentStage"":""Draft""," &
+            """Location"":""Pipeline""," &
+            """Metadata"":{" &
+                """Keywords"":null," &
+                """ExternalIdentifiers"":null" &
+            "}" &
+            "}]"
+
+        File.WriteAllText(
+            Path.Combine(
+                _dataDirectory,
+                "manuscripts.json"
+            ),
+            json
+        )
+
+        Dim repository As New ManuscriptRepository(
+            _dataDirectory,
+            _managedLibrary
+        )
+
+        Dim loaded As List(Of Manuscript) =
+            repository.Load()
+
+        Assert.IsNotNull(
+            loaded(0).Metadata
+        )
+
+        Assert.IsNotNull(
+            loaded(0).Metadata.Keywords
+        )
+
+        Assert.IsNotNull(
+            loaded(0).Metadata.ExternalIdentifiers
+        )
+
+        Assert.AreEqual(
+            0,
+            loaded(0).Metadata.Keywords.Count
+        )
+
+        Assert.AreEqual(
+            0,
+            loaded(0).Metadata.ExternalIdentifiers.Count
+        )
+
+    End Sub
+
+
+    <TestMethod>
     Public Sub SecondSave_CreatesBackupOfPreviousData()
 
         Dim repository As New ManuscriptRepository(

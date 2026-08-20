@@ -275,6 +275,171 @@ Public Class MigrationTests
 
 
     <TestMethod>
+    Public Sub Schema1_MigratesToSchema2WithoutRewritingManuscripts()
+
+        Dim dataDirectory As String =
+            Path.Combine(
+                _currentData,
+                "data"
+            )
+
+        Directory.CreateDirectory(
+            dataDirectory
+        )
+
+        Dim manuscriptsPath As String =
+            Path.Combine(
+                dataDirectory,
+                "manuscripts.json"
+            )
+
+        Dim originalManuscripts As String =
+            JsonSerializer.Serialize(
+                CreateRepresentativeLibrary(),
+                CreateJsonOptions()
+            )
+
+        File.WriteAllText(
+            manuscriptsPath,
+            originalManuscripts
+        )
+
+        Dim schemaPath As String =
+            StorageMigrationService.SchemaFilePath(
+                _currentData
+            )
+
+        Const originalSchema As String =
+            "{""SchemaVersion"":1,""UpdatedAtUtc"":""2026-08-20T00:00:00.0000000Z""}"
+
+        File.WriteAllText(
+            schemaPath,
+            originalSchema
+        )
+
+        StorageMigrationService.EnsureCurrentStorage(
+            _currentData,
+            _legacyData,
+            _currentLibrary,
+            _legacyLibrary
+        )
+
+        Assert.AreEqual(
+            2,
+            StorageMigrationService.ReadSchemaVersion(
+                schemaPath
+            )
+        )
+
+        Assert.AreEqual(
+            originalManuscripts,
+            File.ReadAllText(
+                manuscriptsPath
+            )
+        )
+
+        Dim schemaBackupPath As String =
+            Path.Combine(
+                dataDirectory,
+                "schema.v1.bak"
+            )
+
+        Assert.IsTrue(
+            File.Exists(
+                schemaBackupPath
+            )
+        )
+
+        Assert.AreEqual(
+            originalSchema,
+            File.ReadAllText(
+                schemaBackupPath
+            )
+        )
+
+    End Sub
+
+
+    <TestMethod>
+    Public Sub Schema1_InvalidManuscriptDataDoesNotUpgradeSchema()
+
+        Dim dataDirectory As String =
+            Path.Combine(
+                _currentData,
+                "data"
+            )
+
+        Directory.CreateDirectory(
+            dataDirectory
+        )
+
+        Dim manuscriptsPath As String =
+            Path.Combine(
+                dataDirectory,
+                "manuscripts.json"
+            )
+
+        Const invalidManuscripts As String =
+            "{ definitely not valid json"
+
+        File.WriteAllText(
+            manuscriptsPath,
+            invalidManuscripts
+        )
+
+        Dim schemaPath As String =
+            StorageMigrationService.SchemaFilePath(
+                _currentData
+            )
+
+        Const originalSchema As String =
+            "{""SchemaVersion"":1,""UpdatedAtUtc"":""2026-08-20T00:00:00.0000000Z""}"
+
+        File.WriteAllText(
+            schemaPath,
+            originalSchema
+        )
+
+        Assert.ThrowsExactly(Of InvalidDataException)(
+            Sub()
+
+                StorageMigrationService.EnsureCurrentStorage(
+                    _currentData,
+                    _legacyData,
+                    _currentLibrary,
+                    _legacyLibrary
+                )
+
+            End Sub
+        )
+
+        Assert.AreEqual(
+            originalSchema,
+            File.ReadAllText(
+                schemaPath
+            )
+        )
+
+        Assert.AreEqual(
+            invalidManuscripts,
+            File.ReadAllText(
+                manuscriptsPath
+            )
+        )
+
+        Assert.IsFalse(
+            File.Exists(
+                Path.Combine(
+                    dataDirectory,
+                    "schema.v1.bak"
+                )
+            )
+        )
+
+    End Sub
+
+
+    <TestMethod>
     Public Sub Schema_MissingFileCreatesCurrentSchema()
 
         StorageMigrationService.EnsureCurrentStorage(
@@ -312,7 +477,7 @@ Public Class MigrationTests
             CreateCurrentSchemaDirectory()
 
         Const original As String =
-            "{""SchemaVersion"":1,""UpdatedAtUtc"":""2000-01-01T00:00:00.0000000Z""}"
+            "{""SchemaVersion"":2,""UpdatedAtUtc"":""2000-01-01T00:00:00.0000000Z""}"
 
         File.WriteAllText(
             schemaPath,

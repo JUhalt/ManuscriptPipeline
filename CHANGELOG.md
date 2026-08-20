@@ -2,6 +2,28 @@
 
 All notable changes to PaperRoute Tracker will be documented here.
 
+## [Unreleased]
+
+### Added
+
+- Storage schema 2 foundation for v0.2 metadata and integrations.
+- Automatic, validated migration from storage schema 1 to schema 2.
+- Preservation of the previous schema metadata as `schema.v1.bak` during schema-1 to schema-2 migration.
+- Structured manuscript metadata for abstracts, keywords, DOI, publication details, preprint links, and external identifiers.
+- Regression coverage for schema migration safety and schema-2 metadata persistence.
+
+### Changed
+
+- Development version advances to `0.2.0-alpha.1`.
+- Existing schema-1 libraries are validated before schema metadata is upgraded.
+- Schema migration no longer rejects every lower positive schema version; supported migrations are applied explicitly and sequentially.
+
+### Compatibility
+
+- Schema-1 manuscript data is not rewritten during the schema-1 to schema-2 migration.
+- Invalid schema-1 manuscript JSON prevents the schema upgrade and leaves the original schema/data unchanged.
+- Schema versions newer than the current build continue to fail closed.
+
 ## [0.1.0] - 2026-08-20
 
 ### Added

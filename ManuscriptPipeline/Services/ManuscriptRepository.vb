@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 Imports System.Collections.Generic
 Imports System.IO
 Imports System.Text.Json
@@ -687,6 +687,27 @@ Namespace Services
 
                     manuscript.Location =
                         ManuscriptLocation.Published
+
+                End If
+
+                If manuscript.Metadata Is Nothing Then
+
+                    manuscript.Metadata =
+                        New ManuscriptMetadata()
+
+                End If
+
+                If manuscript.Metadata.Keywords Is Nothing Then
+
+                    manuscript.Metadata.Keywords =
+                        New List(Of String)()
+
+                End If
+
+                If manuscript.Metadata.ExternalIdentifiers Is Nothing Then
+
+                    manuscript.Metadata.ExternalIdentifiers =
+                        New Dictionary(Of String, String)()
 
                 End If
 
