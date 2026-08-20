@@ -132,7 +132,7 @@ Public Class Form1
 
         root.RowStyles.Add(New RowStyle(SizeType.AutoSize))
         root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
-        root.RowStyles.Add(New RowStyle(SizeType.Absolute, 32))
+        root.RowStyles.Add(New RowStyle(SizeType.AutoSize))
 
         ' =================================================
         ' Header
@@ -229,20 +229,20 @@ Public Class Form1
 
         Dim btnAdd As New Button With {
     .Text = "Add Manuscript",
-    .Width = 150,
-    .Height = 44
+    .Width = GetResponsiveButtonWidth("Add Manuscript", 150),
+    .Height = GetResponsiveButtonHeight(44)
 }
 
         Dim btnData As New Button With {
     .Text = "Data ▾",
-    .Width = 110,
-    .Height = 44
+    .Width = GetResponsiveButtonWidth("Data ▾", 110),
+    .Height = GetResponsiveButtonHeight(44)
 }
 
         Dim btnSettings As New Button With {
     .Text = "Settings ▾",
-    .Width = 118,
-    .Height = 44
+    .Width = GetResponsiveButtonWidth("Settings ▾", 118),
+    .Height = GetResponsiveButtonHeight(44)
 }
 
 
@@ -414,20 +414,25 @@ Public Class Form1
             .ColumnCount = 1,
             .RowCount = 8,
             .Padding = New Padding(18, 8, 18, 12),
-            .BackColor = UiTheme.BoardBackground()
+            .BackColor = UiTheme.BoardBackground(),
+            .AutoScroll = True
         }
 
-        body.RowStyles.Add(New RowStyle(SizeType.Absolute, 40))
-        body.RowStyles.Add(New RowStyle(SizeType.Absolute, 52))
+        ' The dashboard is built at runtime. At high Windows scaling, fonts
+        ' grow even though hard-coded pixel row heights do not. Keep all
+        ' text/tool rows content-driven and reserve the percentage rows for
+        ' the manuscript shelves themselves.
+        body.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+        body.RowStyles.Add(New RowStyle(SizeType.AutoSize))
 
-        body.RowStyles.Add(New RowStyle(SizeType.Absolute, 34))
-        body.RowStyles.Add(New RowStyle(SizeType.Percent, 46))
+        body.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+        body.RowStyles.Add(New RowStyle(SizeType.Percent, 40))
 
-        body.RowStyles.Add(New RowStyle(SizeType.Absolute, 34))
-        body.RowStyles.Add(New RowStyle(SizeType.Percent, 27))
+        body.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+        body.RowStyles.Add(New RowStyle(SizeType.Percent, 30))
 
-        body.RowStyles.Add(New RowStyle(SizeType.Absolute, 34))
-        body.RowStyles.Add(New RowStyle(SizeType.Percent, 27))
+        body.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+        body.RowStyles.Add(New RowStyle(SizeType.Percent, 30))
 
 
         ' =================================================
@@ -435,10 +440,13 @@ Public Class Form1
         ' =================================================
 
         Dim attentionBar As New FlowLayoutPanel With {
-    .Dock = DockStyle.Fill,
+    .Dock = DockStyle.Top,
+    .AutoSize = True,
+    .AutoSizeMode = AutoSizeMode.GrowAndShrink,
     .FlowDirection = FlowDirection.LeftToRight,
-    .WrapContents = False,
+    .WrapContents = True,
     .Padding = New Padding(0, 7, 0, 3),
+    .Margin = New Padding(0),
     .BackColor = UiTheme.BoardBackground()
 }
 
@@ -522,17 +530,28 @@ Public Class Form1
 )
 
         Dim boardToolbar As New FlowLayoutPanel With {
-            .Dock = DockStyle.Fill,
+            .Dock = DockStyle.Top,
+            .AutoSize = True,
+            .AutoSizeMode = AutoSizeMode.GrowAndShrink,
             .FlowDirection = FlowDirection.LeftToRight,
-            .WrapContents = False,
+            .WrapContents = True,
             .Padding = New Padding(0, 6, 0, 4),
+            .Margin = New Padding(0),
             .BackColor = UiTheme.BoardBackground()
         }
 
 
-        txtBoardSearch.Width = 310
         txtBoardSearch.PlaceholderText =
             "Search title, journal, or co-authors..."
+
+        txtBoardSearch.Width =
+            Math.Max(
+                310,
+                TextRenderer.MeasureText(
+                    txtBoardSearch.PlaceholderText,
+                    Me.Font
+                ).Width + 28
+            )
 
         txtBoardSearch.Margin =
             New Padding(0, 2, 10, 0)
@@ -541,7 +560,14 @@ Public Class Form1
         txtBoardSearch.BorderStyle = BorderStyle.FixedSingle
 
 
-        cboStageFilter.Width = 150
+        cboStageFilter.Width =
+            Math.Max(
+                150,
+                TextRenderer.MeasureText(
+                    "Under Review",
+                    Me.Font
+                ).Width + 46
+            )
         cboStageFilter.DropDownStyle =
             ComboBoxStyle.DropDownList
 
@@ -566,8 +592,15 @@ Public Class Form1
         cboStageFilter.FlatStyle = FlatStyle.Flat
 
 
-        cboBoardSort.Width = 235
-        cboBoardSort.DropDownWidth = 235
+        cboBoardSort.Width =
+            Math.Max(
+                235,
+                TextRenderer.MeasureText(
+                    "Sort: Newest stage change",
+                    Me.Font
+                ).Width + 46
+            )
+        cboBoardSort.DropDownWidth = cboBoardSort.Width
         cboBoardSort.DropDownStyle =
             ComboBoxStyle.DropDownList
 
@@ -591,8 +624,8 @@ Public Class Form1
 
 
         btnClearBoardFilters.Text = "Clear"
-        btnClearBoardFilters.Width = 80
-        btnClearBoardFilters.Height = 30
+        btnClearBoardFilters.Width = GetResponsiveButtonWidth("Clear", 80)
+        btnClearBoardFilters.Height = GetResponsiveButtonHeight(30)
         btnClearBoardFilters.Enabled = False
         btnClearBoardFilters.Margin =
             New Padding(0, 1, 0, 0)
@@ -717,8 +750,10 @@ Public Class Form1
         ' =================================================
 
         lblStatus.Dock = DockStyle.Fill
+        lblStatus.AutoSize = True
         lblStatus.TextAlign = ContentAlignment.MiddleLeft
-        lblStatus.Padding = New Padding(18, 0, 0, 0)
+        lblStatus.Padding = New Padding(18, 6, 0, 6)
+        lblStatus.Margin = New Padding(0)
         lblStatus.ForeColor = SystemColors.GrayText
         lblStatus.Text = "Local storage enabled."
 
@@ -1515,7 +1550,7 @@ Public Class Form1
         panel.WrapContents = False
         panel.AutoScroll = True
         panel.AutoSize = False
-        panel.Padding = New Padding(8)
+        panel.Padding = New Padding(4)
         panel.BackColor = UiTheme.BoardBackground()
         panel.BorderStyle = BorderStyle.None
 
@@ -1525,6 +1560,37 @@ Public Class Form1
     ' =====================================================
     ' Render manuscripts
     ' =====================================================
+
+    Private Function GetResponsiveButtonHeight(
+        minimumHeight As Integer
+    ) As Integer
+
+        Return Math.Max(
+            minimumHeight,
+            TextRenderer.MeasureText(
+                "Ag",
+                Me.Font
+            ).Height + 12
+        )
+
+    End Function
+
+
+    Private Function GetResponsiveButtonWidth(
+        text As String,
+        minimumWidth As Integer
+    ) As Integer
+
+        Return Math.Max(
+            minimumWidth,
+            TextRenderer.MeasureText(
+                text,
+                Me.Font
+            ).Width + 30
+        )
+
+    End Function
+
 
     Private Sub StyleCardButton(
     button As Button,
@@ -2213,6 +2279,8 @@ Public Class Form1
         btnClearBoardFilters.Enabled =
         HasActiveBoardFilters()
 
+        UpdateShelfMinimumHeights()
+
 
         ' =================================================
         ' Finish layout and repaint
@@ -2242,19 +2310,153 @@ Public Class Form1
     End Sub
 
 
+    Private Sub UpdateShelfMinimumHeights()
+
+        publishedPanel.MinimumSize =
+            New Size(
+                0,
+                GetShelfMinimumHeight(publishedPanel)
+            )
+
+        fileDrawerPanel.MinimumSize =
+            New Size(
+                0,
+                GetShelfMinimumHeight(fileDrawerPanel)
+            )
+
+    End Sub
+
+
+    Private Function GetShelfMinimumHeight(
+        panel As FlowLayoutPanel
+    ) As Integer
+
+        If panel.Controls.Count = 0 Then
+            Return 0
+        End If
+
+        Dim firstControl As Control =
+            panel.Controls(0)
+
+        Return firstControl.Height +
+            firstControl.Margin.Vertical +
+            panel.Padding.Vertical +
+            6
+
+    End Function
+
+
     Private Function CreateManuscriptCard(
     manuscript As Manuscript,
     parentPanel As FlowLayoutPanel
 ) As Panel
 
+        Dim stageText As String =
+            FormatStage(
+                manuscript.CurrentStage
+            )
+
+        Dim titleFont As New Font(
+            Me.Font.FontFamily,
+            11.0F,
+            FontStyle.Bold
+        )
+
+        Dim badgeFont As New Font(
+            Me.Font.FontFamily,
+            8.5F,
+            FontStyle.Bold
+        )
+
+        Dim insightFont As New Font(
+            Me.Font.FontFamily,
+            9.0F,
+            FontStyle.Bold
+        )
+
+        Dim titleHeight As Integer =
+            TextRenderer.MeasureText(
+                "Ag",
+                titleFont
+            ).Height
+
+        Dim bodyTextHeight As Integer =
+            TextRenderer.MeasureText(
+                "Ag",
+                Me.Font
+            ).Height
+
+        Dim badgeHeight As Integer =
+            Math.Max(
+                25,
+                TextRenderer.MeasureText(
+                    stageText.ToUpperInvariant(),
+                    badgeFont
+                ).Height + 7
+            )
+
+        Dim buttonHeight As Integer =
+            GetResponsiveButtonHeight(34)
+
+        Dim titleTop As Integer = 13
+        Dim secondRowTop As Integer =
+            titleTop + titleHeight + 6
+
+        Dim secondRowHeight As Integer =
+            Math.Max(
+                badgeHeight,
+                bodyTextHeight + 4
+            )
+
+        Dim statsTop As Integer =
+            secondRowTop + secondRowHeight + 8
+
+        Dim insightColor As Color
+
+        Dim insightText As String =
+            BuildManuscriptInsight(
+                manuscript,
+                insightColor
+            )
+
+        Dim cardHeight As Integer =
+            statsTop + bodyTextHeight + 16
+
+        Dim insightTop As Integer = 0
+        Dim insightHeight As Integer = 0
+
+        If Not String.IsNullOrWhiteSpace(
+            insightText
+        ) Then
+
+            insightHeight =
+                TextRenderer.MeasureText(
+                    "Ag",
+                    insightFont
+                ).Height
+
+            insightTop =
+                statsTop + bodyTextHeight + 8
+
+            cardHeight =
+                insightTop + insightHeight + 16
+
+        End If
+
+        cardHeight =
+            Math.Max(
+                cardHeight,
+                secondRowTop + buttonHeight + 16
+            )
+
         Dim card As New RoundedPanel With {
-            .Height = 122,
+            .Height = cardHeight,
             .Width = GetCardWidth(parentPanel),
             .BackColor = UiTheme.CardBackground(),
             .BorderColor = UiTheme.CardBorder(),
             .BorderThickness = 1.0F,
             .CornerRadius = 14,
-            .Margin = New Padding(4, 4, 4, 10),
+            .Margin = New Padding(4, 4, 4, 4),
             .Cursor = Cursors.Hand
         }
 
@@ -2267,13 +2469,9 @@ Public Class Form1
             .Text = manuscript.Title,
             .AutoEllipsis = True,
             .Left = 18,
-            .Top = 14,
-            .Height = 26,
-            .Font = New Font(
-                Me.Font.FontFamily,
-                11.0F,
-                FontStyle.Bold
-            ),
+            .Top = titleTop,
+            .Height = titleHeight + 2,
+            .Font = titleFont,
             .ForeColor = UiTheme.PrimaryText(),
             .Cursor = Cursors.Hand
         }
@@ -2282,17 +2480,6 @@ Public Class Form1
         ' =================================================
         ' Stage pill
         ' =================================================
-
-        Dim stageText As String =
-            FormatStage(
-                manuscript.CurrentStage
-            )
-
-        Dim badgeFont As New Font(
-            Me.Font.FontFamily,
-            8.5F,
-            FontStyle.Bold
-        )
 
         Dim badgeWidth As Integer =
             TextRenderer.MeasureText(
@@ -2303,9 +2490,9 @@ Public Class Form1
         Dim stageBadge As New PillLabel With {
             .Text = stageText.ToUpperInvariant(),
             .Left = 18,
-            .Top = 45,
+            .Top = secondRowTop,
             .Width = badgeWidth,
-            .Height = 25,
+            .Height = badgeHeight,
             .Font = badgeFont,
             .BackColor = UiTheme.StageBackground(manuscript.CurrentStage),
             .ForeColor = UiTheme.StageForeground(manuscript.CurrentStage)
@@ -2336,8 +2523,8 @@ Public Class Form1
             .Text = journalText,
             .AutoEllipsis = True,
             .Left = 18 + badgeWidth + 10,
-            .Top = 47,
-            .Height = 23,
+            .Top = secondRowTop + Math.Max(0, (secondRowHeight - bodyTextHeight) \ 2),
+            .Height = bodyTextHeight + 3,
             .ForeColor = UiTheme.SecondaryText(),
             .Cursor = Cursors.Hand
         }
@@ -2355,7 +2542,7 @@ Public Class Form1
                 " rejections",
             .AutoSize = True,
             .Left = 18,
-            .Top = 82,
+            .Top = statsTop,
             .ForeColor = UiTheme.PrimaryText(),
             .Cursor = Cursors.Hand
         }
@@ -2392,9 +2579,9 @@ Public Class Form1
 
         Dim btnDelete As New Button With {
             .Text = "Delete",
-            .Width = 88,
-            .Height = 34,
-            .Top = 44,
+            .Width = GetResponsiveButtonWidth("Delete", 88),
+            .Height = buttonHeight,
+            .Top = secondRowTop,
             .Anchor = AnchorStyles.Top Or AnchorStyles.Right
         }
 
@@ -2426,18 +2613,15 @@ Public Class Form1
 
             Dim btnMoveToDrawer As New Button With {
                 .Text = "Move to File Drawer",
-                .Height = 34,
-                .Top = 44,
+                .Height = buttonHeight,
+                .Top = secondRowTop,
                 .Anchor = AnchorStyles.Top Or AnchorStyles.Right
             }
 
             btnMoveToDrawer.Width =
-                Math.Max(
-                    175,
-                    TextRenderer.MeasureText(
-                        btnMoveToDrawer.Text,
-                        btnMoveToDrawer.Font
-                    ).Width + 32
+                GetResponsiveButtonWidth(
+                    btnMoveToDrawer.Text,
+                    175
                 )
 
             btnMoveToDrawer.Left =
@@ -2466,18 +2650,15 @@ Public Class Form1
 
             Dim btnRestoreToPipeline As New Button With {
                 .Text = "Restore to Pipeline",
-                .Height = 34,
-                .Top = 44,
+                .Height = buttonHeight,
+                .Top = secondRowTop,
                 .Anchor = AnchorStyles.Top Or AnchorStyles.Right
             }
 
             btnRestoreToPipeline.Width =
-                Math.Max(
-                    175,
-                    TextRenderer.MeasureText(
-                        btnRestoreToPipeline.Text,
-                        btnRestoreToPipeline.Font
-                    ).Width + 32
+                GetResponsiveButtonWidth(
+                    btnRestoreToPipeline.Text,
+                    175
                 )
 
             btnRestoreToPipeline.Left =
@@ -2509,9 +2690,9 @@ Public Class Form1
 
         Dim btnOpen As New Button With {
             .Text = "Open",
-            .Width = 88,
-            .Height = 34,
-            .Top = 44,
+            .Width = GetResponsiveButtonWidth("Open", 88),
+            .Height = buttonHeight,
+            .Top = secondRowTop,
             .Anchor = AnchorStyles.Top Or AnchorStyles.Right
         }
 
@@ -2536,7 +2717,7 @@ Public Class Form1
 
         Dim textWidth As Integer =
             Math.Max(
-                220,
+                180,
                 btnOpen.Left - 36
             )
 
@@ -2545,7 +2726,7 @@ Public Class Form1
 
         lblJournal.Width =
             Math.Max(
-                80,
+                70,
                 textWidth -
                 badgeWidth -
                 10
@@ -2575,47 +2756,32 @@ Public Class Form1
 
 
         ' =================================================
-        ' File Drawer suggestion
+        ' Attention insight
         ' =================================================
 
-        Dim insightColor As Color
-
-        Dim insightText As String =
-    BuildManuscriptInsight(
-        manuscript,
-        insightColor
-    )
-
-
         If Not String.IsNullOrWhiteSpace(
-    insightText
-) Then
-
-            card.Height =
-        148
+            insightText
+        ) Then
 
             Dim lblInsight As New Label With {
-        .Text = insightText,
-        .AutoSize = True,
-        .Left = 18,
-        .Top = 111,
-        .ForeColor = insightColor,
-        .Font = New Font(
-            Me.Font.FontFamily,
-            9.0F,
-            FontStyle.Bold
-        )
-    }
+                .Text = insightText,
+                .AutoSize = True,
+                .Left = 18,
+                .Top = insightTop,
+                .ForeColor = insightColor,
+                .Font = insightFont
+            }
 
             card.Controls.Add(
-        lblInsight
-    )
+                lblInsight
+            )
 
         End If
 
         Return card
 
     End Function
+
 
     Private Function CreateEmptyLabel(
     text As String
@@ -2625,7 +2791,7 @@ Public Class Form1
         .Text = text,
         .AutoSize = False,
         .Width = 650,
-        .Height = 48,
+        .Height = Math.Max(48, TextRenderer.MeasureText("Ag", Me.Font).Height + 24),
         .Padding = New Padding(12),
         .ForeColor = UiTheme.SecondaryText(),
         .BackColor = UiTheme.BoardBackground()
