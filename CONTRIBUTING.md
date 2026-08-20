@@ -2,7 +2,7 @@
 
 Thanks for helping improve PaperRoute Tracker.
 
-## Good contributions for the alpha
+## Good contributions
 
 - Reproducible bug reports
 - Spreadsheet importer edge cases
@@ -20,7 +20,11 @@ dotnet restore ManuscriptPipeline.slnx
 dotnet build ManuscriptPipeline.slnx --configuration Release
 ```
 
-Before opening a pull request, confirm the solution builds in Release configuration and describe how you tested the change.
+Before opening a pull request, confirm the solution builds in Release configuration, run the automated test suite, and describe how you tested the change.
+
+```powershell
+dotnet test PaperRoute.Tests/PaperRoute.Tests.vbproj --configuration Release --no-build
+```
 
 ## Data safety
 

@@ -17,7 +17,7 @@ PaperRoute Tracker helps researchers manage manuscripts from idea through submis
 
 **v0.1.0-rc.1** — first release candidate for the reliable-core release.
 
-RC.1 focuses on data safety, recovery, schema protection, importer regression coverage, updater reliability, and release hardening. The feature set is frozen while release-candidate validation is completed.
+The RC feature set is frozen. Post-RC work on `master` is limited to bug fixes, compatibility, accessibility, documentation, and data-integrity hardening on the route to stable `v0.1.0`.
 
 ## Highlights
 
@@ -43,6 +43,7 @@ Current PaperRoute application data is stored under `%LocalAppData%\PaperRoute\`
 The manuscript database, automatic backup, settings, and storage-schema metadata are stored there. Managed document copies are stored in the PaperRoute managed library, normally `Documents\PaperRoute Library\`.
 
 When legacy ManuscriptPipeline storage is migrated, PaperRoute retains the legacy source data where possible for rollback and recovery rather than silently deleting it.
+
 ## Installing PaperRoute
 
 ### Recommended: GitHub Release installer
@@ -129,7 +130,7 @@ dotnet restore ManuscriptPipeline.slnx
 dotnet build ManuscriptPipeline.slnx --configuration Release
 ```
 
-The internal project/folder name remains `ManuscriptPipeline` during the alpha rebrand to avoid unnecessary namespace churn. The built assembly is `PaperRouteTracker.exe`.
+The internal project/folder name remains `ManuscriptPipeline` for compatibility and to avoid unnecessary namespace churn. The built assembly is `PaperRouteTracker.exe`.
 
 ## Technology
 

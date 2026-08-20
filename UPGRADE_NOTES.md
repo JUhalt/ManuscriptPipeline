@@ -1,35 +1,41 @@
-# PaperRoute alpha upgrade notes
+# PaperRoute upgrade notes
 
-This source bundle keeps the internal VB root namespace and legacy local-storage folder names from ManuscriptPipeline so existing alpha data continues to load after the PaperRoute rebrand.
+PaperRoute is designed to preserve the local research library across application upgrades.
 
-## Recommended replacement workflow
+## Installed builds
 
-1. Close Visual Studio and PaperRoute/ManuscriptPipeline.
-2. Make a copy of your current repository folder.
-3. Extract this bundle over the repository root and allow source files to be replaced.
-4. Do **not** delete your existing `.git` directory.
-5. Reopen `ManuscriptPipeline.slnx` in Visual Studio.
-6. Run **Build → Rebuild Solution**.
-7. Launch the application and confirm your existing manuscript library appears.
+For normal upgrades, use an installed PaperRoute build rather than replacing application files manually.
 
-## Smoke test
+- **Stable** receives stable releases.
+- **Preview** receives prereleases such as alpha and release-candidate builds.
+- Automatic update checks can be enabled or disabled in PaperRoute settings.
+- Manual update checks are available from **Settings → Check for Updates...**.
 
-- Open PaperRoute Tracker.
-- Confirm existing manuscripts load.
-- Test Light/Dark/System themes.
-- Open manuscript and submission details.
-- Use **Data → Import Spreadsheet...** with an unfamiliar workbook to test the mapping wizard.
-- Export the library to Excel.
-- Create a portable backup.
-- Close and reopen the application.
+Portable and developer builds intentionally do not replace themselves in place.
 
-## First tagged release
+## Before upgrading
 
-After the source builds cleanly and CI is green:
+PaperRoute upgrades are designed not to overwrite the manuscript database, settings, schema metadata, managed document library, or externally linked files. Even so, creating a current PaperRoute backup before an important upgrade is a sensible precaution.
 
-```powershell
-git tag v0.1.0-alpha.1
-git push origin v0.1.0-alpha.1
-```
+Use **Data → Backup Library...** to create a portable backup.
 
-The release workflow will publish a Windows x64 release asset automatically.
+## Legacy ManuscriptPipeline data
+
+PaperRoute can migrate compatible legacy ManuscriptPipeline storage into the current PaperRoute storage layout.
+
+The migration is intentionally conservative: legacy source data is retained where practical for rollback and recovery rather than silently deleted.
+
+The internal Visual Basic project/folder name remains `ManuscriptPipeline` for compatibility. This does not change the user-facing application name or current PaperRoute storage location.
+
+## After upgrading
+
+Confirm the following:
+
+1. PaperRoute opens normally.
+2. Your manuscript count and shelves look correct.
+3. A few manuscript, submission, decision, and correspondence records open as expected.
+4. **Diagnostics** reports the expected application version and storage schema.
+5. Your managed document links still open.
+6. A fresh backup can be created successfully.
+
+If PaperRoute reports that local storage cannot be validated safely, do not delete or replace the data files. Preserve the reported files and use the diagnostics/recovery information to investigate the problem.

@@ -6,15 +6,24 @@ The live GitHub milestones and issues are the source of truth for active work. T
 
 ## NOW — v0.1 Reliable Core
 
-- Installer and automatic updates
-- Safe data/schema migrations
-- Automated persistence/import/backup tests
-- Diagnostics and recovery tooling
-- Accessibility and high-DPI review
-- Secondary-dialog polish
-- Release-pipeline hardening and Windows reputation testing
+Completed for the stable candidate:
 
-**RC rule:** once `v0.1.0-rc.1` is cut, the feature set freezes. Only bugs, compatibility, accessibility, documentation, and data-integrity fixes land before stable.
+- Installer and automatic updates
+- Safe data/schema migration and fail-closed validation
+- Automated persistence/import/backup/recovery regression tests
+- Diagnostics and recovery tooling
+- Accessibility, keyboard, theme, and high-DPI review
+- Secondary-dialog and File Drawer usability polish
+- Release-pipeline version hardening
+
+Remaining before stable:
+
+- Documentation finalization
+- Clean-machine installation validation
+- Final stable packaging/release verification
+- Signing/reputation review where practical
+
+**RC rule:** `v0.1.0-rc.1` froze the feature set. Only bugs, compatibility, accessibility, documentation, and data-integrity fixes land before stable.
 
 ## NEXT — v0.2 Metadata & Integrations
 

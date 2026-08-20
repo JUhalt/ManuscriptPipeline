@@ -2,6 +2,34 @@
 
 All notable changes to PaperRoute Tracker will be documented here.
 
+## [Unreleased]
+
+### Added
+
+- File Drawer metadata is now visible from Manuscript Details, including the filed date and an editable File Drawer reason.
+- Updating a File Drawer reason records the change in manuscript history for traceability.
+
+### Changed
+
+- Main-dashboard layout now scales more reliably at high Windows display scaling, including 150%, 175%, and 200%.
+- Manuscript cards, shelf heights, toolbar rows, and action buttons now size more responsively from rendered content instead of relying on fixed pixel geometry.
+- Manuscript Details and submission controls have improved spacing and DPI-safe sizing.
+- Zero-count Needs Attention indicators remain readable in Dark mode without appearing active.
+- Header controls have cleaner labels and more restrained menu chevrons.
+- The PaperRoute wordmark aligns with its subtitle and opens About PaperRoute on double-click.
+
+### Fixed
+
+- Single-item Published and File Drawer shelves no longer show unnecessary internal scrolling when enough space is available.
+- High-DPI layouts no longer clip the Add Manuscript label, Add Submission control, or Manuscript Details footer actions under the tested scaling range.
+- README local-storage documentation no longer contains stale rebrand wording or accidental Markdown fencing.
+
+### Testing
+
+- Existing automated regression suite remains at **48 passing tests**.
+- Keyboard-only navigation and focus behavior passed the RC accessibility smoke test.
+- Main UI and affected dialogs passed display-scaling review at **100%, 125%, 150%, 175%, and 200%**.
+
 ## [0.1.0-rc.1] - 2026-08-19
 
 ### Added
