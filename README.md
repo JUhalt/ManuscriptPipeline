@@ -38,19 +38,11 @@ RC.1 focuses on data safety, recovery, schema protection, importer regression co
 
 PaperRoute is designed so that its core manuscript-tracking workflow works offline. No PaperRoute account is required.
 
-
-with:
-
-```markdown
 Current PaperRoute application data is stored under `%LocalAppData%\PaperRoute\`.
 
 The manuscript database, automatic backup, settings, and storage-schema metadata are stored there. Managed document copies are stored in the PaperRoute managed library, normally `Documents\PaperRoute Library\`.
 
 When legacy ManuscriptPipeline storage is migrated, PaperRoute retains the legacy source data where possible for rollback and recovery rather than silently deleting it.
-```
-
-Those folder names are intentionally retained during the PaperRoute rebrand so existing alpha users do not lose access to their data. A future migration can move them without breaking compatibility.
-
 ## Installing PaperRoute
 
 ### Recommended: GitHub Release installer
