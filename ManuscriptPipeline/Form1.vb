@@ -46,6 +46,37 @@ Public Class Form1
     Private ReadOnly lblRecentRejections As New Label()
 
     Private uiInitialized As Boolean = False
+    Private suppressBoardFilterEvents As Boolean = False
+
+
+    Private NotInheritable Class StageFilterOption
+
+        Public ReadOnly Property Stage As PaperStage?
+        Public ReadOnly Property DisplayName As String
+        Public ReadOnly Property Count As Integer
+
+
+        Public Sub New(
+            stage As PaperStage?,
+            displayName As String,
+            count As Integer
+        )
+
+            Me.Stage = stage
+            Me.DisplayName = displayName
+            Me.Count = count
+
+        End Sub
+
+
+        Public Overrides Function ToString() As String
+
+            Return DisplayName &
+                " (" & Count.ToString() & ")"
+
+        End Function
+
+    End Class
 
 
     ' =====================================================
@@ -114,7 +145,12 @@ Public Class Form1
 
         Me.Controls.Clear()
 
-        Me.Text = "PaperRoute Tracker"
+        Me.Text =
+            If(
+                StorageEnvironment.IsDevelopmentProfile(),
+                "PaperRoute Tracker [Development]",
+                "PaperRoute Tracker"
+            )
         Me.StartPosition = FormStartPosition.CenterScreen
         Me.Size = New Size(1180, 820)
         Me.MinimumSize = New Size(900, 680)
@@ -193,7 +229,12 @@ Public Class Form1
 }
 
         Dim lblSubtitle As New Label With {
-    .Text = "Academic manuscript tracking, locally",
+    .Text =
+        If(
+            StorageEnvironment.IsDevelopmentProfile(),
+            "Development profile • isolated local data",
+            "Academic manuscript tracking, locally"
+        ),
     .AutoSize = True,
     .Anchor = AnchorStyles.Left,
     .ForeColor = UiTheme.SecondaryText(),
@@ -572,18 +613,7 @@ Public Class Form1
             ComboBoxStyle.DropDownList
 
         cboStageFilter.Items.Clear()
-
-        cboStageFilter.Items.Add("All stages")
-        cboStageFilter.Items.Add("Idea")
-        cboStageFilter.Items.Add("Draft")
-        cboStageFilter.Items.Add("Submitted")
-        cboStageFilter.Items.Add("Under Review")
-        cboStageFilter.Items.Add("Revision")
-        cboStageFilter.Items.Add("Accepted")
-        cboStageFilter.Items.Add("In Press")
-        cboStageFilter.Items.Add("Published")
-
-        cboStageFilter.SelectedIndex = 0
+        RefreshStageFilterItems()
 
         cboStageFilter.Margin =
             New Padding(0, 2, 10, 0)
@@ -1626,10 +1656,187 @@ Public Class Form1
 
     End Sub
 
+    Private Sub RefreshStageFilterItems()
+
+        Dim selectedStage As PaperStage? = Nothing
+
+        Dim existingSelection As StageFilterOption =
+            TryCast(
+                cboStageFilter.SelectedItem,
+                StageFilterOption
+            )
+
+        If existingSelection IsNot Nothing Then
+            selectedStage = existingSelection.Stage
+        End If
+
+        Dim counts As Dictionary(Of PaperStage, Integer) =
+            ManuscriptStageSummaryService.CountByStage(
+                manuscripts
+            )
+
+        suppressBoardFilterEvents = True
+
+        Try
+
+            cboStageFilter.BeginUpdate()
+            cboStageFilter.Items.Clear()
+
+            cboStageFilter.Items.Add(
+                New StageFilterOption(
+                    Nothing,
+                    "All stages",
+                    manuscripts.Count
+                )
+            )
+
+            AddStageFilterOption(
+                PaperStage.Idea,
+                "Idea",
+                counts
+            )
+
+            AddStageFilterOption(
+                PaperStage.Draft,
+                "Draft",
+                counts
+            )
+
+            AddStageFilterOption(
+                PaperStage.Submitted,
+                "Submitted",
+                counts
+            )
+
+            AddStageFilterOption(
+                PaperStage.UnderReview,
+                "Under Review",
+                counts
+            )
+
+            AddStageFilterOption(
+                PaperStage.Revision,
+                "Revision",
+                counts
+            )
+
+            AddStageFilterOption(
+                PaperStage.Accepted,
+                "Accepted",
+                counts
+            )
+
+            AddStageFilterOption(
+                PaperStage.InPress,
+                "In Press",
+                counts
+            )
+
+            AddStageFilterOption(
+                PaperStage.Published,
+                "Published",
+                counts
+            )
+
+            Dim selectedIndex As Integer = 0
+
+            If selectedStage.HasValue Then
+
+                For index As Integer = 0 To cboStageFilter.Items.Count - 1
+
+                    Dim optionItem As StageFilterOption =
+                        TryCast(
+                            cboStageFilter.Items(index),
+                            StageFilterOption
+                        )
+
+                    If optionItem IsNot Nothing AndAlso
+                       optionItem.Stage.HasValue AndAlso
+                       optionItem.Stage.Value = selectedStage.Value Then
+
+                        selectedIndex = index
+                        Exit For
+
+                    End If
+
+                Next
+
+            End If
+
+            cboStageFilter.SelectedIndex = selectedIndex
+
+            Dim widestText As String = String.Empty
+            Dim widestWidth As Integer = 0
+
+            For Each item As Object In cboStageFilter.Items
+
+                Dim itemText As String = item.ToString()
+                Dim itemWidth As Integer =
+                    TextRenderer.MeasureText(
+                        itemText,
+                        Me.Font
+                    ).Width
+
+                If itemWidth > widestWidth Then
+                    widestWidth = itemWidth
+                    widestText = itemText
+                End If
+
+            Next
+
+            cboStageFilter.Width =
+                Math.Max(
+                    150,
+                    TextRenderer.MeasureText(
+                        widestText,
+                        Me.Font
+                    ).Width + 46
+                )
+
+            cboStageFilter.DropDownWidth =
+                cboStageFilter.Width
+
+        Finally
+
+            cboStageFilter.EndUpdate()
+            suppressBoardFilterEvents = False
+
+        End Try
+
+    End Sub
+
+
+    Private Sub AddStageFilterOption(
+        stage As PaperStage,
+        displayName As String,
+        counts As Dictionary(Of PaperStage, Integer)
+    )
+
+        Dim count As Integer = 0
+
+        If counts.ContainsKey(stage) Then
+            count = counts(stage)
+        End If
+
+        cboStageFilter.Items.Add(
+            New StageFilterOption(
+                stage,
+                displayName,
+                count
+            )
+        )
+
+    End Sub
+
+
     Private Sub BoardFilterChanged(
         sender As Object,
         e As EventArgs
     )
+
+        If suppressBoardFilterEvents Then
+            Return
+        End If
 
         RenderManuscripts()
 
@@ -1668,8 +1875,17 @@ Public Class Form1
 
         End If
 
-        If cboStageFilter.SelectedIndex > 0 Then
+        Dim selectedStageOption As StageFilterOption =
+            TryCast(
+                cboStageFilter.SelectedItem,
+                StageFilterOption
+            )
+
+        If selectedStageOption IsNot Nothing AndAlso
+           selectedStageOption.Stage.HasValue Then
+
             Return True
+
         End If
 
         If cboBoardSort.SelectedIndex > 0 Then
@@ -1738,24 +1954,17 @@ Public Class Form1
         End If
 
 
-        If cboStageFilter.SelectedIndex > 0 Then
-
-            Dim selectedStage As String =
-            CStr(
-                cboStageFilter.SelectedItem
+        Dim selectedStageOption As StageFilterOption =
+            TryCast(
+                cboStageFilter.SelectedItem,
+                StageFilterOption
             )
 
-            If Not String.Equals(
-            FormatStage(
-                manuscript.CurrentStage
-            ),
-            selectedStage,
-            StringComparison.OrdinalIgnoreCase
-        ) Then
+        If selectedStageOption IsNot Nothing AndAlso
+           selectedStageOption.Stage.HasValue AndAlso
+           manuscript.CurrentStage <> selectedStageOption.Stage.Value Then
 
-                Return False
-
-            End If
+            Return False
 
         End If
 
@@ -2073,6 +2282,7 @@ Public Class Form1
 
     Private Sub RenderManuscripts()
 
+        RefreshStageFilterItems()
         RefreshAttentionDashboard()
 
         pipelinePanel.Controls.Clear()
