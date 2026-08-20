@@ -44,10 +44,7 @@ Namespace Services
 
             End If
 
-            Return Path.Combine(
-                documentsDirectory,
-                ProductInfo.ManagedLibraryFolderName
-            )
+            Return StorageMigrationService.CurrentManagedLibraryRoot()
 
         End Function
 
