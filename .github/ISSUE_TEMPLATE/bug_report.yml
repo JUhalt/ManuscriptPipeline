@@ -6,12 +6,13 @@ labels:
 body:
   - type: markdown
     attributes:
-      value: Thanks for helping test PaperRoute.
+      value: Thanks for helping improve PaperRoute.
   - type: input
     id: version
     attributes:
       label: PaperRoute version
-      placeholder: 0.1.0-alpha.1
+      description: Copy the version from About or Diagnostics when possible.
+      placeholder: 0.1.0
     validations:
       required: true
   - type: dropdown
@@ -46,6 +47,12 @@ body:
       label: What did you expect?
     validations:
       required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics (optional)
+      description: Paste relevant diagnostics after reviewing local paths or usernames you may not want to post publicly. PaperRoute diagnostics do not include manuscript content.
+      render: text
   - type: textarea
     id: extra
     attributes:

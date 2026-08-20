@@ -16,10 +16,10 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       - name: Set up .NET 10
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
         with:
           dotnet-version: '10.0.x'
 
@@ -191,8 +191,76 @@ jobs:
           --releaseName "PaperRoute Tracker v${{ steps.meta.outputs.version }}"
           --tag "v${{ steps.meta.outputs.version }}"
 
+
+      - name: Generate and publish SHA-256 checksums
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $releaseDir =
+              Join-Path `
+                  "${{ github.workspace }}" `
+                  "Releases"
+
+          if (-not (Test-Path $releaseDir)) {
+              throw "Velopack release directory was not found at '$releaseDir'."
+          }
+
+          $checksumPath =
+              Join-Path `
+                  $releaseDir `
+                  "SHA256SUMS.txt"
+
+          $releaseFiles =
+              @(
+                  Get-ChildItem `
+                      -LiteralPath $releaseDir `
+                      -File |
+                      Where-Object {
+                          $_.Name -ne "SHA256SUMS.txt"
+                      } |
+                      Sort-Object Name
+              )
+
+          if ($releaseFiles.Count -eq 0) {
+              throw "No release files were found to checksum."
+          }
+
+          $checksumLines =
+              foreach ($file in $releaseFiles) {
+
+                  $hash =
+                      (
+                          Get-FileHash `
+                              -Algorithm SHA256 `
+                              -LiteralPath $file.FullName
+                      ).Hash.ToLowerInvariant()
+
+                  "{0}  {1}" -f $hash, $file.Name
+              }
+
+          [System.IO.File]::WriteAllLines(
+              $checksumPath,
+              $checksumLines,
+              (New-Object System.Text.UTF8Encoding($false))
+          )
+
+          Write-Host ""
+          Write-Host "SHA-256 release checksums:"
+          Get-Content -LiteralPath $checksumPath
+
+          gh release upload `
+              "v${{ steps.meta.outputs.version }}" `
+              "$checksumPath" `
+              --repo "${{ github.repository }}" `
+              --clobber
+
+          if ($LASTEXITCODE -ne 0) {
+              throw "Could not attach SHA256SUMS.txt to the GitHub release."
+          }
+
       - name: Upload Velopack build artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: PaperRouteTracker-Velopack-${{ steps.meta.outputs.channel }}
           path: Releases/

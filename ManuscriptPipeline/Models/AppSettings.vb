@@ -17,10 +17,11 @@ Namespace Models
         Public Property RecentRejectionThresholdDays As Integer =
             30
 
-        ' Alpha builds default to Preview so testers continue receiving
-        ' alpha/RC releases. This default can move to Stable for v0.1.0.
+        ' Fresh stable installations default to Stable.
+        ' Existing users keep whichever channel is already persisted
+        ' in settings.json, including Preview.
         Public Property UpdateChannel As AppUpdateChannel =
-            AppUpdateChannel.Preview
+            AppUpdateChannel.Stable
 
         Public Property CheckForUpdatesAutomatically As Boolean =
             True
