@@ -10,9 +10,8 @@ PaperRoute v0.1.0 established the trusted local core: installation and updates, 
 
 ## NOW — v0.2 Metadata & Integrations
 
-Development begins with the **schema 2 metadata foundation**, followed by:
+Development begins with the **schema 2 metadata foundation**. Reusable authors and affiliations are the first metadata feature built on that foundation, followed by:
 
-- Reusable authors and affiliations
 - DOI and Crossref metadata enrichment
 - ORCID import/sync
 - BibTeX and RIS import/export

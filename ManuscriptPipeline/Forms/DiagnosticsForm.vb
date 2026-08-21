@@ -15,6 +15,7 @@ Namespace Forms
 
         Private ReadOnly _settings As AppSettings
         Private ReadOnly _repository As New ManuscriptRepository()
+        Private ReadOnly _authorRepository As New AuthorLibraryRepository()
         Private ReadOnly _managedLibrary As New ManagedLibraryService()
         Private ReadOnly txtReport As New TextBox()
 
@@ -169,6 +170,7 @@ Namespace Forms
             builder.AppendLine("Executable: " & Application.ExecutablePath)
             builder.AppendLine("Data file: " & _repository.DataFilePath)
             builder.AppendLine("Backup file: " & _repository.BackupFilePath)
+            builder.AppendLine("Author library: " & _authorRepository.DataFilePath)
             builder.AppendLine("Managed library: " & _managedLibrary.RootDirectory)
             builder.AppendLine("Legacy data retained: " & If(Directory.Exists(StorageMigrationService.LegacyDataRoot()), "Yes", "No"))
             builder.AppendLine("Legacy library retained: " & If(Directory.Exists(StorageMigrationService.LegacyManagedLibraryRoot()), "Yes", "No"))

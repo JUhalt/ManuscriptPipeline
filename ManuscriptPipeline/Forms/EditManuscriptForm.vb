@@ -1,6 +1,7 @@
 ﻿Imports System
 Imports System.Collections.Generic
 Imports System.Drawing
+Imports System.Linq
 Imports System.Windows.Forms
 Imports ManuscriptPipeline.Models
 Imports ManuscriptPipeline.Services
@@ -12,6 +13,10 @@ Namespace Forms
 
         Private ReadOnly _originalManuscript As Manuscript
         Private ReadOnly _workingManuscript As Manuscript
+        Private ReadOnly _allManuscripts As List(Of Manuscript)
+
+        Private ReadOnly _authorRepository As New AuthorLibraryRepository()
+        Private _authorLibrary As AuthorLibraryData
 
         Private _deleteRequested As Boolean = False
 
@@ -23,6 +28,13 @@ Namespace Forms
         Private ReadOnly fileDrawerGroup As New GroupBox()
         Private ReadOnly lblFileDrawerDateValue As New Label()
         Private ReadOnly txtFileDrawerReason As New TextBox()
+
+        Private ReadOnly lstAuthors As New ListBox()
+        Private ReadOnly btnEditAuthor As New Button()
+        Private ReadOnly btnRemoveAuthor As New Button()
+        Private ReadOnly btnMoveAuthorUp As New Button()
+        Private ReadOnly btnMoveAuthorDown As New Button()
+        Private ReadOnly lblAuthorInfo As New Label()
 
         Private ReadOnly lstSubmissions As New ListBox()
 
@@ -42,13 +54,28 @@ Namespace Forms
         End Property
 
 
-        Public Sub New(manuscript As Manuscript)
+        Public Sub New(
+            manuscript As Manuscript,
+            Optional allManuscripts As IEnumerable(Of Manuscript) = Nothing
+        )
 
             _originalManuscript =
                 manuscript
 
             _workingManuscript =
                 CloneManuscript(manuscript)
+
+            _allManuscripts =
+                If(
+                    allManuscripts Is Nothing,
+                    New List(Of Manuscript) From {
+                        manuscript
+                    },
+                    allManuscripts.ToList()
+                )
+
+            _authorLibrary =
+                _authorRepository.Load()
 
             BuildInterface()
             UiPolish.ApplyDialog(Me)
@@ -69,27 +96,28 @@ Namespace Forms
             If _workingManuscript.Location =
                 ManuscriptLocation.FileDrawer Then
 
-                Me.Size = New Size(920, 840)
+                Me.Size = New Size(980, 980)
 
             Else
 
-                Me.Size = New Size(920, 760)
+                Me.Size = New Size(980, 900)
 
             End If
 
-            Me.MinimumSize = New Size(820, 660)
+            Me.MinimumSize = New Size(860, 760)
             Me.Font = New Font("Segoe UI", 10.0F)
             Me.AutoScaleMode = AutoScaleMode.Dpi
 
             Dim root As New TableLayoutPanel With {
                 .Dock = DockStyle.Fill,
                 .ColumnCount = 1,
-                .RowCount = 4,
+                .RowCount = 5,
                 .Padding = New Padding(20, 20, 20, 16)
             }
 
             root.RowStyles.Add(New RowStyle(SizeType.Absolute, 245))
             root.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 220))
             root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
             root.RowStyles.Add(New RowStyle(SizeType.AutoSize))
 
@@ -140,7 +168,7 @@ Namespace Forms
             details.Controls.Add(CreateFieldLabel("Title"), 0, 0)
             details.Controls.Add(txtTitle, 1, 0)
 
-            details.Controls.Add(CreateFieldLabel("Co-authors"), 0, 1)
+            details.Controls.Add(CreateFieldLabel("Legacy co-authors"), 0, 1)
             details.Controls.Add(txtCoAuthors, 1, 1)
 
             details.Controls.Add(CreateFieldLabel("Target journal"), 0, 2)
@@ -224,6 +252,143 @@ Namespace Forms
             )
 
             fileDrawerGroup.Controls.Add(fileDrawerLayout)
+
+
+            ' =================================================
+            ' Structured authors
+            ' =================================================
+
+            Dim authorsGroup As New GroupBox With {
+                .Text = "Authors",
+                .Dock = DockStyle.Fill,
+                .Padding = New Padding(14),
+                .Margin = New Padding(3, 8, 3, 8)
+            }
+
+            Dim authorsLayout As New TableLayoutPanel With {
+                .Dock = DockStyle.Fill,
+                .ColumnCount = 1,
+                .RowCount = 2
+            }
+
+            authorsLayout.RowStyles.Add(
+                New RowStyle(
+                    SizeType.AutoSize
+                )
+            )
+
+            authorsLayout.RowStyles.Add(
+                New RowStyle(
+                    SizeType.Percent,
+                    100
+                )
+            )
+
+            Dim authorsToolbar As New TableLayoutPanel With {
+                .Dock = DockStyle.Top,
+                .AutoSize = True,
+                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                .ColumnCount = 2,
+                .RowCount = 1,
+                .Padding = New Padding(0, 2, 0, 6)
+            }
+
+            authorsToolbar.ColumnStyles.Add(
+                New ColumnStyle(
+                    SizeType.Percent,
+                    100
+                )
+            )
+
+            authorsToolbar.ColumnStyles.Add(
+                New ColumnStyle(
+                    SizeType.AutoSize
+                )
+            )
+
+            lblAuthorInfo.AutoSize = True
+            lblAuthorInfo.Anchor = AnchorStyles.Left
+            lblAuthorInfo.ForeColor = SystemColors.GrayText
+
+            Dim authorButtons As New FlowLayoutPanel With {
+                .AutoSize = True,
+                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                .FlowDirection = FlowDirection.LeftToRight,
+                .WrapContents = False,
+                .Margin = New Padding(0)
+            }
+
+            Dim btnManageAuthorLibrary As New Button With {
+                .Text = "Manage Library",
+                .AutoSize = True,
+                .Height = 36
+            }
+
+            Dim btnAddAuthor As New Button With {
+                .Text = "Add Author",
+                .AutoSize = True,
+                .Height = 36
+            }
+
+            btnEditAuthor.Text = "Edit"
+            btnEditAuthor.AutoSize = True
+            btnEditAuthor.Height = 36
+
+            btnRemoveAuthor.Text = "Remove"
+            btnRemoveAuthor.AutoSize = True
+            btnRemoveAuthor.Height = 36
+
+            btnMoveAuthorUp.Text = "↑"
+            btnMoveAuthorUp.AutoSize = True
+            btnMoveAuthorUp.Height = 36
+            btnMoveAuthorUp.AccessibleName = "Move author up"
+
+            btnMoveAuthorDown.Text = "↓"
+            btnMoveAuthorDown.AutoSize = True
+            btnMoveAuthorDown.Height = 36
+            btnMoveAuthorDown.AccessibleName = "Move author down"
+
+            AddHandler btnManageAuthorLibrary.Click,
+                AddressOf ManageAuthorLibrary
+
+            AddHandler btnAddAuthor.Click,
+                AddressOf AddStructuredAuthor
+
+            AddHandler btnEditAuthor.Click,
+                AddressOf EditStructuredAuthor
+
+            AddHandler btnRemoveAuthor.Click,
+                AddressOf RemoveStructuredAuthor
+
+            AddHandler btnMoveAuthorUp.Click,
+                AddressOf MoveStructuredAuthorUp
+
+            AddHandler btnMoveAuthorDown.Click,
+                AddressOf MoveStructuredAuthorDown
+
+            authorButtons.Controls.Add(btnManageAuthorLibrary)
+            authorButtons.Controls.Add(btnAddAuthor)
+            authorButtons.Controls.Add(btnEditAuthor)
+            authorButtons.Controls.Add(btnRemoveAuthor)
+            authorButtons.Controls.Add(btnMoveAuthorUp)
+            authorButtons.Controls.Add(btnMoveAuthorDown)
+
+            authorsToolbar.Controls.Add(lblAuthorInfo, 0, 0)
+            authorsToolbar.Controls.Add(authorButtons, 1, 0)
+
+            lstAuthors.Dock = DockStyle.Fill
+            lstAuthors.IntegralHeight = False
+
+            AddHandler lstAuthors.SelectedIndexChanged,
+                AddressOf AuthorSelectionChanged
+
+            AddHandler lstAuthors.DoubleClick,
+                AddressOf EditStructuredAuthor
+
+            authorsLayout.Controls.Add(authorsToolbar, 0, 0)
+            authorsLayout.Controls.Add(lstAuthors, 0, 1)
+
+            authorsGroup.Controls.Add(authorsLayout)
 
             ' =================================================
             ' Submissions
@@ -400,8 +565,9 @@ Namespace Forms
 
             root.Controls.Add(detailsGroup, 0, 0)
             root.Controls.Add(fileDrawerGroup, 0, 1)
-            root.Controls.Add(submissionsGroup, 0, 2)
-            root.Controls.Add(footer, 0, 3)
+            root.Controls.Add(authorsGroup, 0, 2)
+            root.Controls.Add(submissionsGroup, 0, 3)
+            root.Controls.Add(footer, 0, 4)
 
             Me.AcceptButton = btnSave
             Me.CancelButton = btnCancel
@@ -465,7 +631,539 @@ Namespace Forms
                     String.Empty
                 )
 
+            RefreshAuthorsList()
             RefreshSubmissionList()
+
+        End Sub
+
+
+
+        ' =====================================================
+        ' Structured authors
+        ' =====================================================
+
+        Private Sub RefreshAuthorsList()
+
+            lstAuthors.Items.Clear()
+
+            If _workingManuscript.Authors Is Nothing Then
+
+                _workingManuscript.Authors =
+                    New List(Of ManuscriptAuthor)()
+
+            End If
+
+            For i As Integer = 0 To _workingManuscript.Authors.Count - 1
+
+                Dim authorLink As ManuscriptAuthor =
+                    _workingManuscript.Authors(i)
+
+                lstAuthors.Items.Add(
+                    FormatAuthorLink(
+                        i,
+                        authorLink
+                    )
+                )
+
+            Next
+
+            If _workingManuscript.Authors.Count = 0 Then
+
+                lblAuthorInfo.Text =
+                    "No structured authors yet. Legacy co-author text is preserved above."
+
+            Else
+
+                lblAuthorInfo.Text =
+                    _workingManuscript.Authors.Count.ToString() &
+                    " structured author(s). Order is manuscript-specific."
+
+            End If
+
+            UpdateAuthorButtons()
+
+        End Sub
+
+
+        Private Function FormatAuthorLink(
+            index As Integer,
+            authorLink As ManuscriptAuthor
+        ) As String
+
+            Dim author As AuthorRecord =
+                FindAuthor(
+                    authorLink.AuthorId
+                )
+
+            Dim authorName As String =
+                If(
+                    author Is Nothing,
+                    "[Missing author record]",
+                    author.DisplayName
+                )
+
+            Dim result As String =
+                (index + 1).ToString() &
+                ". " &
+                authorName
+
+            If author IsNot Nothing AndAlso
+               author.IsMe Then
+
+                result &=
+                    "  •  Me"
+
+            End If
+
+            If authorLink.IsCorrespondingAuthor Then
+
+                result &=
+                    "  •  Corresponding"
+
+            End If
+
+            Dim affiliationNames As New List(Of String)()
+
+            If authorLink.AffiliationIds IsNot Nothing Then
+
+                For Each affiliationId As Guid In
+                    authorLink.AffiliationIds
+
+                    Dim affiliation As AffiliationRecord =
+                        FindAffiliation(
+                            affiliationId
+                        )
+
+                    If affiliation IsNot Nothing Then
+
+                        affiliationNames.Add(
+                            affiliation.DisplayName
+                        )
+
+                    End If
+
+                Next
+
+            End If
+
+            If affiliationNames.Count > 0 Then
+
+                result &=
+                    "  —  " &
+                    String.Join(
+                        "; ",
+                        affiliationNames
+                    )
+
+            End If
+
+            Return result
+
+        End Function
+
+
+        Private Function FindAuthor(
+            authorId As Guid
+        ) As AuthorRecord
+
+            Return _authorLibrary.Authors.
+                FirstOrDefault(
+                    Function(item)
+                        Return item.Id =
+                            authorId
+                    End Function
+                )
+
+        End Function
+
+
+        Private Function FindAffiliation(
+            affiliationId As Guid
+        ) As AffiliationRecord
+
+            Return _authorLibrary.Affiliations.
+                FirstOrDefault(
+                    Function(item)
+                        Return item.Id =
+                            affiliationId
+                    End Function
+                )
+
+        End Function
+
+
+        Private Function GetSelectedAuthorIndex() As Integer
+
+            Dim index As Integer =
+                lstAuthors.SelectedIndex
+
+            If index < 0 OrElse
+               index >= _workingManuscript.Authors.Count Then
+
+                Return -1
+
+            End If
+
+            Return index
+
+        End Function
+
+
+        Private Sub AuthorSelectionChanged(
+            sender As Object,
+            e As EventArgs
+        )
+
+            UpdateAuthorButtons()
+
+        End Sub
+
+
+        Private Sub UpdateAuthorButtons()
+
+            Dim index As Integer =
+                GetSelectedAuthorIndex()
+
+            Dim hasSelection As Boolean =
+                index >= 0
+
+            btnEditAuthor.Enabled =
+                hasSelection
+
+            btnRemoveAuthor.Enabled =
+                hasSelection
+
+            btnMoveAuthorUp.Enabled =
+                hasSelection AndAlso
+                index > 0
+
+            btnMoveAuthorDown.Enabled =
+                hasSelection AndAlso
+                index >= 0 AndAlso
+                index < _workingManuscript.Authors.Count - 1
+
+        End Sub
+
+
+        Private Sub ManageAuthorLibrary(
+            sender As Object,
+            e As EventArgs
+        )
+
+            Dim usageSnapshot As New List(Of Manuscript)()
+
+            For Each manuscript As Manuscript In
+                _allManuscripts
+
+                If manuscript.Id =
+                   _workingManuscript.Id Then
+
+                    usageSnapshot.Add(
+                        _workingManuscript
+                    )
+
+                Else
+
+                    usageSnapshot.Add(
+                        manuscript
+                    )
+
+                End If
+
+            Next
+
+            If Not usageSnapshot.Any(
+                Function(item)
+                    Return item.Id =
+                        _workingManuscript.Id
+                End Function
+            ) Then
+
+                usageSnapshot.Add(
+                    _workingManuscript
+                )
+
+            End If
+
+            Using dialog As New AuthorLibraryForm(
+                usageSnapshot
+            )
+
+                dialog.ShowDialog(
+                    Me
+                )
+
+            End Using
+
+            _authorLibrary =
+                _authorRepository.Load()
+
+            RefreshAuthorsList()
+
+        End Sub
+
+
+        Private Sub AddStructuredAuthor(
+            sender As Object,
+            e As EventArgs
+        )
+
+            If _authorLibrary.Authors.Count = 0 Then
+
+                ManageAuthorLibrary(
+                    sender,
+                    e
+                )
+
+                If _authorLibrary.Authors.Count = 0 Then
+                    Return
+                End If
+
+            End If
+
+            Dim usedAuthorIds As IEnumerable(Of Guid) =
+                _workingManuscript.Authors.
+                    Select(
+                        Function(item)
+                            Return item.AuthorId
+                        End Function
+                    )
+
+            Dim usedSet As New HashSet(Of Guid)(
+                usedAuthorIds
+            )
+
+            If _authorLibrary.Authors.All(
+                Function(item)
+                    Return usedSet.Contains(
+                        item.Id
+                    )
+                End Function
+            ) Then
+
+                MessageBox.Show(
+                    Me,
+                    "Every author in the reusable library is already assigned to this manuscript.",
+                    "No Additional Authors",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                )
+
+                Return
+
+            End If
+
+            Using dialog As New ManuscriptAuthorForm(
+                _authorLibrary,
+                Nothing,
+                usedAuthorIds
+            )
+
+                If dialog.ShowDialog(Me) <>
+                   DialogResult.OK OrElse
+                   dialog.Result Is Nothing Then
+
+                    Return
+
+                End If
+
+                ApplyCorrespondingAuthorRule(
+                    dialog.Result,
+                    -1
+                )
+
+                _workingManuscript.Authors.Add(
+                    dialog.Result
+                )
+
+                RefreshAuthorsList()
+
+                lstAuthors.SelectedIndex =
+                    lstAuthors.Items.Count - 1
+
+            End Using
+
+        End Sub
+
+
+        Private Sub EditStructuredAuthor(
+            sender As Object,
+            e As EventArgs
+        )
+
+            Dim index As Integer =
+                GetSelectedAuthorIndex()
+
+            If index < 0 Then
+                Return
+            End If
+
+            Dim current As ManuscriptAuthor =
+                _workingManuscript.Authors(index)
+
+            Dim excludedAuthorIds As IEnumerable(Of Guid) =
+                _workingManuscript.Authors.
+                    Where(
+                        Function(item)
+                            Return item IsNot current
+                        End Function
+                    ).
+                    Select(
+                        Function(item)
+                            Return item.AuthorId
+                        End Function
+                    )
+
+            Using dialog As New ManuscriptAuthorForm(
+                _authorLibrary,
+                current,
+                excludedAuthorIds
+            )
+
+                If dialog.ShowDialog(Me) <>
+                   DialogResult.OK OrElse
+                   dialog.Result Is Nothing Then
+
+                    Return
+
+                End If
+
+                ApplyCorrespondingAuthorRule(
+                    dialog.Result,
+                    index
+                )
+
+                _workingManuscript.Authors(index) =
+                    dialog.Result
+
+                RefreshAuthorsList()
+
+                lstAuthors.SelectedIndex =
+                    index
+
+            End Using
+
+        End Sub
+
+
+        Private Sub ApplyCorrespondingAuthorRule(
+            result As ManuscriptAuthor,
+            keepIndex As Integer
+        )
+
+            If result Is Nothing OrElse
+               Not result.IsCorrespondingAuthor Then
+
+                Return
+
+            End If
+
+            For i As Integer = 0 To _workingManuscript.Authors.Count - 1
+
+                If i = keepIndex Then
+                    Continue For
+                End If
+
+                _workingManuscript.Authors(i).IsCorrespondingAuthor =
+                    False
+
+            Next
+
+        End Sub
+
+
+        Private Sub RemoveStructuredAuthor(
+            sender As Object,
+            e As EventArgs
+        )
+
+            Dim index As Integer =
+                GetSelectedAuthorIndex()
+
+            If index < 0 Then
+                Return
+            End If
+
+            _workingManuscript.Authors.RemoveAt(
+                index
+            )
+
+            RefreshAuthorsList()
+
+            If lstAuthors.Items.Count > 0 Then
+
+                lstAuthors.SelectedIndex =
+                    Math.Min(
+                        index,
+                        lstAuthors.Items.Count - 1
+                    )
+
+            End If
+
+        End Sub
+
+
+        Private Sub MoveStructuredAuthorUp(
+            sender As Object,
+            e As EventArgs
+        )
+
+            Dim index As Integer =
+                GetSelectedAuthorIndex()
+
+            If index <= 0 Then
+                Return
+            End If
+
+            Dim item As ManuscriptAuthor =
+                _workingManuscript.Authors(index)
+
+            _workingManuscript.Authors.RemoveAt(
+                index
+            )
+
+            _workingManuscript.Authors.Insert(
+                index - 1,
+                item
+            )
+
+            RefreshAuthorsList()
+            lstAuthors.SelectedIndex =
+                index - 1
+
+        End Sub
+
+
+        Private Sub MoveStructuredAuthorDown(
+            sender As Object,
+            e As EventArgs
+        )
+
+            Dim index As Integer =
+                GetSelectedAuthorIndex()
+
+            If index < 0 OrElse
+               index >= _workingManuscript.Authors.Count - 1 Then
+
+                Return
+
+            End If
+
+            Dim item As ManuscriptAuthor =
+                _workingManuscript.Authors(index)
+
+            _workingManuscript.Authors.RemoveAt(
+                index
+            )
+
+            _workingManuscript.Authors.Insert(
+                index + 1,
+                item
+            )
+
+            RefreshAuthorsList()
+            lstAuthors.SelectedIndex =
+                index + 1
 
         End Sub
 
@@ -997,43 +1695,9 @@ Namespace Forms
             source As Manuscript
         ) As Manuscript
 
-            Dim clone As New Manuscript With {
-                .Id = source.Id,
-                .Title = source.Title,
-                .CoAuthors = source.CoAuthors,
-                .TargetJournal = source.TargetJournal,
-                .CurrentStage = source.CurrentStage,
-                .Location = source.Location,
-                .StageEnteredDate = source.StageEnteredDate,
-                .RevisionDeadline = source.RevisionDeadline,
-                .FileDrawerDate = source.FileDrawerDate,
-                .FileDrawerReason = source.FileDrawerReason
-            }
-
-            For Each historyEvent As HistoryEvent In
-                source.History
-
-                clone.History.Add(
-                    New HistoryEvent With {
-                        .Id = historyEvent.Id,
-                        .EventDate = historyEvent.EventDate,
-                        .Stage = historyEvent.Stage,
-                        .Note = historyEvent.Note
-                    }
-                )
-
-            Next
-
-            For Each submission As JournalSubmission In
-                source.Submissions
-
-                clone.Submissions.Add(
-                    CloneSubmission(submission)
-                )
-
-            Next
-
-            Return clone
+            Return ManuscriptCloneService.CloneManuscript(
+                source
+            )
 
         End Function
 
@@ -1109,8 +1773,14 @@ Namespace Forms
             _originalManuscript.CoAuthors =
                 committed.CoAuthors
 
+            _originalManuscript.Authors =
+                committed.Authors
+
             _originalManuscript.TargetJournal =
                 committed.TargetJournal
+
+            _originalManuscript.Metadata =
+                committed.Metadata
 
             _originalManuscript.CurrentStage =
                 committed.CurrentStage

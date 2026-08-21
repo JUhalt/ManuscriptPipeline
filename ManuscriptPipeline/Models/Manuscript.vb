@@ -11,6 +11,9 @@ Namespace Models
 
         Public Property CoAuthors As String = String.Empty
 
+        Public Property Authors As List(Of ManuscriptAuthor) =
+            New List(Of ManuscriptAuthor)()
+
         Public Property TargetJournal As String = String.Empty
 
         Public Property Metadata As ManuscriptMetadata =

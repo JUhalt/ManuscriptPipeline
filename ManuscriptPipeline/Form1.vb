@@ -1,6 +1,7 @@
 Imports System
 Imports System.Collections.Generic
 Imports System.Drawing
+Imports System.Linq
 Imports System.Windows.Forms
 Imports System.Threading.Tasks
 Imports ManuscriptPipeline.Forms
@@ -23,6 +24,9 @@ Public Class Form1
     Private manuscripts As New List(Of Manuscript)()
 
     Private ReadOnly repository As New ManuscriptRepository()
+    Private ReadOnly authorRepository As New AuthorLibraryRepository()
+
+    Private authorLibrary As New AuthorLibraryData()
 
     Private ReadOnly pipelinePanel As New FlowLayoutPanel()
     Private ReadOnly publishedPanel As New FlowLayoutPanel()
@@ -124,6 +128,20 @@ Public Class Form1
                 End Sub
             )
         )
+
+            Return
+
+        End If
+
+        If Not LoadAuthorLibrary() Then
+
+            BeginInvoke(
+                New Action(
+                    Sub()
+                        Close()
+                    End Sub
+                )
+            )
 
             Return
 
@@ -309,6 +327,12 @@ Public Class Form1
     "Export Library to Excel...",
     Nothing,
     AddressOf ExportLibraryExcel
+)
+
+        dataMenu.Items.Add(
+    "Authors & Affiliations...",
+    Nothing,
+    AddressOf OpenAuthorLibrary
 )
 
         dataMenu.Items.Add(
@@ -1531,6 +1555,67 @@ Public Class Form1
 
     End Function
 
+
+    Private Function LoadAuthorLibrary() As Boolean
+
+        Try
+
+            authorLibrary =
+                authorRepository.Load()
+
+            If authorRepository.LastLoadRecoveredFromBackup Then
+
+                Dim message As String =
+                    "PaperRoute recovered the reusable author library from its safety backup."
+
+                If Not String.IsNullOrWhiteSpace(
+                    authorRepository.LastRecoveryPreservedFilePath
+                ) Then
+
+                    message &=
+                        Environment.NewLine &
+                        Environment.NewLine &
+                        "The damaged author-library file was preserved at:" &
+                        Environment.NewLine &
+                        authorRepository.LastRecoveryPreservedFilePath
+
+                End If
+
+                MessageBox.Show(
+                    Me,
+                    message,
+                    "Author Library Recovered",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                )
+
+            End If
+
+            Return True
+
+        Catch ex As Exception
+
+            MessageBox.Show(
+                Me,
+                "PaperRoute could not safely load the reusable author library." &
+                Environment.NewLine &
+                Environment.NewLine &
+                ex.Message &
+                Environment.NewLine &
+                Environment.NewLine &
+                "PaperRoute will close rather than continue with uncertain author metadata.",
+                "Author Library Could Not Be Loaded",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            )
+
+            Return False
+
+        End Try
+
+    End Function
+
+
     Private Function SaveManuscripts() As Boolean
 
         Try
@@ -1921,6 +2006,91 @@ Public Class Form1
     End Function
 
 
+
+    Private Function StructuredAuthorSearchText(
+        manuscript As Manuscript
+    ) As String
+
+        If manuscript Is Nothing OrElse
+           manuscript.Authors Is Nothing OrElse
+           manuscript.Authors.Count = 0 Then
+
+            Return String.Empty
+
+        End If
+
+        Dim names As New List(Of String)()
+
+        For Each authorLink As ManuscriptAuthor In
+            manuscript.Authors
+
+            If authorLink Is Nothing Then
+                Continue For
+            End If
+
+            Dim author As AuthorRecord =
+                authorLibrary.Authors.
+                    FirstOrDefault(
+                        Function(item)
+                            Return item.Id =
+                                authorLink.AuthorId
+                        End Function
+                    )
+
+            If author IsNot Nothing Then
+
+                names.Add(
+                    author.DisplayName
+                )
+
+                If Not String.IsNullOrWhiteSpace(
+                    author.Orcid
+                ) Then
+
+                    names.Add(
+                        author.Orcid
+                    )
+
+                End If
+
+            End If
+
+            If authorLink.AffiliationIds IsNot Nothing Then
+
+                For Each affiliationId As Guid In
+                    authorLink.AffiliationIds
+
+                    Dim affiliation As AffiliationRecord =
+                        authorLibrary.Affiliations.
+                            FirstOrDefault(
+                                Function(item)
+                                    Return item.Id =
+                                        affiliationId
+                                End Function
+                            )
+
+                    If affiliation IsNot Nothing Then
+
+                        names.Add(
+                            affiliation.DisplayName
+                        )
+
+                    End If
+
+                Next
+
+            End If
+
+        Next
+
+        Return String.Join(
+            " ",
+            names
+        )
+
+    End Function
+
+
     Private Function ManuscriptMatchesBoardFilters(
     manuscript As Manuscript
 ) As Boolean
@@ -1944,6 +2114,12 @@ Public Class Form1
             ) OrElse
             ContainsSearchText(
                 manuscript.CoAuthors,
+                query
+            ) OrElse
+            ContainsSearchText(
+                StructuredAuthorSearchText(
+                    manuscript
+                ),
                 query
             )
 
@@ -3086,11 +3262,16 @@ Public Class Form1
     )
 
         Using dialog As New EditManuscriptForm(
-            manuscript
+            manuscript,
+            manuscripts
         )
 
             Dim result As DialogResult =
                 dialog.ShowDialog(Me)
+
+            If Not LoadAuthorLibrary() Then
+                Return
+            End If
 
             If dialog.DeleteRequested Then
 
@@ -4085,6 +4266,31 @@ Public Class Form1
     ' =====================================================
     ' Settings
     ' =====================================================
+
+
+    Private Sub OpenAuthorLibrary(
+        sender As Object,
+        e As EventArgs
+    )
+
+        Using dialog As New AuthorLibraryForm(
+            manuscripts
+        )
+
+            dialog.ShowDialog(
+                Me
+            )
+
+        End Using
+
+        If LoadAuthorLibrary() Then
+
+            RenderManuscripts()
+
+        End If
+
+    End Sub
+
 
     Private Sub OpenSettings(
     sender As Object,

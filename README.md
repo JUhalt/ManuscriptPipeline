@@ -29,6 +29,7 @@ Development on `master` is now targeting **v0.2.0-alpha.1**, beginning with stor
 - **Correspondence and local-file tracking** for decision letters, reviewer comments, response letters, revised manuscripts, and related material.
 - **Needs Attention dashboard** for overdue revisions, long reviews, missing target journals, and recent rejections.
 - **Search, stage filtering, and sorting** across the manuscript library.
+- **Reusable authors and affiliations** with manuscript-specific order, corresponding-author designation, optional ORCID, and preserved legacy author text.
 - **Light, Dark, and Follow Windows themes** using modern .NET 10 WinForms theming.
 - **Excel import/export** using the PaperRoute workbook format.
 - **Legacy tracker import** for the original development spreadsheet format.
@@ -105,11 +106,12 @@ Choose **Data → Backup Library...** to create a portable ZIP containing:
 ```text
 backup-info.txt
 manuscripts.json
+authors.json        (when reusable author metadata exists)
 library.xlsx
 files\
 ```
 
-Managed document copies are included in the backup. Externally linked files remain references to their original paths.
+Managed document copies are included in the backup. Reusable author/affiliation metadata is included when present. Externally linked files remain references to their original paths.
 
 **Restore Backup...** validates the archive, previews record/file counts, asks for explicit confirmation, creates an emergency backup of the current library, and then restores the selected archive.
 

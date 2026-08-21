@@ -695,4 +695,62 @@ Public Class PersistenceTests
 
     End Sub
 
+
+    <TestMethod>
+    Public Sub SaveAndLoad_RoundTripsStructuredAuthorLinks()
+
+        Dim repository As New ManuscriptRepository(
+            _dataDirectory,
+            _managedLibrary
+        )
+
+        Dim manuscripts As List(Of Manuscript) =
+            CreateRepresentativeLibrary()
+
+        Dim authorId As Guid =
+            Guid.NewGuid()
+
+        Dim affiliationId As Guid =
+            Guid.NewGuid()
+
+        manuscripts(0).Authors.Add(
+            New ManuscriptAuthor With {
+                .AuthorId = authorId,
+                .AffiliationIds =
+                    New List(Of Guid) From {
+                        affiliationId
+                    },
+                .IsCorrespondingAuthor = True
+            }
+        )
+
+        repository.Save(
+            manuscripts
+        )
+
+        Dim loaded As List(Of Manuscript) =
+            repository.Load()
+
+        Assert.AreEqual(
+            1,
+            loaded(0).Authors.Count
+        )
+
+        Assert.AreEqual(
+            authorId,
+            loaded(0).Authors(0).AuthorId
+        )
+
+        Assert.AreEqual(
+            affiliationId,
+            loaded(0).Authors(0).AffiliationIds(0)
+        )
+
+        Assert.IsTrue(
+            loaded(0).Authors(0).IsCorrespondingAuthor
+        )
+
+    End Sub
+
+
 End Class
