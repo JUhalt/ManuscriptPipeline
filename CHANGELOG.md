@@ -1,5 +1,13 @@
 # Changelog
 
+### v0.2D development
+- Added standards-aware ORCID iD normalization and checksum validation.
+- Added user-initiated, read-only public ORCID profile lookup with preview-before-apply controls for names, reusable affiliations, and candidate works.
+- Added one-way ORCID work import with DOI/title deduplication, provenance metadata, and explicit control over whether dated works enter Published or remain Ideas.
+- Added Crossref enrichment of manuscript-specific affiliations for authors already attached to a manuscript without duplicating the structured author.
+- Improved Manuscript Details author controls so move buttons remain accessible at narrower widths while the author list keeps useful vertical space.
+- Added regression coverage for ORCID validation/parsing/application, duplicate work handling, explicit Published import, and Crossref enrichment of already-assigned authors.
+
 ### v0.2C development
 - Added DOI normalization and Crossref metadata lookup with preview-before-apply controls.
 - Added selective enrichment for DOI, title, publication details, abstract/keywords, and structured authors.
@@ -26,6 +34,8 @@ All notable changes to PaperRoute Tracker will be documented here.
 - Authors & Affiliations library management from the Data menu.
 - Portable backups now carry reusable author/affiliation metadata when present.
 - Regression coverage for author-library recovery, structured-author persistence, metadata-safe manuscript cloning, and author-library backup/restore.
+- ORCID public-profile lookup and selective one-way import for author identity, affiliations, and works.
+- ORCID work provenance and DOI/title duplicate protection.
 
 ### Changed
 
@@ -35,6 +45,7 @@ All notable changes to PaperRoute Tracker will be documented here.
 - Developer windows and Diagnostics clearly identify when the isolated development storage profile is active.
 - Existing free-text co-author values are retained as legacy author text rather than being silently parsed into authoritative people.
 - Manuscript editing now deep-copies schema-2 metadata and structured authors so unrelated edits cannot drop DOI/publication/preprint metadata.
+- External integrations remain preview-first and user controlled; dated ORCID works only enter Published when the user explicitly selects that import behavior.
 
 ### Compatibility
 

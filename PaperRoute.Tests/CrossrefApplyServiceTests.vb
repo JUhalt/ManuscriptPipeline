@@ -346,4 +346,78 @@ Public Class CrossrefApplyServiceTests
 
     End Sub
 
+
+    <TestMethod>
+    Public Sub ApplyAuthors_EnrichesAffiliationsForAlreadyAssignedAuthor()
+
+        Dim existing As New AuthorRecord With {
+            .GivenName = "Jane",
+            .FamilyName = "Smith"
+        }
+
+        Dim library As New AuthorLibraryData()
+        library.Authors.Add(existing)
+
+        Dim manuscript As New Manuscript()
+
+        manuscript.Authors.Add(
+            New ManuscriptAuthor With {
+                .AuthorId = existing.Id
+            }
+        )
+
+        Dim suggestedAuthor As New CrossrefAuthorSuggestion With {
+            .GivenName = "Jane",
+            .FamilyName = "Smith"
+        }
+
+        suggestedAuthor.Affiliations.Add(
+            "Department of Psychology, Example University"
+        )
+
+        Dim suggestion As New CrossrefMetadataSuggestion With {
+            .Doi = "10.1234/example"
+        }
+
+        suggestion.Authors.Add(
+            suggestedAuthor
+        )
+
+        Dim result As CrossrefApplyResult =
+            CrossrefApplyService.Apply(
+                suggestion,
+                manuscript,
+                library,
+                New CrossrefApplyOptions With {
+                    .AddMissingAuthors = True
+                }
+            )
+
+        Assert.AreEqual(
+            1,
+            manuscript.Authors.Count
+        )
+
+        Assert.AreEqual(
+            1,
+            library.Affiliations.Count
+        )
+
+        Assert.AreEqual(
+            1,
+            manuscript.Authors(0).AffiliationIds.Count
+        )
+
+        Assert.AreEqual(
+            library.Affiliations(0).Id,
+            manuscript.Authors(0).AffiliationIds(0)
+        )
+
+        Assert.AreEqual(
+            0,
+            result.AuthorsAddedToManuscript
+        )
+
+    End Sub
+
 End Class

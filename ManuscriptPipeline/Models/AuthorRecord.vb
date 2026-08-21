@@ -25,6 +25,12 @@ Namespace Models
         Public Property Orcid As String =
             String.Empty
 
+        ' A successful anonymous/public registry lookup verifies that the
+        ' ORCID iD exists. It does NOT mean the record holder authenticated
+        ' the iD to PaperRoute.
+        Public Property OrcidLastCheckedUtc As DateTime? =
+            Nothing
+
         Public Property Notes As String =
             String.Empty
 
