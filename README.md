@@ -13,6 +13,10 @@
 PaperRoute Tracker helps researchers manage manuscripts from idea through submission, peer review, revision, publication—or the File Drawer—without requiring an account or sending the core workflow database to a cloud service.
 
 
+
+### DOI & Crossref enrichment
+PaperRoute can normalize a DOI or doi.org link, retrieve metadata from Crossref, preview the response, and apply only user-selected fields. Crossref never changes manuscript stage, shelf/location, or target journal. Structured authors are matched to the reusable author library by ORCID or name before new records are proposed/created.
+
 ## Current status
 
 **v0.1.0** — first stable release of the PaperRoute Reliable Core.

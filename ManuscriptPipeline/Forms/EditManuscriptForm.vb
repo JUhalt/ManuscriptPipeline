@@ -24,6 +24,8 @@ Namespace Forms
         Private ReadOnly txtCoAuthors As New TextBox()
         Private ReadOnly txtTargetJournal As New TextBox()
         Private ReadOnly cmbStage As New ComboBox()
+        Private ReadOnly btnMetadata As New Button()
+        Private _authorLibraryDirty As Boolean = False
 
         Private ReadOnly fileDrawerGroup As New GroupBox()
         Private ReadOnly lblFileDrawerDateValue As New Label()
@@ -115,7 +117,7 @@ Namespace Forms
                 .Padding = New Padding(20, 20, 20, 16)
             }
 
-            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 245))
+            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 300))
             root.RowStyles.Add(New RowStyle(SizeType.AutoSize))
             root.RowStyles.Add(New RowStyle(SizeType.Absolute, 220))
             root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
@@ -134,7 +136,7 @@ Namespace Forms
             Dim details As New TableLayoutPanel With {
                 .Dock = DockStyle.Fill,
                 .ColumnCount = 2,
-                .RowCount = 4
+                .RowCount = 5
             }
 
             details.ColumnStyles.Add(
@@ -145,7 +147,7 @@ Namespace Forms
                 New ColumnStyle(SizeType.Percent, 100)
             )
 
-            For i As Integer = 0 To 3
+            For i As Integer = 0 To 4
                 details.RowStyles.Add(
                     New RowStyle(SizeType.Percent, 25)
                 )
@@ -176,6 +178,24 @@ Namespace Forms
 
             details.Controls.Add(CreateFieldLabel("Current stage"), 0, 3)
             details.Controls.Add(cmbStage, 1, 3)
+
+            btnMetadata.Text =
+                "DOI & Crossref Metadata..."
+
+            btnMetadata.AutoSize =
+                True
+
+            btnMetadata.Height =
+                36
+
+            btnMetadata.Anchor =
+                AnchorStyles.Left
+
+            AddHandler btnMetadata.Click,
+                AddressOf OpenCrossrefMetadata
+
+            details.Controls.Add(CreateFieldLabel("Metadata"), 0, 4)
+            details.Controls.Add(btnMetadata, 1, 4)
 
             detailsGroup.Controls.Add(details)
 
@@ -636,6 +656,44 @@ Namespace Forms
 
         End Sub
 
+
+
+        ' =====================================================
+        ' DOI / Crossref metadata
+        ' =====================================================
+
+        Private Sub OpenCrossrefMetadata(
+            sender As Object,
+            e As EventArgs
+        )
+
+            Using dialog As New CrossrefLookupForm(
+                _workingManuscript,
+                _authorLibrary
+            )
+
+                If dialog.ShowDialog(Me) <>
+                   DialogResult.OK Then
+
+                    Return
+
+                End If
+
+                If dialog.LibraryChanged Then
+
+                    _authorLibraryDirty =
+                        True
+
+                End If
+
+            End Using
+
+            txtTitle.Text =
+                _workingManuscript.Title
+
+            RefreshAuthorsList()
+
+        End Sub
 
 
         ' =====================================================
@@ -1617,6 +1675,17 @@ Namespace Forms
             End If
 
             UpdateFileDrawerReasonIfNeeded()
+
+            If _authorLibraryDirty Then
+
+                _authorRepository.Save(
+                    _authorLibrary
+                )
+
+                _authorLibraryDirty =
+                    False
+
+            End If
 
             CopyWorkingToOriginal()
 

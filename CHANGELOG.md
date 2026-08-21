@@ -1,5 +1,11 @@
 # Changelog
 
+### v0.2C development
+- Added DOI normalization and Crossref metadata lookup with preview-before-apply controls.
+- Added selective enrichment for DOI, title, publication details, abstract/keywords, and structured authors.
+- Added Crossref author matching by ORCID/name and reusable affiliation matching without changing lifecycle state.
+- Added Crossref provenance in manuscript external identifiers and regression coverage for normalization, parsing, selective apply behavior, and author deduplication.
+
 All notable changes to PaperRoute Tracker will be documented here.
 
 ## [Unreleased]

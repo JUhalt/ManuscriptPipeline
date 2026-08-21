@@ -49,3 +49,5 @@ Development begins with the **schema 2 metadata foundation**. Reusable authors a
 PaperRoute 1.0 is not defined by feature count.
 
 > **I trust this application with my research workflow.**
+
+- [x] DOI normalization and Crossref preview-before-apply metadata enrichment
