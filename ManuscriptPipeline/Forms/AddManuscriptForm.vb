@@ -83,7 +83,7 @@ Namespace Forms
             layout.Controls.Add(txtTitle, 1, 0)
 
             layout.Controls.Add(
-                CreateFieldLabel("Co-authors"),
+                CreateFieldLabel("Legacy co-authors"),
                 0,
                 1
             )

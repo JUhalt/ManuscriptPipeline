@@ -112,6 +112,22 @@ Namespace Services
                         jsonPath
                     )
 
+                Dim authorsPath As String =
+                    Path.Combine(
+                        extractionDirectory,
+                        "authors.json"
+                    )
+
+                If File.Exists(
+                    authorsPath
+                ) Then
+
+                    ReadAuthorLibraryJson(
+                        authorsPath
+                    )
+
+                End If
+
                 ValidateManagedFiles(
                     restoredManuscripts,
                     extractionDirectory
@@ -231,6 +247,24 @@ Namespace Services
                     "restore-rollback-" & restoreId & ".json"
                 )
 
+            Dim authorLibraryPath As String =
+                Path.Combine(
+                    dataDirectory,
+                    "authors.json"
+                )
+
+            Dim stagedAuthorsPath As String =
+                Path.Combine(
+                    dataDirectory,
+                    "restore-staging-" & restoreId & "-authors.json"
+                )
+
+            Dim rollbackAuthorsPath As String =
+                Path.Combine(
+                    dataDirectory,
+                    "restore-rollback-" & restoreId & "-authors.json"
+                )
+
             Dim emergencyBackupPath As String =
                 String.Empty
 
@@ -268,6 +302,31 @@ Namespace Services
                     restoredManuscripts,
                     extractionDirectory
                 )
+
+                Dim extractedAuthorsPath As String =
+                    Path.Combine(
+                        extractionDirectory,
+                        "authors.json"
+                    )
+
+                Dim restoreAuthorLibrary As Boolean =
+                    File.Exists(
+                        extractedAuthorsPath
+                    )
+
+                If restoreAuthorLibrary Then
+
+                    ReadAuthorLibraryJson(
+                        extractedAuthorsPath
+                    )
+
+                    File.Copy(
+                        extractedAuthorsPath,
+                        stagedAuthorsPath,
+                        True
+                    )
+
+                End If
 
                 ' =============================================
                 ' Rewrite managed paths for THIS computer.
@@ -362,6 +421,10 @@ Namespace Services
                 Dim newLibraryInstalled As Boolean = False
                 Dim originalJsonExisted As Boolean =
                     File.Exists(repository.DataFilePath)
+                Dim originalAuthorsExisted As Boolean =
+                    File.Exists(authorLibraryPath)
+                Dim authorsInstalled As Boolean =
+                    False
 
                 Try
 
@@ -409,7 +472,62 @@ Namespace Services
                         True
                     )
 
+                    If restoreAuthorLibrary Then
+
+                        If originalAuthorsExisted Then
+
+                            File.Copy(
+                                authorLibraryPath,
+                                rollbackAuthorsPath,
+                                True
+                            )
+
+                        End If
+
+                        authorsInstalled =
+                            True
+
+                        File.Copy(
+                            stagedAuthorsPath,
+                            authorLibraryPath,
+                            True
+                        )
+
+                    End If
+
                 Catch
+
+                    ' =========================================
+                    ' Roll back reusable author metadata.
+                    ' =========================================
+
+                    Try
+
+                        If authorsInstalled Then
+
+                            If originalAuthorsExisted AndAlso
+                               File.Exists(rollbackAuthorsPath) Then
+
+                                File.Copy(
+                                    rollbackAuthorsPath,
+                                    authorLibraryPath,
+                                    True
+                                )
+
+                            ElseIf Not originalAuthorsExisted AndAlso
+                                   File.Exists(authorLibraryPath) Then
+
+                                File.Delete(
+                                    authorLibraryPath
+                                )
+
+                            End If
+
+                        End If
+
+                    Catch
+                        ' Best-effort rollback.
+                    End Try
 
                     ' =========================================
                     ' Roll back JSON.
@@ -487,6 +605,10 @@ Namespace Services
                     rollbackJsonPath
                 )
 
+                SafeDeleteFile(
+                    rollbackAuthorsPath
+                )
+
                 Return New RestoreResult With {
                     .ManuscriptCount = restoredManuscripts.Count,
                     .EmergencyBackupPath = emergencyBackupPath
@@ -504,6 +626,14 @@ Namespace Services
 
                 SafeDeleteFile(
                     stagedJsonPath
+                )
+
+                SafeDeleteFile(
+                    stagedAuthorsPath
+                )
+
+                SafeDeleteFile(
+                    rollbackAuthorsPath
                 )
 
             End Try
@@ -575,6 +705,106 @@ Namespace Services
         ' JSON
         ' =====================================================
 
+        Private Function ReadAuthorLibraryJson(
+            jsonPath As String
+        ) As AuthorLibraryData
+
+            Dim json As String =
+                File.ReadAllText(
+                    jsonPath
+                )
+
+            If String.IsNullOrWhiteSpace(
+                json
+            ) Then
+
+                Throw New InvalidDataException(
+                    "The backup contains an empty authors.json file."
+                )
+
+            End If
+
+            Dim authorLibrary As AuthorLibraryData =
+                JsonSerializer.Deserialize(
+                    Of AuthorLibraryData
+                )(
+                    json,
+                    _jsonOptions
+                )
+
+            If authorLibrary Is Nothing Then
+
+                Throw New InvalidDataException(
+                    "The backup author library could not be read."
+                )
+
+            End If
+
+            If authorLibrary.Authors Is Nothing Then
+
+                authorLibrary.Authors =
+                    New List(Of AuthorRecord)()
+
+            End If
+
+            If authorLibrary.Affiliations Is Nothing Then
+
+                authorLibrary.Affiliations =
+                    New List(Of AffiliationRecord)()
+
+            End If
+
+            Dim authorIds As New HashSet(Of Guid)()
+
+            For Each author As AuthorRecord In authorLibrary.Authors
+
+                If author Is Nothing Then
+
+                    Throw New InvalidDataException(
+                        "The backup contains an invalid null author record."
+                    )
+
+                End If
+
+                If author.Id = Guid.Empty OrElse
+                   Not authorIds.Add(author.Id) Then
+
+                    Throw New InvalidDataException(
+                        "The backup contains invalid or duplicate author identifiers."
+                    )
+
+                End If
+
+            Next
+
+            Dim affiliationIds As New HashSet(Of Guid)()
+
+            For Each affiliation As AffiliationRecord In authorLibrary.Affiliations
+
+                If affiliation Is Nothing Then
+
+                    Throw New InvalidDataException(
+                        "The backup contains an invalid null affiliation record."
+                    )
+
+                End If
+
+                If affiliation.Id = Guid.Empty OrElse
+                   Not affiliationIds.Add(affiliation.Id) Then
+
+                    Throw New InvalidDataException(
+                        "The backup contains invalid or duplicate affiliation identifiers."
+                    )
+
+                End If
+
+            Next
+
+            Return authorLibrary
+
+        End Function
+
+
         Private Function ReadManuscriptsJson(
             jsonPath As String
         ) As List(Of Manuscript)
@@ -617,6 +847,51 @@ Namespace Services
         )
 
             For Each manuscript As Manuscript In manuscripts
+
+                If manuscript.Metadata Is Nothing Then
+                    manuscript.Metadata = New ManuscriptMetadata()
+                End If
+
+                If manuscript.Metadata.Keywords Is Nothing Then
+                    manuscript.Metadata.Keywords = New List(Of String)()
+                End If
+
+                If manuscript.Metadata.ExternalIdentifiers Is Nothing Then
+                    manuscript.Metadata.ExternalIdentifiers =
+                        New Dictionary(Of String, String)()
+                End If
+
+                If manuscript.Authors Is Nothing Then
+                    manuscript.Authors = New List(Of ManuscriptAuthor)()
+                End If
+
+                Dim manuscriptAuthorIds As New HashSet(Of Guid)()
+
+                For Each authorLink As ManuscriptAuthor In manuscript.Authors
+
+                    If authorLink Is Nothing Then
+                        Throw New InvalidDataException(
+                            "The backup contains an invalid null manuscript author link."
+                        )
+                    End If
+
+                    If authorLink.AuthorId = Guid.Empty Then
+                        Throw New InvalidDataException(
+                            "The backup contains a manuscript author link without a valid author identifier."
+                        )
+                    End If
+
+                    If Not manuscriptAuthorIds.Add(authorLink.AuthorId) Then
+                        Throw New InvalidDataException(
+                            "The backup contains the same structured author more than once on a manuscript."
+                        )
+                    End If
+
+                    If authorLink.AffiliationIds Is Nothing Then
+                        authorLink.AffiliationIds = New List(Of Guid)()
+                    End If
+
+                Next
 
                 If manuscript.History Is Nothing Then
                     manuscript.History = New List(Of HistoryEvent)()

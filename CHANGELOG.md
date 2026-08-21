@@ -14,6 +14,12 @@ All notable changes to PaperRoute Tracker will be documented here.
 - Isolated development storage for Visual Studio debugger launches so experimental builds do not modify the stable PaperRoute library.
 - Stage-filter counts showing the number of manuscripts currently in each lifecycle stage.
 - Regression coverage for development-profile selection and stage-count summaries.
+- Reusable author records with structured names, optional ORCID, notes, and a single-user "Me" designation.
+- Reusable affiliation records for institutions, departments, and locations.
+- Manuscript-specific structured author order, affiliation assignments, and corresponding-author designation.
+- Authors & Affiliations library management from the Data menu.
+- Portable backups now carry reusable author/affiliation metadata when present.
+- Regression coverage for author-library recovery, structured-author persistence, metadata-safe manuscript cloning, and author-library backup/restore.
 
 ### Changed
 
@@ -21,6 +27,8 @@ All notable changes to PaperRoute Tracker will be documented here.
 - Existing schema-1 libraries are validated before schema metadata is upgraded.
 - Schema migration no longer rejects every lower positive schema version; supported migrations are applied explicitly and sequentially.
 - Developer windows and Diagnostics clearly identify when the isolated development storage profile is active.
+- Existing free-text co-author values are retained as legacy author text rather than being silently parsed into authoritative people.
+- Manuscript editing now deep-copies schema-2 metadata and structured authors so unrelated edits cannot drop DOI/publication/preprint metadata.
 
 ### Compatibility
 

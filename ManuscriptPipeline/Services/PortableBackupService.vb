@@ -79,6 +79,29 @@ Namespace Services
                     True
                 )
 
+                Dim authorLibrarySource As String =
+                    Path.Combine(
+                        Path.GetDirectoryName(
+                            repository.DataFilePath
+                        ),
+                        "authors.json"
+                    )
+
+                If File.Exists(
+                    authorLibrarySource
+                ) Then
+
+                    File.Copy(
+                        authorLibrarySource,
+                        Path.Combine(
+                            stagingDirectory,
+                            "authors.json"
+                        ),
+                        True
+                    )
+
+                End If
+
                 ' =============================================
                 ' Human-readable Excel export
                 ' =============================================
@@ -156,9 +179,11 @@ Namespace Services
                     correspondenceCount.ToString() &
                     Environment.NewLine &
                     Environment.NewLine &
-                    "manuscripts.json is the native PaperRoute data file." &
+                    "manuscripts.json is the native PaperRoute manuscript data file." &
                     Environment.NewLine &
-                    "library.xlsx is a human-readable export of the library." &
+                    "authors.json contains reusable authors and affiliations when present." &
+                    Environment.NewLine &
+                    "library.xlsx is a human-readable export of the manuscript library." &
                     Environment.NewLine &
                     "files contains documents managed by PaperRoute." &
                     Environment.NewLine &

@@ -133,6 +133,217 @@ Public Class BackupRestoreTests
 
     End Sub
 
+
+    <TestMethod>
+    Public Sub Backup_IncludesReusableAuthorLibraryWhenPresent()
+
+        Dim dataDirectory As String =
+            Path.Combine(
+                _root,
+                "author-backup-data"
+            )
+
+        Dim managedDirectory As String =
+            Path.Combine(
+                _root,
+                "author-backup-library"
+            )
+
+        Dim manuscriptRepository As New ManuscriptRepository(
+            dataDirectory,
+            managedDirectory
+        )
+
+        Dim manuscripts As List(Of Manuscript) =
+            CreateRepresentativeLibrary()
+
+        manuscriptRepository.Save(
+            manuscripts
+        )
+
+        Dim authorRepository As New AuthorLibraryRepository(
+            dataDirectory
+        )
+
+        Dim authorLibrary As New AuthorLibraryData()
+
+        authorLibrary.Authors.Add(
+            New AuthorRecord With {
+                .GivenName = "Jane",
+                .FamilyName = "Researcher"
+            }
+        )
+
+        authorRepository.Save(
+            authorLibrary
+        )
+
+        Dim backupPath As String =
+            Path.Combine(
+                _root,
+                "authors-backup.zip"
+            )
+
+        Dim backupService As New PortableBackupService(
+            managedDirectory
+        )
+
+        backupService.CreateBackup(
+            backupPath,
+            manuscripts,
+            manuscriptRepository
+        )
+
+        Using archive As ZipArchive =
+            ZipFile.OpenRead(
+                backupPath
+            )
+
+            Assert.IsNotNull(
+                archive.GetEntry(
+                    "authors.json"
+                )
+            )
+
+        End Using
+
+    End Sub
+
+
+    <TestMethod>
+    Public Sub Restore_RestoresReusableAuthorLibraryWhenPresent()
+
+        Dim sourceData As String =
+            Path.Combine(
+                _root,
+                "source-author-data"
+            )
+
+        Dim sourceManaged As String =
+            Path.Combine(
+                _root,
+                "source-author-library"
+            )
+
+        Dim sourceRepository As New ManuscriptRepository(
+            sourceData,
+            sourceManaged
+        )
+
+        Dim sourceManuscripts As List(Of Manuscript) =
+            CreateRepresentativeLibrary()
+
+        sourceRepository.Save(
+            sourceManuscripts
+        )
+
+        Dim sourceAuthorRepository As New AuthorLibraryRepository(
+            sourceData
+        )
+
+        Dim sourceAuthorLibrary As New AuthorLibraryData()
+
+        sourceAuthorLibrary.Authors.Add(
+            New AuthorRecord With {
+                .GivenName = "Jane",
+                .FamilyName = "Researcher",
+                .Orcid = "0000-0000-0000-0000"
+            }
+        )
+
+        sourceAuthorLibrary.Affiliations.Add(
+            New AffiliationRecord With {
+                .Institution = "Example University"
+            }
+        )
+
+        sourceAuthorRepository.Save(
+            sourceAuthorLibrary
+        )
+
+        Dim backupPath As String =
+            Path.Combine(
+                _root,
+                "authors-roundtrip.zip"
+            )
+
+        Dim backupService As New PortableBackupService(
+            sourceManaged
+        )
+
+        backupService.CreateBackup(
+            backupPath,
+            sourceManuscripts,
+            sourceRepository
+        )
+
+        Dim targetData As String =
+            Path.Combine(
+                _root,
+                "target-author-data"
+            )
+
+        Dim targetManaged As String =
+            Path.Combine(
+                _root,
+                "target-author-library"
+            )
+
+        Dim targetRepository As New ManuscriptRepository(
+            targetData,
+            targetManaged
+        )
+
+        Dim current As New List(Of Manuscript) From {
+            New Manuscript With {
+                .Title = "Before restore"
+            }
+        }
+
+        targetRepository.Save(
+            current
+        )
+
+        Dim restoreService As New PortableRestoreService(
+            targetManaged
+        )
+
+        restoreService.RestoreBackup(
+            backupPath,
+            current,
+            targetRepository
+        )
+
+        Dim targetAuthorRepository As New AuthorLibraryRepository(
+            targetData
+        )
+
+        Dim restoredAuthors As AuthorLibraryData =
+            targetAuthorRepository.Load()
+
+        Assert.AreEqual(
+            1,
+            restoredAuthors.Authors.Count
+        )
+
+        Assert.AreEqual(
+            "Jane Researcher",
+            restoredAuthors.Authors(0).DisplayName
+        )
+
+        Assert.AreEqual(
+            1,
+            restoredAuthors.Affiliations.Count
+        )
+
+        Assert.AreEqual(
+            "Example University",
+            restoredAuthors.Affiliations(0).Institution
+        )
+
+    End Sub
+
+
     Private Sub AddManagedFixture(
         manuscripts As List(Of Manuscript),
         managedDirectory As String

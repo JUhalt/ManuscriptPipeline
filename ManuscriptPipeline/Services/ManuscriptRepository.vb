@@ -708,6 +708,52 @@ Namespace Services
 
                 End If
 
+                If manuscript.Authors Is Nothing Then
+
+                    manuscript.Authors =
+                        New List(Of ManuscriptAuthor)()
+
+                End If
+
+                Dim manuscriptAuthorIds As New HashSet(Of Guid)()
+
+                For Each authorLink As ManuscriptAuthor In manuscript.Authors
+
+                    If authorLink Is Nothing Then
+
+                        Throw New InvalidDataException(
+                            "The manuscript library contains an invalid null author link."
+                        )
+
+                    End If
+
+                    If authorLink.AuthorId = Guid.Empty Then
+
+                        Throw New InvalidDataException(
+                            "The manuscript library contains an author link without a valid author identifier."
+                        )
+
+                    End If
+
+                    If Not manuscriptAuthorIds.Add(
+                        authorLink.AuthorId
+                    ) Then
+
+                        Throw New InvalidDataException(
+                            "The manuscript library contains the same structured author more than once on a manuscript."
+                        )
+
+                    End If
+
+                    If authorLink.AffiliationIds Is Nothing Then
+
+                        authorLink.AffiliationIds =
+                            New List(Of Guid)()
+
+                    End If
+
+                Next
+
                 If manuscript.History Is Nothing Then
 
                     manuscript.History =
