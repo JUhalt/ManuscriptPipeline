@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 Imports System.Collections.Generic
 Imports System.Drawing
 Imports System.Linq
@@ -119,7 +119,7 @@ Namespace Forms
 
             root.RowStyles.Add(New RowStyle(SizeType.Absolute, 300))
             root.RowStyles.Add(New RowStyle(SizeType.AutoSize))
-            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 220))
+            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 310))
             root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
             root.RowStyles.Add(New RowStyle(SizeType.AutoSize))
 
@@ -288,8 +288,16 @@ Namespace Forms
             Dim authorsLayout As New TableLayoutPanel With {
                 .Dock = DockStyle.Fill,
                 .ColumnCount = 1,
-                .RowCount = 2
+                .RowCount = 3,
+                .Padding = New Padding(0),
+                .Margin = New Padding(0)
             }
+
+            authorsLayout.RowStyles.Add(
+                New RowStyle(
+                    SizeType.AutoSize
+                )
+            )
 
             authorsLayout.RowStyles.Add(
                 New RowStyle(
@@ -301,41 +309,22 @@ Namespace Forms
                 New RowStyle(
                     SizeType.Percent,
                     100
-                )
-            )
-
-            Dim authorsToolbar As New TableLayoutPanel With {
-                .Dock = DockStyle.Top,
-                .AutoSize = True,
-                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
-                .ColumnCount = 2,
-                .RowCount = 1,
-                .Padding = New Padding(0, 2, 0, 6)
-            }
-
-            authorsToolbar.ColumnStyles.Add(
-                New ColumnStyle(
-                    SizeType.Percent,
-                    100
-                )
-            )
-
-            authorsToolbar.ColumnStyles.Add(
-                New ColumnStyle(
-                    SizeType.AutoSize
                 )
             )
 
             lblAuthorInfo.AutoSize = True
             lblAuthorInfo.Anchor = AnchorStyles.Left
             lblAuthorInfo.ForeColor = SystemColors.GrayText
+            lblAuthorInfo.Margin = New Padding(0, 0, 0, 4)
 
             Dim authorButtons As New FlowLayoutPanel With {
+                .Dock = DockStyle.Fill,
                 .AutoSize = True,
                 .AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 .FlowDirection = FlowDirection.LeftToRight,
-                .WrapContents = False,
-                .Margin = New Padding(0)
+                .WrapContents = True,
+                .Padding = New Padding(0),
+                .Margin = New Padding(0, 0, 0, 6)
             }
 
             Dim btnManageAuthorLibrary As New Button With {
@@ -393,11 +382,13 @@ Namespace Forms
             authorButtons.Controls.Add(btnMoveAuthorUp)
             authorButtons.Controls.Add(btnMoveAuthorDown)
 
-            authorsToolbar.Controls.Add(lblAuthorInfo, 0, 0)
-            authorsToolbar.Controls.Add(authorButtons, 1, 0)
-
             lstAuthors.Dock = DockStyle.Fill
             lstAuthors.IntegralHeight = False
+            lstAuthors.MinimumSize = New Size(0, 105)
+            lstAuthors.Margin = New Padding(0)
+
+            authorsLayout.Controls.Add(lblAuthorInfo, 0, 0)
+            authorsLayout.Controls.Add(authorButtons, 0, 1)
 
             AddHandler lstAuthors.SelectedIndexChanged,
                 AddressOf AuthorSelectionChanged
@@ -405,8 +396,7 @@ Namespace Forms
             AddHandler lstAuthors.DoubleClick,
                 AddressOf EditStructuredAuthor
 
-            authorsLayout.Controls.Add(authorsToolbar, 0, 0)
-            authorsLayout.Controls.Add(lstAuthors, 0, 1)
+            authorsLayout.Controls.Add(lstAuthors, 0, 2)
 
             authorsGroup.Controls.Add(authorsLayout)
 

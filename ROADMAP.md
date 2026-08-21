@@ -12,15 +12,15 @@ PaperRoute v0.1.0 established the trusted local core: installation and updates, 
 
 Development begins with the **schema 2 metadata foundation**. Reusable authors and affiliations are the first metadata feature built on that foundation, followed by:
 
-- DOI and Crossref metadata enrichment
-- ORCID import/sync
+- [x] DOI and Crossref metadata enrichment
+- [x] ORCID public-profile import / one-way sync
 - BibTeX and RIS import/export
 - Rich journal cards, target-journal shortlist, and submission portal shortcuts
 - Preprint / journal-version linkage
 - Calendar export, reminders, and Windows notifications
 - CV/publication-list exports
 
-**Safety rule:** external integrations may suggest metadata, but they must not silently overwrite user-entered metadata or change manuscript lifecycle state.
+**Safety rule:** external integrations may suggest metadata, but they must not silently overwrite user-entered metadata or change manuscript lifecycle state. Any import that changes lifecycle placement must be an explicit user choice.
 
 ## THEN — v0.3 The Route
 
@@ -51,3 +51,4 @@ PaperRoute 1.0 is not defined by feature count.
 > **I trust this application with my research workflow.**
 
 - [x] DOI normalization and Crossref preview-before-apply metadata enrichment
+- [x] ORCID public-profile lookup with selective import and explicit lifecycle placement

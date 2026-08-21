@@ -1,6 +1,5 @@
 Imports System
 Imports System.Drawing
-Imports System.Text.RegularExpressions
 Imports System.Windows.Forms
 Imports ManuscriptPipeline.Models
 Imports ManuscriptPipeline.Services
@@ -151,7 +150,7 @@ Namespace Forms
             root.Controls.Add(CreateLabel("Display override"), 0, 4)
             root.Controls.Add(txtDisplay, 1, 4)
 
-            root.Controls.Add(CreateLabel("ORCID"), 0, 5)
+            root.Controls.Add(CreateLabel("ORCID iD"), 0, 5)
             root.Controls.Add(txtOrcid, 1, 5)
 
             root.Controls.Add(CreateLabel("Identity"), 0, 6)
@@ -258,20 +257,21 @@ Namespace Forms
             End If
 
             Dim orcid As String =
-                txtOrcid.Text.Trim()
+                OrcidIdentifierService.Normalize(
+                    txtOrcid.Text
+                )
 
             If Not String.IsNullOrWhiteSpace(
                 orcid
             ) AndAlso
-               Not Regex.IsMatch(
-                   orcid,
-                   "^\d{4}-\d{4}-\d{4}-[\dXx]{4}$"
+               Not OrcidIdentifierService.IsValid(
+                   orcid
                ) Then
 
                 MessageBox.Show(
                     Me,
-                    "ORCID should use the form 0000-0000-0000-0000.",
-                    "Check ORCID",
+                    "Enter a valid ORCID iD, including its checksum. Example: 0000-0002-1825-0097.",
+                    "Check ORCID iD",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information
                 )
@@ -295,6 +295,12 @@ Namespace Forms
                     .Suffix = txtSuffix.Text.Trim(),
                     .DisplayNameOverride = txtDisplay.Text.Trim(),
                     .Orcid = orcid,
+                    .OrcidLastCheckedUtc =
+                        If(
+                            _source Is Nothing,
+                            Nothing,
+                            _source.OrcidLastCheckedUtc
+                        ),
                     .Notes = txtNotes.Text.Trim(),
                     .IsMe = chkMe.Checked
                 }

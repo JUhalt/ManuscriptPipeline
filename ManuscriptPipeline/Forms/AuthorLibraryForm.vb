@@ -12,6 +12,7 @@ Namespace Forms
         Inherits Form
 
         Private ReadOnly _repository As New AuthorLibraryRepository()
+        Private ReadOnly _manuscriptRepository As New ManuscriptRepository()
         Private ReadOnly _manuscripts As List(Of Manuscript)
 
         Private _library As AuthorLibraryData
@@ -24,12 +25,27 @@ Namespace Forms
             manuscripts As IEnumerable(Of Manuscript)
         )
 
-            _manuscripts =
-                If(
-                    manuscripts Is Nothing,
-                    New List(Of Manuscript)(),
-                    manuscripts.ToList()
-                )
+            If TypeOf manuscripts Is List(Of Manuscript) Then
+
+                ' Form1 passes its live manuscript list. Preserve that list
+                ' reference so user-approved ORCID work imports appear on
+                ' the board immediately when this dialog closes.
+                _manuscripts =
+                    DirectCast(
+                        manuscripts,
+                        List(Of Manuscript)
+                    )
+
+            Else
+
+                _manuscripts =
+                    If(
+                        manuscripts Is Nothing,
+                        New List(Of Manuscript)(),
+                        manuscripts.ToList()
+                    )
+
+            End If
 
             _library =
                 _repository.Load()
@@ -102,7 +118,8 @@ Namespace Forms
                 .Text =
                     "Create reusable people and affiliations here. " &
                     "Manuscripts reference these records without changing " &
-                    "the original legacy co-author text.",
+                    "the original legacy co-author text. ORCID can optionally " &
+                    "read public profile metadata after you select an author.",
                 .Margin = New Padding(3, 3, 3, 12)
             }
 
@@ -217,6 +234,12 @@ Namespace Forms
                 .Height = 36
             }
 
+            Dim btnOrcid As New Button With {
+                .Text = "ORCID...",
+                .AutoSize = True,
+                .Height = 36
+            }
+
             Dim btnDelete As New Button With {
                 .Text = "Delete",
                 .AutoSize = True,
@@ -229,11 +252,15 @@ Namespace Forms
             AddHandler btnEdit.Click,
                 AddressOf EditSelectedAuthor
 
+            AddHandler btnOrcid.Click,
+                AddressOf OpenSelectedAuthorOrcid
+
             AddHandler btnDelete.Click,
                 AddressOf DeleteSelectedAuthor
 
             buttons.Controls.Add(btnAdd)
             buttons.Controls.Add(btnEdit)
+            buttons.Controls.Add(btnOrcid)
             buttons.Controls.Add(btnDelete)
 
             layout.Controls.Add(lstAuthors, 0, 0)
@@ -463,6 +490,125 @@ Namespace Forms
 
                 SaveLibrary()
                 RefreshLists()
+
+            End Using
+
+        End Sub
+
+
+        Private Sub OpenSelectedAuthorOrcid(
+            sender As Object,
+            e As EventArgs
+        )
+
+            Dim selected As AuthorRecord =
+                TryCast(
+                    lstAuthors.SelectedItem,
+                    AuthorRecord
+                )
+
+            If selected Is Nothing Then
+
+                MessageBox.Show(
+                    Me,
+                    "Select an author first.",
+                    "ORCID",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                )
+
+                Return
+
+            End If
+
+            Using dialog As New OrcidLookupForm(
+                selected
+            )
+
+                If dialog.ShowDialog(Me) <>
+                   DialogResult.OK OrElse
+                   dialog.Suggestion Is Nothing OrElse
+                   dialog.Options Is Nothing Then
+
+                    Return
+
+                End If
+
+                Try
+
+                    Dim selectedWorkCount As Integer =
+                        dialog.Options.SelectedWorkPutCodes.Count
+
+                    If selectedWorkCount > 0 Then
+
+                        _manuscriptRepository.CreatePreImportBackup()
+
+                    End If
+
+                    Dim result As OrcidApplyResult =
+                        OrcidApplyService.Apply(
+                            selected,
+                            _library,
+                            _manuscripts,
+                            dialog.Suggestion,
+                            dialog.Options
+                        )
+
+                    If result.ManuscriptsImported > 0 Then
+
+                        _manuscriptRepository.Save(
+                            _manuscripts
+                        )
+
+                    End If
+
+                    _repository.Save(
+                        _library
+                    )
+
+                    RefreshLists()
+
+                    Dim message As String =
+                        "ORCID changes applied." &
+                        Environment.NewLine &
+                        Environment.NewLine &
+                        "Affiliations added: " &
+                        result.AffiliationsAdded.ToString() &
+                        Environment.NewLine &
+                        "Works imported as Idea manuscripts: " &
+                        result.ManuscriptsImported.ToString()
+
+                    If result.DuplicateWorksSkipped > 0 Then
+
+                        message &=
+                            Environment.NewLine &
+                            "Duplicate works skipped: " &
+                            result.DuplicateWorksSkipped.ToString()
+
+                    End If
+
+                    MessageBox.Show(
+                        Me,
+                        message,
+                        "ORCID Import Complete",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information
+                    )
+
+                Catch ex As Exception
+
+                    MessageBox.Show(
+                        Me,
+                        "PaperRoute could not save the selected ORCID changes." &
+                        Environment.NewLine &
+                        Environment.NewLine &
+                        ex.Message,
+                        "ORCID Import Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    )
+
+                End Try
 
             End Using
 

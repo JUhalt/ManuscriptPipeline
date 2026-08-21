@@ -230,14 +230,6 @@ Namespace Services
 
                 End If
 
-                If assignedIds.Contains(
-                    author.Id
-                ) Then
-
-                    Continue For
-
-                End If
-
                 If suggestedAuthor.Affiliations Is Nothing Then
 
                     suggestedAuthor.Affiliations =
@@ -295,6 +287,43 @@ Namespace Services
                     End If
 
                 Next
+
+                Dim existingLink As ManuscriptAuthor =
+                    manuscript.Authors.
+                        FirstOrDefault(
+                            Function(item)
+                                Return item IsNot Nothing AndAlso
+                                    item.AuthorId = author.Id
+                            End Function
+                        )
+
+                If existingLink IsNot Nothing Then
+
+                    If existingLink.AffiliationIds Is Nothing Then
+
+                        existingLink.AffiliationIds =
+                            New List(Of Guid)()
+
+                    End If
+
+                    For Each affiliationId As Guid In
+                        affiliationIds
+
+                        If Not existingLink.AffiliationIds.Contains(
+                            affiliationId
+                        ) Then
+
+                            existingLink.AffiliationIds.Add(
+                                affiliationId
+                            )
+
+                        End If
+
+                    Next
+
+                    Continue For
+
+                End If
 
                 manuscript.Authors.Add(
                     New ManuscriptAuthor With {

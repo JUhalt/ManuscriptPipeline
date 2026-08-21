@@ -17,6 +17,11 @@ PaperRoute Tracker helps researchers manage manuscripts from idea through submis
 ### DOI & Crossref enrichment
 PaperRoute can normalize a DOI or doi.org link, retrieve metadata from Crossref, preview the response, and apply only user-selected fields. Crossref never changes manuscript stage, shelf/location, or target journal. Structured authors are matched to the reusable author library by ORCID or name before new records are proposed/created.
 
+### ORCID public-profile import
+From **Data → Authors & Affiliations**, PaperRoute can read a selected author's public ORCID record, preview public identity data, employment affiliations, and works, and apply only the items the user chooses. ORCID lookup is read-only and user initiated; PaperRoute stores no ORCID password, OAuth token, or client secret.
+
+A successful public lookup confirms that the ORCID iD exists in the registry, but PaperRoute does not treat that as proof that the record holder authenticated the iD to PaperRoute. Selected dated works can be imported directly to the Published shelf when the user explicitly chooses that behavior; undated works remain Ideas. Imported works are deduplicated by DOI first and exact title second.
+
 ## Current status
 
 **v0.1.0** — first stable release of the PaperRoute Reliable Core.
@@ -34,6 +39,7 @@ Development on `master` is now targeting **v0.2.0-alpha.1**, beginning with stor
 - **Needs Attention dashboard** for overdue revisions, long reviews, missing target journals, and recent rejections.
 - **Search, stage filtering, and sorting** across the manuscript library.
 - **Reusable authors and affiliations** with manuscript-specific order, corresponding-author designation, optional ORCID, and preserved legacy author text.
+- **ORCID public-profile import** for user-reviewed names, affiliations, and works, with explicit Published-vs-Idea control for imported records.
 - **Light, Dark, and Follow Windows themes** using modern .NET 10 WinForms theming.
 - **Excel import/export** using the PaperRoute workbook format.
 - **Legacy tracker import** for the original development spreadsheet format.
