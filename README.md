@@ -22,6 +22,13 @@ From **Data → Authors & Affiliations**, PaperRoute can read a selected author'
 
 A successful public lookup confirms that the ORCID iD exists in the registry, but PaperRoute does not treat that as proof that the record holder authenticated the iD to PaperRoute. Selected dated works can be imported directly to the Published shelf when the user explicitly chooses that behavior; undated works remain Ideas. Imported works are deduplicated by DOI first and exact title second.
 
+### BibTeX & RIS interchange
+PaperRoute can import standard BibTeX (`.bib`) and RIS (`.ris`) bibliography files with a review-before-import workflow. Common title, author, DOI, journal/outlet, publication date, volume, issue, pages, publisher, URL, abstract, and keyword metadata are mapped into the schema-2 manuscript model. Duplicate detection uses DOI first and normalized title second.
+
+Unsupported or ambiguous source fields are shown as warnings rather than silently discarded. Imported structured authors are matched against the reusable author library before new people are created. Bibliographic publication metadata does not fabricate journal-submission history.
+
+PaperRoute can also export any user-selected manuscripts to BibTeX or RIS for use with reference managers and scholarly tools.
+
 ## Current status
 
 **v0.1.0** — first stable release of the PaperRoute Reliable Core.

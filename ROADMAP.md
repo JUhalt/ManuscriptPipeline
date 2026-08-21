@@ -14,7 +14,7 @@ Development begins with the **schema 2 metadata foundation**. Reusable authors a
 
 - [x] DOI and Crossref metadata enrichment
 - [x] ORCID public-profile import / one-way sync
-- BibTeX and RIS import/export
+- [x] BibTeX and RIS import/export
 - Rich journal cards, target-journal shortlist, and submission portal shortcuts
 - Preprint / journal-version linkage
 - Calendar export, reminders, and Windows notifications
@@ -52,3 +52,4 @@ PaperRoute 1.0 is not defined by feature count.
 
 - [x] DOI normalization and Crossref preview-before-apply metadata enrichment
 - [x] ORCID public-profile lookup with selective import and explicit lifecycle placement
+- [x] BibTeX and RIS bibliography interchange with warnings for unsupported fields
