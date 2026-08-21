@@ -1,5 +1,13 @@
 # Changelog
 
+### v0.2E development
+- Added BibTeX and RIS import with preview-before-apply record selection.
+- Added DOI/title duplicate protection and reusable structured-author matching during bibliography import.
+- Added explicit control over whether imported publication records enter Published or remain Ideas.
+- Added warnings for unsupported and ambiguous source fields instead of silently discarding them.
+- Added BibTeX and RIS export for user-selected PaperRoute manuscripts.
+- Added regression coverage for parsing, export, round-trip metadata, duplicate detection, author reuse/order, and lifecycle-safe imports.
+
 ### v0.2D development
 - Added standards-aware ORCID iD normalization and checksum validation.
 - Added user-initiated, read-only public ORCID profile lookup with preview-before-apply controls for names, reusable affiliations, and candidate works.

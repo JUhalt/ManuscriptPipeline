@@ -330,6 +330,28 @@ Public Class Form1
 )
 
         dataMenu.Items.Add(
+    New ToolStripSeparator()
+)
+
+        dataMenu.Items.Add(
+    "Import BibTeX / RIS...",
+    Nothing,
+    AddressOf ImportBibliography
+)
+
+        dataMenu.Items.Add(
+    "Export Library as BibTeX...",
+    Nothing,
+    AddressOf ExportBibTeX
+)
+
+        dataMenu.Items.Add(
+    "Export Library as RIS...",
+    Nothing,
+    AddressOf ExportRis
+)
+
+        dataMenu.Items.Add(
     "Authors & Affiliations...",
     Nothing,
     AddressOf OpenAuthorLibrary
