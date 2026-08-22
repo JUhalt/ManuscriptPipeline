@@ -547,6 +547,13 @@ Namespace Services
 
             End If
 
+            If library.Journals Is Nothing Then
+
+                library.Journals =
+                    New List(Of JournalRecord)()
+
+            End If
+
             Dim authorIds As New HashSet(Of Guid)()
 
             For Each author As AuthorRecord In library.Authors
@@ -684,6 +691,68 @@ Namespace Services
                 affiliation.Notes =
                     If(
                         affiliation.Notes,
+                        String.Empty
+                    )
+
+            Next
+
+            Dim journalIds As New HashSet(Of Guid)()
+
+            For Each journal As JournalRecord In library.Journals
+
+                If journal Is Nothing Then
+
+                    Throw New InvalidDataException(
+                        "The reusable metadata library contains a null journal record."
+                    )
+
+                End If
+
+                If journal.Id = Guid.Empty Then
+
+                    Throw New InvalidDataException(
+                        "The reusable metadata library contains a journal without a valid identifier."
+                    )
+
+                End If
+
+                If Not journalIds.Add(
+                    journal.Id
+                ) Then
+
+                    Throw New InvalidDataException(
+                        "The reusable metadata library contains duplicate journal identifiers."
+                    )
+
+                End If
+
+                journal.Name =
+                    If(
+                        journal.Name,
+                        String.Empty
+                    )
+
+                journal.Publisher =
+                    If(
+                        journal.Publisher,
+                        String.Empty
+                    )
+
+                journal.HomepageUrl =
+                    If(
+                        journal.HomepageUrl,
+                        String.Empty
+                    )
+
+                journal.SubmissionPortalUrl =
+                    If(
+                        journal.SubmissionPortalUrl,
+                        String.Empty
+                    )
+
+                journal.Notes =
+                    If(
+                        journal.Notes,
                         String.Empty
                     )
 

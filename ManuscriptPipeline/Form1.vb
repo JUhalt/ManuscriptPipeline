@@ -358,6 +358,18 @@ Public Class Form1
 )
 
         dataMenu.Items.Add(
+    "Journal Library...",
+    Nothing,
+    AddressOf OpenJournalLibrary
+)
+
+        dataMenu.Items.Add(
+    "Publication & CV Export...",
+    Nothing,
+    AddressOf OpenPublicationExport
+)
+
+        dataMenu.Items.Add(
     New ToolStripSeparator()
 )
 

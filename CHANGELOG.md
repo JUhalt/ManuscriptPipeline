@@ -1,5 +1,16 @@
 # Changelog
 
+### v0.2 journal + publication-export development
+- Added reusable journal records to the existing local reusable-metadata library, including publisher, homepage, submission portal, notes, favorite status, and shortlist status.
+- Added manuscript target-journal linkage while preserving the existing free-text target journal for backward compatibility.
+- Added a dedicated manuscript Journal, Preprint & Links editor for preprint DOI/URL and labeled OSF/project-style web destinations.
+- Added safe browser launching restricted to validated `http://` and `https://` links; PaperRoute does not store publisher passwords or credentials.
+- Added reusable-journal selection when recording or editing a journal submission.
+- Extended portable backup/restore validation so reusable journals travel inside the established `authors.json` reusable-metadata file.
+- Added Publication & CV Export with Published, Accepted+Published, and All Manuscripts filters; record selection; live preview; clipboard copy; and plain-text, Markdown, or HTML output.
+- Added publication formatting that uses structured authors when available, falls back to legacy author text, and includes DOI/publication/preprint metadata without mutating manuscripts.
+- Added regression coverage for journal persistence, URL safety, clone semantics, portable backup/restore, publication filtering/formatting, HTML escaping, preprint fallback, and export immutability.
+
 ### v0.2E development
 - Added BibTeX and RIS import with preview-before-apply record selection.
 - Added DOI/title duplicate protection and reusable structured-author matching during bibliography import.

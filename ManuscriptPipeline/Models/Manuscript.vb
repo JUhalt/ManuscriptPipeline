@@ -16,8 +16,15 @@ Namespace Models
 
         Public Property TargetJournal As String = String.Empty
 
+        Public Property TargetJournalId As Guid? = Nothing
+
+        Public Property ManuscriptUrl As String = String.Empty
+
         Public Property Metadata As ManuscriptMetadata =
             New ManuscriptMetadata()
+
+        Public Property RelatedLinks As List(Of ManuscriptExternalLink) =
+            New List(Of ManuscriptExternalLink)()
 
         Public Property CurrentStage As PaperStage = PaperStage.Idea
 

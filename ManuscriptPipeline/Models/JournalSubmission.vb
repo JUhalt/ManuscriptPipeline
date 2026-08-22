@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 Imports System.Collections.Generic
 
 Namespace Models
@@ -8,6 +8,8 @@ Namespace Models
         Public Property Id As Guid = Guid.NewGuid()
 
         Public Property JournalName As String = String.Empty
+
+        Public Property JournalId As Guid? = Nothing
 
         Public Property ManuscriptNumber As String = String.Empty
 

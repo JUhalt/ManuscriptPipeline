@@ -1,6 +1,7 @@
-﻿Imports System
+Imports System
 Imports System.Collections.Generic
 Imports System.Drawing
+Imports System.Linq
 Imports System.Windows.Forms
 Imports ManuscriptPipeline.Models
 Imports ManuscriptPipeline.Services
@@ -11,6 +12,7 @@ Namespace Forms
         Inherits Form
 
         Private ReadOnly _existingSubmission As JournalSubmission
+        Private ReadOnly _authorRepository As New AuthorLibraryRepository()
 
         Private ReadOnly txtJournal As New TextBox()
         Private ReadOnly txtManuscriptNumber As New TextBox()
@@ -18,6 +20,7 @@ Namespace Forms
         Private ReadOnly txtPortalUrl As New TextBox()
         Private ReadOnly txtNotes As New TextBox()
 
+        Private _selectedJournalId As Guid?
         Private _createdSubmission As JournalSubmission
 
 
@@ -33,6 +36,7 @@ Namespace Forms
             _existingSubmission = Nothing
 
             BuildInterface()
+            UiPolish.ApplyDialog(Me)
 
         End Sub
 
@@ -75,7 +79,7 @@ Namespace Forms
             Me.MinimizeBox = False
 
             Me.ClientSize =
-                New Size(650, 520)
+                New Size(720, 540)
 
             Me.Font =
                 New Font("Segoe UI", 10.0F)
@@ -115,6 +119,48 @@ Namespace Forms
             txtJournal.Dock =
                 DockStyle.Fill
 
+            Dim journalEditor As New TableLayoutPanel With {
+                .Dock = DockStyle.Fill,
+                .ColumnCount = 2,
+                .RowCount = 1,
+                .Margin = New Padding(0)
+            }
+
+            journalEditor.ColumnStyles.Add(
+                New ColumnStyle(
+                    SizeType.Percent,
+                    100
+                )
+            )
+
+            journalEditor.ColumnStyles.Add(
+                New ColumnStyle(
+                    SizeType.AutoSize
+                )
+            )
+
+            Dim btnJournalLibrary As New Button With {
+                .Text = "Use Library...",
+                .AutoSize = True,
+                .Height = 32,
+                .Margin = New Padding(8, 0, 0, 0)
+            }
+
+            AddHandler btnJournalLibrary.Click,
+                AddressOf ChooseJournalFromLibrary
+
+            journalEditor.Controls.Add(
+                txtJournal,
+                0,
+                0
+            )
+
+            journalEditor.Controls.Add(
+                btnJournalLibrary,
+                1,
+                0
+            )
+
             txtManuscriptNumber.Dock =
                 DockStyle.Fill
 
@@ -146,7 +192,7 @@ Namespace Forms
             )
 
             root.Controls.Add(
-                txtJournal,
+                journalEditor,
                 1,
                 0
             )
@@ -292,6 +338,9 @@ Namespace Forms
             txtJournal.Text =
                 _existingSubmission.JournalName
 
+            _selectedJournalId =
+                _existingSubmission.JournalId
+
             txtManuscriptNumber.Text =
                 _existingSubmission.ManuscriptNumber
 
@@ -326,6 +375,96 @@ Namespace Forms
         End Function
 
 
+        Private Sub ChooseJournalFromLibrary(
+            sender As Object,
+            e As EventArgs
+        )
+
+            Dim library As AuthorLibraryData =
+                _authorRepository.Load()
+
+            If library.Journals.Count = 0 Then
+
+                MessageBox.Show(
+                    Me,
+                    "The Journal Library is empty. Add journals from Data → Journal Library first.",
+                    "No Reusable Journals",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                )
+
+                Return
+
+            End If
+
+            Using dialog As New JournalPickerForm(
+                library
+            )
+
+                If dialog.ShowDialog(Me) <>
+                   DialogResult.OK OrElse
+                   dialog.SelectedJournal Is Nothing Then
+
+                    Return
+
+                End If
+
+                Dim priorStandardPortal As String =
+                    String.Empty
+
+                If _selectedJournalId.HasValue Then
+
+                    Dim priorJournal As JournalRecord =
+                        library.Journals.
+                            FirstOrDefault(
+                                Function(item)
+                                    Return item IsNot Nothing AndAlso
+                                        item.Id = _selectedJournalId.Value
+                                End Function
+                            )
+
+                    If priorJournal IsNot Nothing Then
+
+                        priorStandardPortal =
+                            priorJournal.SubmissionPortalUrl
+
+                    End If
+
+                End If
+
+                Dim replacePortal As Boolean =
+                    String.IsNullOrWhiteSpace(
+                        txtPortalUrl.Text
+                    ) OrElse
+                    (
+                        Not String.IsNullOrWhiteSpace(
+                            priorStandardPortal
+                        ) AndAlso
+                        String.Equals(
+                            txtPortalUrl.Text.Trim(),
+                            priorStandardPortal.Trim(),
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                    )
+
+                _selectedJournalId =
+                    dialog.SelectedJournal.Id
+
+                txtJournal.Text =
+                    dialog.SelectedJournal.Name
+
+                If replacePortal Then
+
+                    txtPortalUrl.Text =
+                        dialog.SelectedJournal.SubmissionPortalUrl
+
+                End If
+
+            End Using
+
+        End Sub
+
+
         Private Sub SaveSubmission(
             sender As Object,
             e As EventArgs
@@ -349,46 +488,82 @@ Namespace Forms
 
             End If
 
-            Dim portalText As String =
-                txtPortalUrl.Text.Trim()
+            Dim portalText As String
 
-            If Not String.IsNullOrWhiteSpace(
-                portalText
-            ) Then
+            Try
 
-                Dim portalUri As Uri =
-                    Nothing
-
-                Dim validUri As Boolean =
-                    Uri.TryCreate(
-                        portalText,
-                        UriKind.Absolute,
-                        portalUri
+                portalText =
+                    UrlSafetyService.NormalizeOptionalHttpUrl(
+                        txtPortalUrl.Text,
+                        "Publisher portal"
                     )
 
-                If Not validUri OrElse
-                   portalUri Is Nothing OrElse
-                   (
-                       portalUri.Scheme <>
-                           Uri.UriSchemeHttp AndAlso
-                       portalUri.Scheme <>
-                           Uri.UriSchemeHttps
-                   ) Then
+            Catch ex As ArgumentException
 
-                    MessageBox.Show(
-                        Me,
-                        "The publisher portal must be a valid http:// or https:// address." &
-                        Environment.NewLine &
-                        Environment.NewLine &
-                        "You may also leave this field blank.",
-                        "Invalid Publisher URL",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
+                MessageBox.Show(
+                    Me,
+                    ex.Message &
+                    Environment.NewLine &
+                    Environment.NewLine &
+                    "You may also leave this field blank.",
+                    "Invalid Publisher URL",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                )
+
+                txtPortalUrl.Focus()
+                Return
+
+            End Try
+
+            Dim journalId As Guid? =
+                _selectedJournalId
+
+            If journalId.HasValue Then
+
+                Dim originalJournalName As String =
+                    If(
+                        _existingSubmission Is Nothing,
+                        String.Empty,
+                        If(
+                            _existingSubmission.JournalName,
+                            String.Empty
+                        ).Trim()
                     )
 
-                    txtPortalUrl.Focus()
+                Dim journalTextChanged As Boolean =
+                    _existingSubmission Is Nothing OrElse
+                    Not String.Equals(
+                        originalJournalName,
+                        txtJournal.Text.Trim(),
+                        StringComparison.CurrentCultureIgnoreCase
+                    )
 
-                    Return
+                If journalTextChanged Then
+
+                    Dim library As AuthorLibraryData =
+                        _authorRepository.Load()
+
+                    Dim linked As JournalRecord =
+                        library.Journals.
+                            FirstOrDefault(
+                                Function(item)
+                                    Return item IsNot Nothing AndAlso
+                                        item.Id = journalId.Value
+                                End Function
+                            )
+
+                    If linked Is Nothing OrElse
+                       Not String.Equals(
+                           linked.Name,
+                           txtJournal.Text.Trim(),
+                           StringComparison.CurrentCultureIgnoreCase
+                       ) Then
+
+                        journalId =
+                            Nothing
+
+                    End If
 
                 End If
 
@@ -434,6 +609,8 @@ Namespace Forms
                         submissionId,
                     .JournalName =
                         txtJournal.Text.Trim(),
+                    .JournalId =
+                        journalId,
                     .ManuscriptNumber =
                         txtManuscriptNumber.Text.Trim(),
                     .SubmittedDate =

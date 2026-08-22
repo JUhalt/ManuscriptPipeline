@@ -754,6 +754,13 @@ Namespace Services
 
             End If
 
+            If authorLibrary.Journals Is Nothing Then
+
+                authorLibrary.Journals =
+                    New List(Of JournalRecord)()
+
+            End If
+
             Dim authorIds As New HashSet(Of Guid)()
 
             For Each author As AuthorRecord In authorLibrary.Authors
@@ -794,6 +801,31 @@ Namespace Services
 
                     Throw New InvalidDataException(
                         "The backup contains invalid or duplicate affiliation identifiers."
+                    )
+
+                End If
+
+            Next
+
+            Dim journalIds As New HashSet(Of Guid)()
+
+            For Each journal As JournalRecord In authorLibrary.Journals
+
+                If journal Is Nothing Then
+
+                    Throw New InvalidDataException(
+                        "The backup contains an invalid null journal record."
+                    )
+
+                End If
+
+                If journal.Id = Guid.Empty OrElse
+                   Not journalIds.Add(
+                       journal.Id
+                   ) Then
+
+                    Throw New InvalidDataException(
+                        "The backup contains invalid or duplicate journal identifiers."
                     )
 
                 End If
@@ -860,6 +892,56 @@ Namespace Services
                     manuscript.Metadata.ExternalIdentifiers =
                         New Dictionary(Of String, String)()
                 End If
+
+                manuscript.ManuscriptUrl =
+                    If(
+                        manuscript.ManuscriptUrl,
+                        String.Empty
+                    )
+
+                If manuscript.RelatedLinks Is Nothing Then
+                    manuscript.RelatedLinks =
+                        New List(Of ManuscriptExternalLink)()
+                End If
+
+                Dim relatedLinkIds As New HashSet(Of Guid)()
+
+                For Each relatedLink As ManuscriptExternalLink In manuscript.RelatedLinks
+
+                    If relatedLink Is Nothing Then
+                        Throw New InvalidDataException(
+                            "The backup contains an invalid null manuscript external-link record."
+                        )
+                    End If
+
+                    If relatedLink.Id = Guid.Empty OrElse
+                       Not relatedLinkIds.Add(
+                           relatedLink.Id
+                       ) Then
+                        Throw New InvalidDataException(
+                            "The backup contains invalid or duplicate manuscript external-link identifiers."
+                        )
+                    End If
+
+                    relatedLink.Label =
+                        If(
+                            relatedLink.Label,
+                            String.Empty
+                        )
+
+                    relatedLink.Url =
+                        If(
+                            relatedLink.Url,
+                            String.Empty
+                        )
+
+                    relatedLink.Notes =
+                        If(
+                            relatedLink.Notes,
+                            String.Empty
+                        )
+
+                Next
 
                 If manuscript.Authors Is Nothing Then
                     manuscript.Authors = New List(Of ManuscriptAuthor)()
