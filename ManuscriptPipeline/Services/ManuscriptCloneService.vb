@@ -50,6 +50,20 @@ Namespace Services
                 Next
             End If
 
+            If source.Reminders IsNot Nothing Then
+                For Each reminder As ManuscriptReminder In source.Reminders
+
+                    If reminder Is Nothing Then
+                        Continue For
+                    End If
+
+                    clone.Reminders.Add(
+                        CloneReminder(reminder)
+                    )
+
+                Next
+            End If
+
             If source.History IsNot Nothing Then
                 For Each historyEvent As HistoryEvent In source.History
 
@@ -163,6 +177,26 @@ Namespace Services
         End Function
 
 
+        Public Shared Function CloneReminder(
+            source As ManuscriptReminder
+        ) As ManuscriptReminder
+
+            If source Is Nothing Then
+                Throw New ArgumentNullException(NameOf(source))
+            End If
+
+            Return New ManuscriptReminder With {
+                .Id = source.Id,
+                .DueDate = source.DueDate,
+                .Title = source.Title,
+                .Notes = source.Notes,
+                .IsCompleted = source.IsCompleted,
+                .CompletedDate = source.CompletedDate
+            }
+
+        End Function
+
+
         Public Shared Function CloneSubmission(
             source As JournalSubmission
         ) As JournalSubmission
@@ -177,6 +211,7 @@ Namespace Services
                 .JournalId = source.JournalId,
                 .ManuscriptNumber = source.ManuscriptNumber,
                 .SubmittedDate = source.SubmittedDate,
+                .FollowUpDate = source.FollowUpDate,
                 .Notes = source.Notes,
                 .PortalUrl = source.PortalUrl
             }

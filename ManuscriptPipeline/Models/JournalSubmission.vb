@@ -15,6 +15,8 @@ Namespace Models
 
         Public Property SubmittedDate As DateTime = DateTime.Now
 
+        Public Property FollowUpDate As DateTime? = Nothing
+
         Public Property Notes As String = String.Empty
 
         Public Property PortalUrl As String = String.Empty

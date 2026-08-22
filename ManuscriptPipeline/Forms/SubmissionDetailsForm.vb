@@ -70,7 +70,7 @@ Namespace Forms
                 .Padding = New Padding(20)
             }
 
-            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 220))
+            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 264))
             root.RowStyles.Add(New RowStyle(SizeType.Absolute, 140))
             root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
             root.RowStyles.Add(New RowStyle(SizeType.Absolute, 58))
@@ -88,10 +88,10 @@ Namespace Forms
             Dim summary As New TableLayoutPanel With {
                 .Dock = DockStyle.Fill,
                 .ColumnCount = 2,
-                .RowCount = 4
+                .RowCount = 5
             }
 
-            For summaryRowIndex As Integer = 0 To 3
+            For summaryRowIndex As Integer = 0 To 4
                 summary.RowStyles.Add(
                     New RowStyle(SizeType.Absolute, 44)
                 )
@@ -119,7 +119,31 @@ Namespace Forms
                 2
             )
 
-            summary.Controls.Add(CreateFieldLabel("Publisher portal"), 0, 3)
+            Dim followUpText As String =
+                "Not set"
+
+            If _submission.FollowUpDate.HasValue Then
+
+                followUpText =
+                    _submission.FollowUpDate.Value.ToString(
+                        "MMMM d, yyyy"
+                    )
+
+            End If
+
+            summary.Controls.Add(
+                CreateFieldLabel("Follow-up"),
+                0,
+                3
+            )
+
+            summary.Controls.Add(
+                CreateValueLabel(followUpText),
+                1,
+                3
+            )
+
+            summary.Controls.Add(CreateFieldLabel("Publisher portal"), 0, 4)
 
             Dim portalPanel As New FlowLayoutPanel With {
                 .Dock = DockStyle.Fill,
@@ -158,7 +182,7 @@ Namespace Forms
             portalPanel.Controls.Add(btnPortal)
             portalPanel.Controls.Add(lblPortal)
 
-            summary.Controls.Add(portalPanel, 1, 3)
+            summary.Controls.Add(portalPanel, 1, 4)
 
             summaryGroup.Controls.Add(summary)
 
@@ -297,7 +321,7 @@ Namespace Forms
                 .Padding = New Padding(10)
             }
 
-            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 48))
+            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 60))
             root.RowStyles.Add(New RowStyle(SizeType.Percent, 55))
             root.RowStyles.Add(New RowStyle(SizeType.Percent, 45))
 
@@ -316,8 +340,11 @@ Namespace Forms
 
             Dim decisionButtons As New FlowLayoutPanel With {
                 .AutoSize = True,
+                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 .FlowDirection = FlowDirection.LeftToRight,
-                .WrapContents = False
+                .WrapContents = False,
+                .Padding = New Padding(0, 4, 0, 4),
+                .Margin = New Padding(0)
             }
 
             btnEditDecision.Text = "Edit Decision"

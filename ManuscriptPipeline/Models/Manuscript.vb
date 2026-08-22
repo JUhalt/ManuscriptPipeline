@@ -26,6 +26,9 @@ Namespace Models
         Public Property RelatedLinks As List(Of ManuscriptExternalLink) =
             New List(Of ManuscriptExternalLink)()
 
+        Public Property Reminders As List(Of ManuscriptReminder) =
+            New List(Of ManuscriptReminder)()
+
         Public Property CurrentStage As PaperStage = PaperStage.Idea
 
         Public Property Location As ManuscriptLocation = ManuscriptLocation.Pipeline

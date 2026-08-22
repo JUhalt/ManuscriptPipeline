@@ -1,3 +1,5 @@
+Imports System
+
 Namespace Models
 
     Public Class AppSettings
@@ -16,6 +18,15 @@ Namespace Models
 
         Public Property RecentRejectionThresholdDays As Integer =
             30
+
+        Public Property ReminderNotificationsEnabled As Boolean =
+            False
+
+        Public Property ReminderNotificationDaysAhead As Integer =
+            3
+
+        Public Property LastReminderNotificationDate As DateTime? =
+            Nothing
 
         ' Fresh stable installations default to Stable.
         ' Existing users keep whichever channel is already persisted

@@ -149,6 +149,8 @@ Public Class Form1
 
         RenderManuscripts()
 
+        TryShowStartupReminderNotification()
+
         If appSettings.CheckForUpdatesAutomatically Then
             BeginAutomaticUpdateCheck()
         End If
@@ -208,6 +210,10 @@ Public Class Form1
 
         header.ColumnStyles.Add(
     New ColumnStyle(SizeType.AutoSize)
+)
+
+        header.RowStyles.Add(
+    New RowStyle(SizeType.AutoSize)
 )
 
         ' =================================================
@@ -276,32 +282,55 @@ Public Class Form1
         ' Header actions
         ' =================================================
 
-        Dim headerActions As New FlowLayoutPanel With {
+        Dim headerActions As New TableLayoutPanel With {
     .AutoSize = True,
     .AutoSizeMode = AutoSizeMode.GrowAndShrink,
-    .Anchor = AnchorStyles.Top Or AnchorStyles.Right,
-    .FlowDirection = FlowDirection.RightToLeft,
-    .WrapContents = False,
-    .Margin = New Padding(12, 2, 0, 0)
+    .Anchor = AnchorStyles.Right,
+    .ColumnCount = 4,
+    .RowCount = 1,
+    .Margin = New Padding(12, 0, 0, 0),
+    .BackColor = UiTheme.HeaderBackground()
 }
+
+        headerActions.RowStyles.Add(
+    New RowStyle(SizeType.AutoSize)
+)
+
+        For actionColumn As Integer = 0 To 3
+
+            headerActions.ColumnStyles.Add(
+        New ColumnStyle(SizeType.AutoSize)
+    )
+
+        Next
 
 
         Dim btnAdd As New Button With {
     .Text = "Add Manuscript",
     .Width = GetResponsiveButtonWidth("Add Manuscript", 150),
-    .Height = GetResponsiveButtonHeight(44)
+    .Height = GetResponsiveButtonHeight(44),
+    .Margin = New Padding(6, 0, 0, 0)
 }
 
         Dim btnData As New Button With {
     .Text = "Data ▾",
     .Width = GetResponsiveButtonWidth("Data ▾", 110),
-    .Height = GetResponsiveButtonHeight(44)
+    .Height = GetResponsiveButtonHeight(44),
+    .Margin = New Padding(6, 0, 0, 0)
+}
+
+        Dim btnHelp As New Button With {
+    .Text = "Help",
+    .Width = GetResponsiveButtonWidth("Help", 88),
+    .Height = GetResponsiveButtonHeight(44),
+    .Margin = New Padding(0)
 }
 
         Dim btnSettings As New Button With {
     .Text = "Settings ▾",
     .Width = GetResponsiveButtonWidth("Settings ▾", 118),
-    .Height = GetResponsiveButtonHeight(44)
+    .Height = GetResponsiveButtonHeight(44),
+    .Margin = New Padding(6, 0, 0, 0)
 }
 
 
@@ -398,6 +427,12 @@ Public Class Form1
 )
 
         settingsMenu.Items.Add(
+    "Reminders && Calendar...",
+    Nothing,
+    AddressOf OpenReminders
+)
+
+        settingsMenu.Items.Add(
     New ToolStripSeparator()
 )
 
@@ -418,6 +453,12 @@ Public Class Form1
 )
 
         settingsMenu.Items.Add(
+    "User Guide...",
+    Nothing,
+    AddressOf OpenUserGuide
+)
+
+        settingsMenu.Items.Add(
     "About PaperRoute",
     Nothing,
     AddressOf OpenAbout
@@ -432,6 +473,9 @@ Public Class Form1
 
         AddHandler btnAdd.Click,
     AddressOf AddManuscript
+
+        AddHandler btnHelp.Click,
+    AddressOf OpenUserGuide
 
         AddHandler btnSettings.Click,
     Sub(sender, e)
@@ -470,21 +514,38 @@ Public Class Form1
         )
 
         StyleCardButton(
+            btnHelp,
+            UiTheme.SecondaryText()
+        )
+
+        StyleCardButton(
             btnSettings,
             UiTheme.SecondaryText()
         )
 
 
         headerActions.Controls.Add(
-    btnAdd
+    btnHelp,
+    0,
+    0
 )
 
         headerActions.Controls.Add(
-    btnData
+    btnSettings,
+    1,
+    0
 )
 
         headerActions.Controls.Add(
-    btnSettings
+    btnData,
+    2,
+    0
+)
+
+        headerActions.Controls.Add(
+    btnAdd,
+    3,
+    0
 )
 
 
