@@ -708,6 +708,63 @@ Namespace Services
 
                 End If
 
+                manuscript.ManuscriptUrl =
+                    If(
+                        manuscript.ManuscriptUrl,
+                        String.Empty
+                    )
+
+                If manuscript.RelatedLinks Is Nothing Then
+
+                    manuscript.RelatedLinks =
+                        New List(Of ManuscriptExternalLink)()
+
+                End If
+
+                Dim relatedLinkIds As New HashSet(Of Guid)()
+
+                For Each relatedLink As ManuscriptExternalLink In
+                    manuscript.RelatedLinks
+
+                    If relatedLink Is Nothing Then
+
+                        Throw New InvalidDataException(
+                            "The manuscript library contains an invalid null external-link record."
+                        )
+
+                    End If
+
+                    If relatedLink.Id = Guid.Empty OrElse
+                       Not relatedLinkIds.Add(
+                           relatedLink.Id
+                       ) Then
+
+                        Throw New InvalidDataException(
+                            "The manuscript library contains invalid or duplicate external-link identifiers."
+                        )
+
+                    End If
+
+                    relatedLink.Label =
+                        If(
+                            relatedLink.Label,
+                            String.Empty
+                        )
+
+                    relatedLink.Url =
+                        If(
+                            relatedLink.Url,
+                            String.Empty
+                        )
+
+                    relatedLink.Notes =
+                        If(
+                            relatedLink.Notes,
+                            String.Empty
+                        )
+
+                Next
+
                 If manuscript.Authors Is Nothing Then
 
                     manuscript.Authors =

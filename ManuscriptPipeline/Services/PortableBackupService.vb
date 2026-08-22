@@ -181,7 +181,7 @@ Namespace Services
                     Environment.NewLine &
                     "manuscripts.json is the native PaperRoute manuscript data file." &
                     Environment.NewLine &
-                    "authors.json contains reusable authors and affiliations when present." &
+                    "authors.json contains reusable authors, affiliations, and journals when present." &
                     Environment.NewLine &
                     "library.xlsx is a human-readable export of the manuscript library." &
                     Environment.NewLine &

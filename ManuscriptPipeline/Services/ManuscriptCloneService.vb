@@ -23,6 +23,8 @@ Namespace Services
                 .Title = source.Title,
                 .CoAuthors = source.CoAuthors,
                 .TargetJournal = source.TargetJournal,
+                .TargetJournalId = source.TargetJournalId,
+                .ManuscriptUrl = source.ManuscriptUrl,
                 .Metadata = CloneMetadata(source.Metadata),
                 .CurrentStage = source.CurrentStage,
                 .Location = source.Location,
@@ -36,6 +38,14 @@ Namespace Services
                 For Each authorLink As ManuscriptAuthor In source.Authors
                     clone.Authors.Add(
                         CloneManuscriptAuthor(authorLink)
+                    )
+                Next
+            End If
+
+            If source.RelatedLinks IsNot Nothing Then
+                For Each item As ManuscriptExternalLink In source.RelatedLinks
+                    clone.RelatedLinks.Add(
+                        CloneExternalLink(item)
                     )
                 Next
             End If
@@ -135,6 +145,24 @@ Namespace Services
         End Function
 
 
+        Public Shared Function CloneExternalLink(
+            source As ManuscriptExternalLink
+        ) As ManuscriptExternalLink
+
+            If source Is Nothing Then
+                Throw New ArgumentNullException(NameOf(source))
+            End If
+
+            Return New ManuscriptExternalLink With {
+                .Id = source.Id,
+                .Label = source.Label,
+                .Url = source.Url,
+                .Notes = source.Notes
+            }
+
+        End Function
+
+
         Public Shared Function CloneSubmission(
             source As JournalSubmission
         ) As JournalSubmission
@@ -146,6 +174,7 @@ Namespace Services
             Dim clone As New JournalSubmission With {
                 .Id = source.Id,
                 .JournalName = source.JournalName,
+                .JournalId = source.JournalId,
                 .ManuscriptNumber = source.ManuscriptNumber,
                 .SubmittedDate = source.SubmittedDate,
                 .Notes = source.Notes,

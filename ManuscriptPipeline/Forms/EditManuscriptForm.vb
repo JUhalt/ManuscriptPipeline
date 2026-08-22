@@ -25,6 +25,7 @@ Namespace Forms
         Private ReadOnly txtTargetJournal As New TextBox()
         Private ReadOnly cmbStage As New ComboBox()
         Private ReadOnly btnMetadata As New Button()
+        Private ReadOnly btnJournalLinks As New Button()
         Private _authorLibraryDirty As Boolean = False
 
         Private ReadOnly fileDrawerGroup As New GroupBox()
@@ -110,18 +111,45 @@ Namespace Forms
             Me.Font = New Font("Segoe UI", 10.0F)
             Me.AutoScaleMode = AutoScaleMode.Dpi
 
-            Dim root As New TableLayoutPanel With {
+            Dim shell As New TableLayoutPanel With {
                 .Dock = DockStyle.Fill,
                 .ColumnCount = 1,
-                .RowCount = 5,
-                .Padding = New Padding(20, 20, 20, 16)
+                .RowCount = 2,
+                .Padding = New Padding(0)
             }
 
-            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 300))
+            shell.RowStyles.Add(
+                New RowStyle(
+                    SizeType.Percent,
+                    100
+                )
+            )
+
+            shell.RowStyles.Add(
+                New RowStyle(
+                    SizeType.AutoSize
+                )
+            )
+
+            Dim scrollHost As New Panel With {
+                .Dock = DockStyle.Fill,
+                .AutoScroll = True,
+                .Padding = New Padding(0)
+            }
+
+            Dim root As New TableLayoutPanel With {
+                .Dock = DockStyle.Top,
+                .AutoSize = True,
+                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                .ColumnCount = 1,
+                .RowCount = 4,
+                .Padding = New Padding(20, 20, 20, 12)
+            }
+
+            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 325))
             root.RowStyles.Add(New RowStyle(SizeType.AutoSize))
-            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 310))
-            root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
-            root.RowStyles.Add(New RowStyle(SizeType.AutoSize))
+            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 260))
+            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 250))
 
             ' =================================================
             ' Manuscript metadata
@@ -136,7 +164,7 @@ Namespace Forms
             Dim details As New TableLayoutPanel With {
                 .Dock = DockStyle.Fill,
                 .ColumnCount = 2,
-                .RowCount = 5
+                .RowCount = 6
             }
 
             details.ColumnStyles.Add(
@@ -147,9 +175,9 @@ Namespace Forms
                 New ColumnStyle(SizeType.Percent, 100)
             )
 
-            For i As Integer = 0 To 4
+            For i As Integer = 0 To 5
                 details.RowStyles.Add(
-                    New RowStyle(SizeType.Percent, 25)
+                    New RowStyle(SizeType.Percent, 16.6667F)
                 )
             Next
 
@@ -196,6 +224,24 @@ Namespace Forms
 
             details.Controls.Add(CreateFieldLabel("Metadata"), 0, 4)
             details.Controls.Add(btnMetadata, 1, 4)
+
+            btnJournalLinks.Text =
+                "Journal, Preprint && Links..."
+
+            btnJournalLinks.AutoSize =
+                True
+
+            btnJournalLinks.Height =
+                36
+
+            btnJournalLinks.Anchor =
+                AnchorStyles.Left
+
+            AddHandler btnJournalLinks.Click,
+                AddressOf OpenJournalLinks
+
+            details.Controls.Add(CreateFieldLabel("Links"), 0, 5)
+            details.Controls.Add(btnJournalLinks, 1, 5)
 
             detailsGroup.Controls.Add(details)
 
@@ -384,6 +430,7 @@ Namespace Forms
 
             lstAuthors.Dock = DockStyle.Fill
             lstAuthors.IntegralHeight = False
+            lstAuthors.HorizontalScrollbar = True
             lstAuthors.MinimumSize = New Size(0, 105)
             lstAuthors.Margin = New Padding(0)
 
@@ -428,17 +475,28 @@ Namespace Forms
                 .Dock = DockStyle.Top,
                 .AutoSize = True,
                 .AutoSizeMode = AutoSizeMode.GrowAndShrink,
-                .ColumnCount = 2,
-                .RowCount = 1,
+                .ColumnCount = 1,
+                .RowCount = 2,
                 .Padding = New Padding(0, 2, 0, 6)
             }
 
             submissionToolbar.ColumnStyles.Add(
-                New ColumnStyle(SizeType.Percent, 100)
+                New ColumnStyle(
+                    SizeType.Percent,
+                    100
+                )
             )
 
-            submissionToolbar.ColumnStyles.Add(
-                New ColumnStyle(SizeType.AutoSize)
+            submissionToolbar.RowStyles.Add(
+                New RowStyle(
+                    SizeType.AutoSize
+                )
+            )
+
+            submissionToolbar.RowStyles.Add(
+                New RowStyle(
+                    SizeType.AutoSize
+                )
             )
 
             lblSubmissionInfo.AutoSize = True
@@ -446,11 +504,12 @@ Namespace Forms
             lblSubmissionInfo.ForeColor = SystemColors.GrayText
 
             Dim submissionButtons As New FlowLayoutPanel With {
+                .Dock = DockStyle.Fill,
                 .AutoSize = True,
                 .AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 .FlowDirection = FlowDirection.LeftToRight,
-                .WrapContents = False,
-                .Margin = New Padding(0)
+                .WrapContents = True,
+                .Margin = New Padding(0, 4, 0, 0)
             }
 
             btnViewSubmission.Text = "View"
@@ -492,7 +551,7 @@ Namespace Forms
             submissionButtons.Controls.Add(btnAddSubmission)
 
             submissionToolbar.Controls.Add(lblSubmissionInfo, 0, 0)
-            submissionToolbar.Controls.Add(submissionButtons, 1, 0)
+            submissionToolbar.Controls.Add(submissionButtons, 0, 1)
 
             lstSubmissions.Dock = DockStyle.Fill
             lstSubmissions.IntegralHeight = False
@@ -577,12 +636,27 @@ Namespace Forms
             root.Controls.Add(fileDrawerGroup, 0, 1)
             root.Controls.Add(authorsGroup, 0, 2)
             root.Controls.Add(submissionsGroup, 0, 3)
-            root.Controls.Add(footer, 0, 4)
 
             Me.AcceptButton = btnSave
             Me.CancelButton = btnCancel
 
-            Me.Controls.Add(root)
+            scrollHost.Controls.Add(root)
+
+            shell.Controls.Add(
+                scrollHost,
+                0,
+                0
+            )
+
+            shell.Controls.Add(
+                footer,
+                0,
+                1
+            )
+
+            Me.Controls.Add(
+                shell
+            )
 
         End Sub
 
@@ -1576,6 +1650,36 @@ Namespace Forms
 
 
         ' =====================================================
+        ' Journal / preprint / project links
+        ' =====================================================
+
+        Private Sub OpenJournalLinks(
+            sender As Object,
+            e As EventArgs
+        )
+
+            Using dialog As New ManuscriptLinksForm(
+                _workingManuscript,
+                _allManuscripts
+            )
+
+                If dialog.ShowDialog(Me) =
+                   DialogResult.OK Then
+
+                    txtTargetJournal.Text =
+                        _workingManuscript.TargetJournal
+
+                    _authorLibrary =
+                        _authorRepository.Load()
+
+                End If
+
+            End Using
+
+        End Sub
+
+
+        ' =====================================================
         ' Save working copy
         ' =====================================================
 
@@ -1634,8 +1738,48 @@ Namespace Forms
             _workingManuscript.CoAuthors =
                 txtCoAuthors.Text.Trim()
 
-            _workingManuscript.TargetJournal =
+            Dim oldTargetJournalText As String =
+                If(
+                    _workingManuscript.TargetJournal,
+                    String.Empty
+                ).Trim()
+
+            Dim newTargetJournalText As String =
                 txtTargetJournal.Text.Trim()
+
+            If _workingManuscript.TargetJournalId.HasValue AndAlso
+               Not String.Equals(
+                   oldTargetJournalText,
+                   newTargetJournalText,
+                   StringComparison.CurrentCultureIgnoreCase
+               ) Then
+
+                Dim linkedJournal As JournalRecord =
+                    _authorLibrary.Journals.
+                        FirstOrDefault(
+                            Function(item)
+                                Return item IsNot Nothing AndAlso
+                                    item.Id =
+                                        _workingManuscript.TargetJournalId.Value
+                            End Function
+                        )
+
+                If linkedJournal Is Nothing OrElse
+                   Not String.Equals(
+                       linkedJournal.Name,
+                       newTargetJournalText,
+                       StringComparison.CurrentCultureIgnoreCase
+                   ) Then
+
+                    _workingManuscript.TargetJournalId =
+                        Nothing
+
+                End If
+
+            End If
+
+            _workingManuscript.TargetJournal =
+                newTargetJournalText
 
             If oldStage <> newStage Then
 
@@ -1768,6 +1912,7 @@ Namespace Forms
             Dim clone As New JournalSubmission With {
                 .Id = source.Id,
                 .JournalName = source.JournalName,
+                .JournalId = source.JournalId,
                 .ManuscriptNumber = source.ManuscriptNumber,
                 .SubmittedDate = source.SubmittedDate,
                 .Notes = source.Notes,
@@ -1838,8 +1983,17 @@ Namespace Forms
             _originalManuscript.TargetJournal =
                 committed.TargetJournal
 
+            _originalManuscript.TargetJournalId =
+                committed.TargetJournalId
+
+            _originalManuscript.ManuscriptUrl =
+                committed.ManuscriptUrl
+
             _originalManuscript.Metadata =
                 committed.Metadata
+
+            _originalManuscript.RelatedLinks =
+                committed.RelatedLinks
 
             _originalManuscript.CurrentStage =
                 committed.CurrentStage

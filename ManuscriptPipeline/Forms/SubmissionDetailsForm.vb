@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 Imports System.Collections.Generic
 Imports System.Diagnostics
 Imports System.Drawing
@@ -70,7 +70,7 @@ Namespace Forms
                 .Padding = New Padding(20)
             }
 
-            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 190))
+            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 220))
             root.RowStyles.Add(New RowStyle(SizeType.Absolute, 140))
             root.RowStyles.Add(New RowStyle(SizeType.Percent, 100))
             root.RowStyles.Add(New RowStyle(SizeType.Absolute, 58))
@@ -90,6 +90,12 @@ Namespace Forms
                 .ColumnCount = 2,
                 .RowCount = 4
             }
+
+            For summaryRowIndex As Integer = 0 To 3
+                summary.RowStyles.Add(
+                    New RowStyle(SizeType.Absolute, 44)
+                )
+            Next
 
             summary.ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 165))
             summary.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
@@ -117,8 +123,11 @@ Namespace Forms
 
             Dim portalPanel As New FlowLayoutPanel With {
                 .Dock = DockStyle.Fill,
+                .AutoSize = True,
+                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 .FlowDirection = FlowDirection.LeftToRight,
-                .WrapContents = False
+                .WrapContents = False,
+                .Padding = New Padding(0, 2, 0, 0)
             }
 
             Dim lblPortal As New Label With {

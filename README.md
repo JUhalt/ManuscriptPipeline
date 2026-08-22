@@ -29,6 +29,18 @@ Unsupported or ambiguous source fields are shown as warnings rather than silentl
 
 PaperRoute can also export any user-selected manuscripts to BibTeX or RIS for use with reference managers and scholarly tools.
 
+### Journal library, portals & related links
+PaperRoute can store reusable journal records alongside the reusable author/affiliation metadata library. Journal records may include publisher, homepage, submission portal, notes, favorite status, and shortlist status. Manuscripts can link a target journal to one of these reusable records while retaining the existing free-text target-journal field for backward compatibility.
+
+The manuscript Links editor also stores preprint DOI/URL data and labeled project-style web links such as OSF projects, preregistrations, data repositories, or publisher pages. PaperRoute opens only valid `http://` or `https://` links and stores **no publisher passwords or credentials**.
+
+Journal submissions may be seeded from the reusable journal library. A reusable journal link helps fill the journal and portal fields, but PaperRoute continues to preserve submission-specific history rather than inventing events from journal metadata.
+
+### Publication & CV exports
+**Data → Publication & CV Export...** creates human-readable publication output from PaperRoute metadata without modifying manuscript records. Exports can be filtered to Published records, Accepted/In Press/Published records, or the complete manuscript library, then narrowed to individually selected records.
+
+Output is available as plain text, Markdown, or HTML in publication-list or CV-section style. Structured authors are used when available; legacy author text remains a fallback. DOI, journal, volume, issue, pages, publication URL, and preprint information are included when present, while incomplete records still produce editable output.
+
 ## Current status
 
 **v0.1.0** — first stable release of the PaperRoute Reliable Core.
@@ -47,6 +59,9 @@ Development on `master` is now targeting **v0.2.0-alpha.1**, beginning with stor
 - **Search, stage filtering, and sorting** across the manuscript library.
 - **Reusable authors and affiliations** with manuscript-specific order, corresponding-author designation, optional ORCID, and preserved legacy author text.
 - **ORCID public-profile import** for user-reviewed names, affiliations, and works, with explicit Published-vs-Idea control for imported records.
+- **Reusable journal library** with favorites/shortlists, publisher homepages, submission portals, and manuscript target links.
+- **Preprint and project links** for OSF-style resources and other manuscript web destinations, without storing publisher credentials.
+- **Publication & CV exports** to editable plain text, Markdown, and HTML.
 - **Light, Dark, and Follow Windows themes** using modern .NET 10 WinForms theming.
 - **Excel import/export** using the PaperRoute workbook format.
 - **Legacy tracker import** for the original development spreadsheet format.
@@ -128,7 +143,7 @@ library.xlsx
 files\
 ```
 
-Managed document copies are included in the backup. Reusable author/affiliation metadata is included when present. Externally linked files remain references to their original paths.
+Managed document copies are included in the backup. Reusable author, affiliation, and journal metadata is included when present. Externally linked files remain references to their original paths.
 
 **Restore Backup...** validates the archive, previews record/file counts, asks for explicit confirmation, creates an emergency backup of the current library, and then restores the selected archive.
 
