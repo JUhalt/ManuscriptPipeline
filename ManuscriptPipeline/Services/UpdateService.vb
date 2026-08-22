@@ -221,7 +221,7 @@ Namespace Services
 
             Dim options As New UpdateOptions With {
                 .ExplicitChannel = ChannelName(channel),
-                .AllowVersionDowngrade = True
+                .AllowVersionDowngrade = False
             }
 
             Return New UpdateManager(

@@ -1,86 +1,48 @@
 # Changelog
 
-### v0.2 reminders, calendar, and help development
-- Added a deterministic reminder engine combining revision deadlines, journal-submission follow-up dates, and user-defined manuscript reminders.
-- Added a Reminders & Calendar window with overdue/due/upcoming filtering, custom reminder add/edit/complete actions, and portable `.ics` calendar export.
-- Added optional startup Windows reminder notifications, disabled by default and designed to fail without blocking normal PaperRoute use.
-- Added configurable reminder notification lead time to Preferences.
-- Added follow-up dates to journal submissions and surfaced them in submission lists/details until an editorial decision is recorded.
-- Added the canonical `docs/USER_GUIDE.md` manual, local/offline in-app User Guide access, guide search, and README discovery links.
-- Extended manuscript cloning, normalization, and portable-restore validation for reminder data.
-- Added automated coverage for reminder status logic, follow-up suppression, notification windows/summaries, iCalendar output, persistence, deep cloning, and User Guide rendering.
-
-### v0.2 journal + publication-export development
-- Added reusable journal records to the existing local reusable-metadata library, including publisher, homepage, submission portal, notes, favorite status, and shortlist status.
-- Added manuscript target-journal linkage while preserving the existing free-text target journal for backward compatibility.
-- Added a dedicated manuscript Journal, Preprint & Links editor for preprint DOI/URL and labeled OSF/project-style web destinations.
-- Added safe browser launching restricted to validated `http://` and `https://` links; PaperRoute does not store publisher passwords or credentials.
-- Added reusable-journal selection when recording or editing a journal submission.
-- Extended portable backup/restore validation so reusable journals travel inside the established `authors.json` reusable-metadata file.
-- Added Publication & CV Export with Published, Accepted+Published, and All Manuscripts filters; record selection; live preview; clipboard copy; and plain-text, Markdown, or HTML output.
-- Added publication formatting that uses structured authors when available, falls back to legacy author text, and includes DOI/publication/preprint metadata without mutating manuscripts.
-- Added regression coverage for journal persistence, URL safety, clone semantics, portable backup/restore, publication filtering/formatting, HTML escaping, preprint fallback, and export immutability.
-
-### v0.2E development
-- Added BibTeX and RIS import with preview-before-apply record selection.
-- Added DOI/title duplicate protection and reusable structured-author matching during bibliography import.
-- Added explicit control over whether imported publication records enter Published or remain Ideas.
-- Added warnings for unsupported and ambiguous source fields instead of silently discarding them.
-- Added BibTeX and RIS export for user-selected PaperRoute manuscripts.
-- Added regression coverage for parsing, export, round-trip metadata, duplicate detection, author reuse/order, and lifecycle-safe imports.
-
-### v0.2D development
-- Added standards-aware ORCID iD normalization and checksum validation.
-- Added user-initiated, read-only public ORCID profile lookup with preview-before-apply controls for names, reusable affiliations, and candidate works.
-- Added one-way ORCID work import with DOI/title deduplication, provenance metadata, and explicit control over whether dated works enter Published or remain Ideas.
-- Added Crossref enrichment of manuscript-specific affiliations for authors already attached to a manuscript without duplicating the structured author.
-- Improved Manuscript Details author controls so move buttons remain accessible at narrower widths while the author list keeps useful vertical space.
-- Added regression coverage for ORCID validation/parsing/application, duplicate work handling, explicit Published import, and Crossref enrichment of already-assigned authors.
-
-### v0.2C development
-- Added DOI normalization and Crossref metadata lookup with preview-before-apply controls.
-- Added selective enrichment for DOI, title, publication details, abstract/keywords, and structured authors.
-- Added Crossref author matching by ORCID/name and reusable affiliation matching without changing lifecycle state.
-- Added Crossref provenance in manuscript external identifiers and regression coverage for normalization, parsing, selective apply behavior, and author deduplication.
-
 All notable changes to PaperRoute Tracker will be documented here.
 
-## [Unreleased]
+## [0.2.0] - 2026-08-22
 
 ### Added
 
-- Storage schema 2 foundation for v0.2 metadata and integrations.
-- Automatic, validated migration from storage schema 1 to schema 2.
-- Preservation of the previous schema metadata as `schema.v1.bak` during schema-1 to schema-2 migration.
-- Structured manuscript metadata for abstracts, keywords, DOI, publication details, preprint links, and external identifiers.
-- Regression coverage for schema migration safety and schema-2 metadata persistence.
-- Isolated development storage for Visual Studio debugger launches so experimental builds do not modify the stable PaperRoute library.
-- Stage-filter counts showing the number of manuscripts currently in each lifecycle stage.
-- Regression coverage for development-profile selection and stage-count summaries.
-- Reusable author records with structured names, optional ORCID, notes, and a single-user "Me" designation.
-- Reusable affiliation records for institutions, departments, and locations.
-- Manuscript-specific structured author order, affiliation assignments, and corresponding-author designation.
-- Authors & Affiliations library management from the Data menu.
-- Portable backups now carry reusable author/affiliation metadata when present.
-- Regression coverage for author-library recovery, structured-author persistence, metadata-safe manuscript cloning, and author-library backup/restore.
-- ORCID public-profile lookup and selective one-way import for author identity, affiliations, and works.
-- ORCID work provenance and DOI/title duplicate protection.
+- Storage schema 2 metadata foundation with explicit schema-1 to schema-2 migration.
+- Reusable structured authors and affiliations with manuscript-specific order, affiliation assignments, corresponding-author designation, and ORCID-ready identities.
+- DOI normalization and Crossref lookup with selective preview-before-apply metadata enrichment.
+- ORCID public-profile lookup and one-way import for identity, affiliations, and works.
+- BibTeX and RIS import/export with DOI/title duplicate protection, structured-author reuse, and visible warnings for unsupported or ambiguous fields.
+- Reusable Journal Library with publisher/homepage/submission-portal metadata, favorites, shortlist status, and manuscript target-journal linkage.
+- Preprint DOI/URL and labeled project/source links such as OSF destinations.
+- Publication and CV export to plain text, Markdown, and HTML.
+- Deterministic reminder engine for revision deadlines, submission follow-ups, and custom manuscript reminders.
+- Reminders & Calendar view with overdue/due/upcoming filters and portable `.ics` calendar export.
+- Optional Windows startup reminder notifications with configurable lead time.
+- Canonical `docs/USER_GUIDE.md` plus searchable local/offline in-app Help.
+- Isolated Visual Studio development storage and stage-count filtering.
 
 ### Changed
 
-- Development version advances to `0.2.0-alpha.1`.
-- Existing schema-1 libraries are validated before schema metadata is upgraded.
-- Schema migration no longer rejects every lower positive schema version; supported migrations are applied explicitly and sequentially.
-- Developer windows and Diagnostics clearly identify when the isolated development storage profile is active.
-- Existing free-text co-author values are retained as legacy author text rather than being silently parsed into authoritative people.
-- Manuscript editing now deep-copies schema-2 metadata and structured authors so unrelated edits cannot drop DOI/publication/preprint metadata.
-- External integrations remain preview-first and user controlled; dated ORCID works only enter Published when the user explicitly selects that import behavior.
+- External metadata integrations remain preview-first and user controlled; they do not silently change manuscript lifecycle state.
+- Dated ORCID/bibliography works enter Published only when the user explicitly chooses that placement.
+- Manuscript cloning, persistence normalization, and portable restore preserve schema-2 metadata, reusable identities, links, reminders, and follow-up dates.
+- Explicit submission follow-up dates remain user-owned reminders until changed or cleared.
+- Revision reminders derive from the latest editorial-decision deadline, with the legacy manuscript-level field retained only as a compatibility fallback.
+- Main dashboard, Manuscript Details, submission controls, reminder UI, and secondary dialogs received responsive/high-DPI layout polish.
 
-### Compatibility
+### Compatibility and safety
 
-- Schema-1 manuscript data is not rewritten during the schema-1 to schema-2 migration.
-- Invalid schema-1 manuscript JSON prevents the schema upgrade and leaves the original schema/data unchanged.
-- Schema versions newer than the current build continue to fail closed.
+- Existing schema-1 manuscript data is validated before schema metadata is upgraded.
+- The previous schema metadata is preserved as `schema.v1.bak` during migration.
+- Invalid schema-1 manuscript JSON blocks migration rather than being silently rewritten.
+- Future unsupported schema versions continue to fail closed.
+- Existing free-text co-author values remain preserved as legacy text.
+- PaperRoute does not store publisher portal passwords or credentials.
+
+### Testing
+
+- Automated regression suite contains **159 passing tests**.
+- GitHub Actions builds and tests the Windows Release configuration and publishes a Windows x64 CI artifact.
+- Final v0.2.0 publication requires upgrade, backup/restore, clean-install, updater, UI, and packaging certification.
 
 ## [0.1.0] - 2026-08-20
 

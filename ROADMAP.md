@@ -4,55 +4,98 @@ PaperRoute is moving toward a simple goal: **a trustworthy, local-first home for
 
 The live GitHub milestones and issues are the source of truth for active work. This file is the public high-level route.
 
+## Release train
+
+PaperRoute is targeting a rapid pre-1.0 release train. These are **target dates, not promises**: data integrity, migration safety, and release certification take priority over the calendar.
+
+| Release | Target | Focus |
+| --- | --- | --- |
+| **v0.2.0** | **August 22, 2026** | Metadata, integrations, reminders, calendar export, and Help |
+| **v0.3.0** | **August 25, 2026** | Visual Route View and manuscript version history |
+| **v0.4.0** | **August 28, 2026** | Submission Packet Vault and per-journal readiness |
+| **v0.5.0** | **August 31, 2026** | Reviewer Response Matrix |
+| **v0.6.0** | **September 3, 2026** | Deadline Center |
+| **v0.7.0** | **September 6, 2026** | Route statistics and time-to-publication analytics |
+| **v0.8.0** | **September 9, 2026** | Optional AI-assisted reviewer action extraction |
+| **v0.9.0** | **September 12, 2026** | 1.0 hardening and workflow polish |
+| **v1.0.0** | **September 15, 2026** | Stable-release certification |
+
 ## COMPLETE — v0.1 Reliable Core
 
 PaperRoute v0.1.0 established the trusted local core: installation and updates, schema validation, recovery, import/export, backup/restore, accessibility, high-DPI support, diagnostics, and release hardening.
 
-## NOW — v0.2 Metadata & Integrations
+## RELEASE CANDIDATE — v0.2 Metadata & Integrations
 
-Development begins with the **schema 2 metadata foundation**. Reusable authors and affiliations are the first metadata feature built on that foundation, followed by:
+The v0.2 feature set is frozen. Release-candidate work is limited to certification, packaging, documentation, and release-blocking fixes.
 
+- [x] Storage schema 2 metadata foundation and validated schema-1 migration
+- [x] Reusable authors and affiliations
 - [x] DOI and Crossref metadata enrichment
 - [x] ORCID public-profile import / one-way sync
 - [x] BibTeX and RIS import/export
-- [x] Rich journal cards, target-journal shortlist, and submission portal shortcuts
-- [x] Preprint / journal-version linkage
-- [x] Calendar export, reminders, and Windows notifications
+- [x] Journal library, target-journal workflow, and submission portal shortcuts
+- [x] Preprint / journal-version linkage and project links
+- [x] Publication and CV exports
+- [x] Calendar export, reminders, and optional Windows notifications
 - [x] User Guide and in-app Help
-- [x] CV/publication-list exports
+- [ ] Final v0.1.0 → v0.2.0 upgrade certification
+- [ ] Final backup/restore, clean-install, updater, UI, and packaging certification
 
 **Safety rule:** external integrations may suggest metadata, but they must not silently overwrite user-entered metadata or change manuscript lifecycle state. Any import that changes lifecycle placement must be an explicit user choice.
 
-## THEN — v0.3 The Route
+## v0.3.0 — The Route — target August 25
 
-- Visual Route View for every manuscript
-- Version history linked to submissions and decisions
-- Submission Packet Vault
-- Per-journal readiness/checklists
-- Reviewer Response Matrix
-- Deadline Center
-- Optional local/opt-in AI extraction of reviewer action items
-- Route statistics: days, journals, reroutes, and time-to-publication
+- Visual Route View and manuscript rerouting (#23)
+- Manuscript version history linked to submissions and decisions (#24)
 
-## TOWARD v1.0 — Trusted Research Workflow
+## v0.4.0 — Submission Readiness — target August 28
 
-- Stable versioned data model and tested migrations
-- Signed installer and reliable updater
-- Strong automated test coverage
-- Recovery tooling and proven backup/restore
-- Accessible keyboard-first UI
-- Personal/local submission analytics
-- File Drawer Revival / rerouting workflow
-- Portable project-sharing format exploration
+- Submission Packet Vault and file integrity (#25)
+- Per-journal readiness checklists (#26)
 
-### The 1.0 bar
+## v0.5.0 — Reviewer Response Workflow — target August 31
+
+- Reviewer Response Matrix (#27)
+
+## v0.6.0 — Deadline Center — target September 3
+
+- Deadline Center built on the canonical v0.2 reminder engine (#28)
+
+## v0.7.0 — Route Analytics — target September 6
+
+- Route statistics and time-to-publication analytics (#30)
+
+## v0.8.0 — Optional AI Assistance — target September 9
+
+- Optional AI-assisted reviewer action extraction (#29)
+- AI remains opt-in, preview-before-apply, and never a dependency for the reviewer workflow.
+
+## v0.9.0 — 1.0 Hardening — target September 12
+
+- Migration, recovery, backup/restore, and updater burn-down
+- Keyboard, DPI, resize, theme, and secondary-dialog polish
+- File Drawer revival / rerouting workflow polish
+- Portable project-sharing format decision and any safe pre-1.0 groundwork
+- Installer trust/signing decision and remaining release infrastructure work
+
+## v1.0.0 — Trusted Research Workflow — target September 15
 
 PaperRoute 1.0 is not defined by feature count.
 
 > **I trust this application with my research workflow.**
 
-- [x] DOI normalization and Crossref preview-before-apply metadata enrichment
-- [x] ORCID public-profile lookup with selective import and explicit lifecycle placement
-- [x] BibTeX and RIS bibliography interchange with warnings for unsupported fields
-- [x] Reusable journal library, submission portal shortcuts, preprint/project links, and no credential storage
-- [x] Publication/CV export to plain text, Markdown, and HTML
+The 1.0 bar includes:
+
+- Stable versioned data model and tested migrations
+- Reliable installer and updater
+- Strong automated regression coverage
+- Recovery tooling and proven backup/restore
+- Accessible keyboard-first UI
+- Transparent local route analytics
+- Complete rerouting / File Drawer workflow
+- Clear privacy boundaries and no silent external transmission of manuscript content
+- Release artifacts, checksums, documentation, and upgrade path verified before publication
+
+### Release discipline
+
+A target date may slip when a release candidate exposes a data-loss, migration, recovery, packaging, or updater defect. PaperRoute does not trade trustworthiness for cadence.
