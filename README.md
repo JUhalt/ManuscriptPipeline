@@ -14,6 +14,8 @@ PaperRoute Tracker helps researchers manage manuscripts from idea through submis
 
 
 
+**New to PaperRoute?** Start with the [`PaperRoute User Guide`](docs/USER_GUIDE.md) for a Quick Start, feature tour, and task-oriented "How do I...?" reference.
+
 ### DOI & Crossref enrichment
 PaperRoute can normalize a DOI or doi.org link, retrieve metadata from Crossref, preview the response, and apply only user-selected fields. Crossref never changes manuscript stage, shelf/location, or target journal. Structured authors are matched to the reusable author library by ORCID or name before new records are proposed/created.
 
@@ -41,6 +43,14 @@ Journal submissions may be seeded from the reusable journal library. A reusable 
 
 Output is available as plain text, Markdown, or HTML in publication-list or CV-section style. Structured authors are used when available; legacy author text remains a fallback. DOI, journal, volume, issue, pages, publication URL, and preprint information are included when present, while incomplete records still produce editable output.
 
+### Reminders, Windows notifications & calendar export
+**Settings → Reminders & Calendar...** combines revision deadlines, journal-submission follow-up dates, and custom manuscript reminders into one deterministic local view. Custom reminders can be added, edited, and completed without a cloud service.
+
+Active reminders can be exported as a portable `.ics` calendar for Outlook, Google Calendar, Apple Calendar, and other iCalendar-compatible tools. Optional Windows notifications are disabled by default and checked when PaperRoute starts; notification failure never blocks the in-app reminder workflow.
+
+### Built-in User Guide
+The **Help** button in the main PaperRoute header (and **Settings → User Guide...**) opens the same v0.2 guide that is maintained in [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md). Installed and portable builds ship a local copy so core help remains available offline.
+
 ## Current status
 
 **v0.1.0** — first stable release of the PaperRoute Reliable Core.
@@ -62,6 +72,8 @@ Development on `master` is now targeting **v0.2.0-alpha.1**, beginning with stor
 - **Reusable journal library** with favorites/shortlists, publisher homepages, submission portals, and manuscript target links.
 - **Preprint and project links** for OSF-style resources and other manuscript web destinations, without storing publisher credentials.
 - **Publication & CV exports** to editable plain text, Markdown, and HTML.
+- **Local reminders and calendar export** for revision deadlines, submission follow-ups, custom reminders, optional Windows notifications, and portable `.ics` events.
+- **Built-in User Guide** with Quick Start, feature discovery, and task-oriented help.
 - **Light, Dark, and Follow Windows themes** using modern .NET 10 WinForms theming.
 - **Excel import/export** using the PaperRoute workbook format.
 - **Legacy tracker import** for the original development spreadsheet format.

@@ -18,6 +18,8 @@ Namespace Forms
         Private ReadOnly txtManuscriptNumber As New TextBox()
         Private ReadOnly dtpSubmitted As New DateTimePicker()
         Private ReadOnly txtPortalUrl As New TextBox()
+        Private ReadOnly chkFollowUp As New CheckBox()
+        Private ReadOnly dtpFollowUp As New DateTimePicker()
         Private ReadOnly txtNotes As New TextBox()
 
         Private _selectedJournalId As Guid?
@@ -79,7 +81,7 @@ Namespace Forms
             Me.MinimizeBox = False
 
             Me.ClientSize =
-                New Size(720, 540)
+                New Size(760, 610)
 
             Me.Font =
                 New Font("Segoe UI", 10.0F)
@@ -90,7 +92,7 @@ Namespace Forms
             Dim root As New TableLayoutPanel With {
                 .Dock = DockStyle.Fill,
                 .ColumnCount = 2,
-                .RowCount = 7,
+                .RowCount = 8,
                 .Padding = New Padding(22)
             }
 
@@ -108,6 +110,7 @@ Namespace Forms
                 )
             )
 
+            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 58))
             root.RowStyles.Add(New RowStyle(SizeType.Absolute, 58))
             root.RowStyles.Add(New RowStyle(SizeType.Absolute, 58))
             root.RowStyles.Add(New RowStyle(SizeType.Absolute, 58))
@@ -176,6 +179,80 @@ Namespace Forms
             dtpSubmitted.Width =
                 180
 
+            chkFollowUp.Text =
+                "Remind me to follow up"
+
+            chkFollowUp.AutoSize =
+                True
+
+            chkFollowUp.Anchor =
+                AnchorStyles.Left
+
+            chkFollowUp.Margin =
+                New Padding(
+                    0,
+                    8,
+                    12,
+                    0
+                )
+
+            dtpFollowUp.Format =
+                DateTimePickerFormat.Short
+
+            dtpFollowUp.Value =
+                DateTime.Today.AddDays(30)
+
+            dtpFollowUp.Width =
+                180
+
+            dtpFollowUp.Enabled =
+                False
+
+            AddHandler chkFollowUp.CheckedChanged,
+                Sub(sender, e)
+
+                    dtpFollowUp.Enabled =
+                        chkFollowUp.Checked
+
+                End Sub
+
+            AddHandler dtpSubmitted.ValueChanged,
+                Sub(sender, e)
+
+                    If _existingSubmission Is Nothing AndAlso
+                       Not chkFollowUp.Checked Then
+
+                        Dim candidate As DateTime =
+                            dtpSubmitted.Value.Date.AddDays(30)
+
+                        If candidate <=
+                           DateTimePicker.MaximumDateTime Then
+
+                            dtpFollowUp.Value =
+                                candidate
+
+                        End If
+
+                    End If
+
+                End Sub
+
+            Dim followUpPanel As New FlowLayoutPanel With {
+                .Dock = DockStyle.Fill,
+                .AutoSize = True,
+                .FlowDirection = FlowDirection.LeftToRight,
+                .WrapContents = False,
+                .Margin = New Padding(0)
+            }
+
+            followUpPanel.Controls.Add(
+                chkFollowUp
+            )
+
+            followUpPanel.Controls.Add(
+                dtpFollowUp
+            )
+
             txtNotes.Dock =
                 DockStyle.Fill
 
@@ -233,6 +310,18 @@ Namespace Forms
                 3
             )
 
+            root.Controls.Add(
+                CreateFieldLabel("Follow-up"),
+                0,
+                4
+            )
+
+            root.Controls.Add(
+                followUpPanel,
+                1,
+                4
+            )
+
             Dim lblNotes As New Label With {
                 .Text = "Submission Notes",
                 .AutoSize = True,
@@ -247,7 +336,7 @@ Namespace Forms
             root.Controls.Add(
                 lblNotes,
                 0,
-                4
+                5
             )
 
             root.SetColumnSpan(
@@ -258,7 +347,7 @@ Namespace Forms
             root.Controls.Add(
                 txtNotes,
                 0,
-                5
+                6
             )
 
             root.SetColumnSpan(
@@ -312,7 +401,7 @@ Namespace Forms
             root.Controls.Add(
                 buttons,
                 0,
-                6
+                7
             )
 
             root.SetColumnSpan(
@@ -345,10 +434,24 @@ Namespace Forms
                 _existingSubmission.ManuscriptNumber
 
             dtpSubmitted.Value =
-                _existingSubmission.SubmittedDate
+                SafePickerDate(
+                    _existingSubmission.SubmittedDate
+                )
 
             txtPortalUrl.Text =
                 _existingSubmission.PortalUrl
+
+            If _existingSubmission.FollowUpDate.HasValue Then
+
+                chkFollowUp.Checked =
+                    True
+
+                dtpFollowUp.Value =
+                    SafePickerDate(
+                        _existingSubmission.FollowUpDate.Value
+                    )
+
+            End If
 
             txtNotes.Text =
                 _existingSubmission.Notes
@@ -593,13 +696,29 @@ Namespace Forms
 
                 decisions =
                     New List(Of EditorialDecisionEvent)(
-                        _existingSubmission.Decisions
+                        If(
+                            _existingSubmission.Decisions,
+                            New List(Of EditorialDecisionEvent)()
+                        )
                     )
 
                 correspondence =
                     New List(Of CorrespondenceItem)(
-                        _existingSubmission.Correspondence
+                        If(
+                            _existingSubmission.Correspondence,
+                            New List(Of CorrespondenceItem)()
+                        )
                     )
+
+            End If
+
+            Dim followUpDate As DateTime? =
+                Nothing
+
+            If chkFollowUp.Checked Then
+
+                followUpDate =
+                    dtpFollowUp.Value.Date
 
             End If
 
@@ -615,6 +734,8 @@ Namespace Forms
                         txtManuscriptNumber.Text.Trim(),
                     .SubmittedDate =
                         dtpSubmitted.Value.Date,
+                    .FollowUpDate =
+                        followUpDate,
                     .PortalUrl =
                         portalText,
                     .Notes =
@@ -629,6 +750,22 @@ Namespace Forms
                 DialogResult.OK
 
         End Sub
+
+
+        Private Shared Function SafePickerDate(
+            value As DateTime
+        ) As DateTime
+
+            If value < DateTimePicker.MinimumDateTime OrElse
+               value > DateTimePicker.MaximumDateTime Then
+
+                Return DateTime.Today
+
+            End If
+
+            Return value.Date
+
+        End Function
 
     End Class
 

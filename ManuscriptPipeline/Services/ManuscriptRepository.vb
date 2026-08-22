@@ -765,6 +765,61 @@ Namespace Services
 
                 Next
 
+                If manuscript.Reminders Is Nothing Then
+
+                    manuscript.Reminders =
+                        New List(Of ManuscriptReminder)()
+
+                End If
+
+                Dim reminderIds As New HashSet(Of Guid)()
+
+                For Each reminder As ManuscriptReminder In
+                    manuscript.Reminders
+
+                    If reminder Is Nothing Then
+
+                        Throw New InvalidDataException(
+                            "The manuscript library contains an invalid null reminder record."
+                        )
+
+                    End If
+
+                    If reminder.Id = Guid.Empty OrElse
+                       Not reminderIds.Add(
+                           reminder.Id
+                       ) Then
+
+                        Throw New InvalidDataException(
+                            "The manuscript library contains invalid or duplicate reminder identifiers."
+                        )
+
+                    End If
+
+                    reminder.Title =
+                        If(
+                            reminder.Title,
+                            String.Empty
+                        )
+
+                    reminder.Notes =
+                        If(
+                            reminder.Notes,
+                            String.Empty
+                        )
+
+                    reminder.DueDate =
+                        reminder.DueDate.Date
+
+                    If reminder.CompletedDate.HasValue Then
+
+                        reminder.CompletedDate =
+                            reminder.CompletedDate.Value
+
+                    End If
+
+                Next
+
                 If manuscript.Authors Is Nothing Then
 
                     manuscript.Authors =
@@ -846,6 +901,13 @@ Namespace Services
 
                         submission.Correspondence =
                             New List(Of CorrespondenceItem)()
+
+                    End If
+
+                    If submission.FollowUpDate.HasValue Then
+
+                        submission.FollowUpDate =
+                            submission.FollowUpDate.Value.Date
 
                     End If
 

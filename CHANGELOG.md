@@ -1,5 +1,15 @@
 # Changelog
 
+### v0.2 reminders, calendar, and help development
+- Added a deterministic reminder engine combining revision deadlines, journal-submission follow-up dates, and user-defined manuscript reminders.
+- Added a Reminders & Calendar window with overdue/due/upcoming filtering, custom reminder add/edit/complete actions, and portable `.ics` calendar export.
+- Added optional startup Windows reminder notifications, disabled by default and designed to fail without blocking normal PaperRoute use.
+- Added configurable reminder notification lead time to Preferences.
+- Added follow-up dates to journal submissions and surfaced them in submission lists/details until an editorial decision is recorded.
+- Added the canonical `docs/USER_GUIDE.md` manual, local/offline in-app User Guide access, guide search, and README discovery links.
+- Extended manuscript cloning, normalization, and portable-restore validation for reminder data.
+- Added automated coverage for reminder status logic, follow-up suppression, notification windows/summaries, iCalendar output, persistence, deep cloning, and User Guide rendering.
+
 ### v0.2 journal + publication-export development
 - Added reusable journal records to the existing local reusable-metadata library, including publisher, homepage, submission portal, notes, favorite status, and shortlist status.
 - Added manuscript target-journal linkage while preserving the existing free-text target journal for backward compatibility.

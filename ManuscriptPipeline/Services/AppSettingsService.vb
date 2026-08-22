@@ -149,6 +149,22 @@ Namespace Services
                     )
                 )
 
+            settings.ReminderNotificationDaysAhead =
+                Math.Max(
+                    0,
+                    Math.Min(
+                        30,
+                        settings.ReminderNotificationDaysAhead
+                    )
+                )
+
+            If settings.LastReminderNotificationDate.HasValue Then
+
+                settings.LastReminderNotificationDate =
+                    settings.LastReminderNotificationDate.Value.Date
+
+            End If
+
         End Sub
 
     End Class

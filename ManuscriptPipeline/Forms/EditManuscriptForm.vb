@@ -26,6 +26,8 @@ Namespace Forms
         Private ReadOnly cmbStage As New ComboBox()
         Private ReadOnly btnMetadata As New Button()
         Private ReadOnly btnJournalLinks As New Button()
+        Private ReadOnly lblRevisionDeadlineValue As New Label()
+        Private ReadOnly btnRevisionDeadline As New Button()
         Private _authorLibraryDirty As Boolean = False
 
         Private ReadOnly fileDrawerGroup As New GroupBox()
@@ -146,7 +148,7 @@ Namespace Forms
                 .Padding = New Padding(20, 20, 20, 12)
             }
 
-            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 325))
+            root.RowStyles.Add(New RowStyle(SizeType.Absolute, 370))
             root.RowStyles.Add(New RowStyle(SizeType.AutoSize))
             root.RowStyles.Add(New RowStyle(SizeType.Absolute, 260))
             root.RowStyles.Add(New RowStyle(SizeType.Absolute, 250))
@@ -164,7 +166,7 @@ Namespace Forms
             Dim details As New TableLayoutPanel With {
                 .Dock = DockStyle.Fill,
                 .ColumnCount = 2,
-                .RowCount = 6
+                .RowCount = 7
             }
 
             details.ColumnStyles.Add(
@@ -175,9 +177,9 @@ Namespace Forms
                 New ColumnStyle(SizeType.Percent, 100)
             )
 
-            For i As Integer = 0 To 5
+            For i As Integer = 0 To 6
                 details.RowStyles.Add(
-                    New RowStyle(SizeType.Percent, 16.6667F)
+                    New RowStyle(SizeType.Percent, 14.2857F)
                 )
             Next
 
@@ -207,6 +209,52 @@ Namespace Forms
             details.Controls.Add(CreateFieldLabel("Current stage"), 0, 3)
             details.Controls.Add(cmbStage, 1, 3)
 
+            AddHandler cmbStage.SelectedIndexChanged,
+                Sub(sender, e)
+                    RefreshRevisionDeadlineDisplay()
+                End Sub
+
+            Dim revisionDeadlinePanel As New FlowLayoutPanel With {
+                .Dock = DockStyle.Fill,
+                .AutoSize = True,
+                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                .FlowDirection = FlowDirection.LeftToRight,
+                .WrapContents = True,
+                .Margin = New Padding(0)
+            }
+
+            lblRevisionDeadlineValue.AutoSize = True
+            lblRevisionDeadlineValue.Anchor = AnchorStyles.Left
+            lblRevisionDeadlineValue.ForeColor = SystemColors.GrayText
+            lblRevisionDeadlineValue.Margin = New Padding(0, 9, 10, 0)
+
+            btnRevisionDeadline.Text = "Set / Edit..."
+            btnRevisionDeadline.AutoSize = True
+            btnRevisionDeadline.Height = 34
+
+            AddHandler btnRevisionDeadline.Click,
+                AddressOf OpenRevisionDeadlineEditor
+
+            revisionDeadlinePanel.Controls.Add(
+                lblRevisionDeadlineValue
+            )
+
+            revisionDeadlinePanel.Controls.Add(
+                btnRevisionDeadline
+            )
+
+            details.Controls.Add(
+                CreateFieldLabel("Revision deadline"),
+                0,
+                4
+            )
+
+            details.Controls.Add(
+                revisionDeadlinePanel,
+                1,
+                4
+            )
+
             btnMetadata.Text =
                 "DOI & Crossref Metadata..."
 
@@ -222,8 +270,8 @@ Namespace Forms
             AddHandler btnMetadata.Click,
                 AddressOf OpenCrossrefMetadata
 
-            details.Controls.Add(CreateFieldLabel("Metadata"), 0, 4)
-            details.Controls.Add(btnMetadata, 1, 4)
+            details.Controls.Add(CreateFieldLabel("Metadata"), 0, 5)
+            details.Controls.Add(btnMetadata, 1, 5)
 
             btnJournalLinks.Text =
                 "Journal, Preprint && Links..."
@@ -240,8 +288,8 @@ Namespace Forms
             AddHandler btnJournalLinks.Click,
                 AddressOf OpenJournalLinks
 
-            details.Controls.Add(CreateFieldLabel("Links"), 0, 5)
-            details.Controls.Add(btnJournalLinks, 1, 5)
+            details.Controls.Add(CreateFieldLabel("Links"), 0, 6)
+            details.Controls.Add(btnJournalLinks, 1, 6)
 
             detailsGroup.Controls.Add(details)
 
@@ -464,7 +512,7 @@ Namespace Forms
             }
 
             submissionsLayout.RowStyles.Add(
-                New RowStyle(SizeType.AutoSize)
+                New RowStyle(SizeType.Absolute, 92)
             )
 
             submissionsLayout.RowStyles.Add(
@@ -472,12 +520,12 @@ Namespace Forms
             )
 
             Dim submissionToolbar As New TableLayoutPanel With {
-                .Dock = DockStyle.Top,
-                .AutoSize = True,
-                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                .Dock = DockStyle.Fill,
+                .AutoSize = False,
                 .ColumnCount = 1,
                 .RowCount = 2,
-                .Padding = New Padding(0, 2, 0, 6)
+                .Padding = New Padding(0, 2, 0, 4),
+                .Margin = New Padding(0)
             }
 
             submissionToolbar.ColumnStyles.Add(
@@ -489,13 +537,15 @@ Namespace Forms
 
             submissionToolbar.RowStyles.Add(
                 New RowStyle(
-                    SizeType.AutoSize
+                    SizeType.Absolute,
+                    34
                 )
             )
 
             submissionToolbar.RowStyles.Add(
                 New RowStyle(
-                    SizeType.AutoSize
+                    SizeType.Absolute,
+                    48
                 )
             )
 
@@ -505,27 +555,27 @@ Namespace Forms
 
             Dim submissionButtons As New FlowLayoutPanel With {
                 .Dock = DockStyle.Fill,
-                .AutoSize = True,
-                .AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                .AutoSize = False,
                 .FlowDirection = FlowDirection.LeftToRight,
-                .WrapContents = True,
-                .Margin = New Padding(0, 4, 0, 0)
+                .WrapContents = False,
+                .Margin = New Padding(0, 4, 0, 0),
+                .Padding = New Padding(0)
             }
 
             btnViewSubmission.Text = "View"
             btnViewSubmission.AutoSize = True
             btnViewSubmission.Height = 36
-            btnViewSubmission.Visible = False
+            btnViewSubmission.Enabled = False
 
             btnEditSubmission.Text = "Edit Submission"
             btnEditSubmission.AutoSize = True
             btnEditSubmission.Height = 36
-            btnEditSubmission.Visible = False
+            btnEditSubmission.Enabled = False
 
             btnDeleteSubmission.Text = "Delete Submission"
             btnDeleteSubmission.AutoSize = True
             btnDeleteSubmission.Height = 36
-            btnDeleteSubmission.Visible = False
+            btnDeleteSubmission.Enabled = False
 
             Dim btnAddSubmission As New Button With {
                 .Text = "Add Submission",
@@ -720,6 +770,213 @@ Namespace Forms
 
         End Sub
 
+
+
+        ' =====================================================
+        ' Revision deadline shortcut
+        ' =====================================================
+
+        Private Sub RefreshRevisionDeadlineDisplay()
+
+            If lblRevisionDeadlineValue Is Nothing OrElse
+               btnRevisionDeadline Is Nothing Then
+
+                Return
+
+            End If
+
+            Dim selectedStage As PaperStage =
+                _workingManuscript.CurrentStage
+
+            If cmbStage.SelectedItem IsNot Nothing Then
+
+                selectedStage =
+                    CType(
+                        cmbStage.SelectedItem,
+                        PaperStage
+                    )
+
+            End If
+
+            If selectedStage <> PaperStage.Revision Then
+
+                lblRevisionDeadlineValue.Text =
+                    "Available when stage is Revision"
+
+                btnRevisionDeadline.Text =
+                    "Set / Edit..."
+
+                btnRevisionDeadline.Enabled =
+                    False
+
+                Return
+
+            End If
+
+            btnRevisionDeadline.Enabled =
+                True
+
+            Dim latestSubmission As JournalSubmission =
+                ManuscriptAttentionService.GetLatestSubmission(
+                    _workingManuscript
+                )
+
+            Dim latestDecision As EditorialDecisionEvent =
+                ManuscriptAttentionService.GetLatestDecision(
+                    latestSubmission
+                )
+
+            If latestDecision IsNot Nothing AndAlso
+               latestDecision.RevisionDeadline.HasValue Then
+
+                lblRevisionDeadlineValue.Text =
+                    latestDecision.RevisionDeadline.Value.ToString(
+                        "MMMM d, yyyy"
+                    )
+
+                btnRevisionDeadline.Text =
+                    "Edit..."
+
+                Return
+
+            End If
+
+            If _workingManuscript.RevisionDeadline.HasValue Then
+
+                lblRevisionDeadlineValue.Text =
+                    _workingManuscript.RevisionDeadline.Value.ToString(
+                        "MMMM d, yyyy"
+                    ) &
+                    " (legacy record)"
+
+                btnRevisionDeadline.Text =
+                    "Set / Edit..."
+
+                Return
+
+            End If
+
+            lblRevisionDeadlineValue.Text =
+                "Not set"
+
+            btnRevisionDeadline.Text =
+                "Set / Edit..."
+
+        End Sub
+
+
+        Private Sub OpenRevisionDeadlineEditor(
+            sender As Object,
+            e As EventArgs
+        )
+
+            Dim selectedStage As PaperStage =
+                _workingManuscript.CurrentStage
+
+            If cmbStage.SelectedItem IsNot Nothing Then
+
+                selectedStage =
+                    CType(
+                        cmbStage.SelectedItem,
+                        PaperStage
+                    )
+
+            End If
+
+            If selectedStage <> PaperStage.Revision Then
+                Return
+            End If
+
+            Dim latestSubmission As JournalSubmission =
+                ManuscriptAttentionService.GetLatestSubmission(
+                    _workingManuscript
+                )
+
+            If latestSubmission Is Nothing Then
+
+                MessageBox.Show(
+                    Me,
+                    "Revision deadlines belong to an editorial decision." &
+                    Environment.NewLine &
+                    Environment.NewLine &
+                    "Add the journal submission first, then use Revision deadline > Set / Edit to record the decision and its deadline.",
+                    "Journal Submission Required",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                )
+
+                Return
+
+            End If
+
+            Dim latestDecision As EditorialDecisionEvent =
+                ManuscriptAttentionService.GetLatestDecision(
+                    latestSubmission
+                )
+
+            If latestDecision Is Nothing Then
+
+                Using dialog As New AddDecisionForm()
+
+                    If dialog.ShowDialog(Me) <>
+                       DialogResult.OK OrElse
+                       dialog.CreatedDecision Is Nothing Then
+
+                        Return
+
+                    End If
+
+                    latestSubmission.Decisions.Add(
+                        dialog.CreatedDecision
+                    )
+
+                    _workingManuscript.RevisionDeadline =
+                        dialog.CreatedDecision.RevisionDeadline
+
+                End Using
+
+            Else
+
+                Using dialog As New AddDecisionForm(
+                    latestDecision
+                )
+
+                    If dialog.ShowDialog(Me) <>
+                       DialogResult.OK OrElse
+                       dialog.CreatedDecision Is Nothing Then
+
+                        Return
+
+                    End If
+
+                    Dim updated As EditorialDecisionEvent =
+                        dialog.CreatedDecision
+
+                    For decisionIndex As Integer = 0 To latestSubmission.Decisions.Count - 1
+
+                        If latestSubmission.Decisions(decisionIndex).Id =
+                           latestDecision.Id Then
+
+                            latestSubmission.Decisions(decisionIndex) =
+                                updated
+
+                            Exit For
+
+                        End If
+
+                    Next
+
+                    _workingManuscript.RevisionDeadline =
+                        updated.RevisionDeadline
+
+                End Using
+
+            End If
+
+            RefreshSubmissionList()
+            RefreshRevisionDeadlineDisplay()
+
+        End Sub
 
 
         ' =====================================================
@@ -1323,6 +1580,7 @@ Namespace Forms
             End If
 
             UpdateSubmissionButtons()
+            RefreshRevisionDeadlineDisplay()
 
         End Sub
 
@@ -1361,6 +1619,17 @@ Namespace Forms
 
                 result &=
                     " - Portal"
+
+            End If
+
+            If submission.FollowUpDate.HasValue AndAlso
+               submission.Decisions.Count = 0 Then
+
+                result &=
+                    " - Follow-up " &
+                    submission.FollowUpDate.Value.ToString(
+                        "MMM d"
+                    )
 
             End If
 
@@ -1419,13 +1688,13 @@ Namespace Forms
             Dim hasSelection As Boolean =
                 GetSelectedSubmission() IsNot Nothing
 
-            btnViewSubmission.Visible =
+            btnViewSubmission.Enabled =
                 hasSelection
 
-            btnEditSubmission.Visible =
+            btnEditSubmission.Enabled =
                 hasSelection
 
-            btnDeleteSubmission.Visible =
+            btnDeleteSubmission.Enabled =
                 hasSelection
 
         End Sub
@@ -1915,6 +2184,7 @@ Namespace Forms
                 .JournalId = source.JournalId,
                 .ManuscriptNumber = source.ManuscriptNumber,
                 .SubmittedDate = source.SubmittedDate,
+                .FollowUpDate = source.FollowUpDate,
                 .Notes = source.Notes,
                 .PortalUrl = source.PortalUrl
             }
@@ -1994,6 +2264,9 @@ Namespace Forms
 
             _originalManuscript.RelatedLinks =
                 committed.RelatedLinks
+
+            _originalManuscript.Reminders =
+                committed.Reminders
 
             _originalManuscript.CurrentStage =
                 committed.CurrentStage
